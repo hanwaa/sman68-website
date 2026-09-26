@@ -5,13 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
-import {
-  EKSKUL_CATEGORIES,
-  categoryColors,
-  categoryColorFor,
-  type Ekskul,
-  type EkskulCategory,
-} from "@/lib/ekskul";
+import { categoryColorFor, type Ekskul } from "@/lib/ekskul";
 import { useContent } from "@/lib/use-content";
 
 type Ring = {
@@ -126,10 +120,7 @@ export default function ConstellationSection() {
 
   const mapRef = useRef<HTMLDivElement>(null);
   const groupRefs = useRef<(SVGGElement | null)[]>([]);
-  const pausedRef = useRef(false);
-  const visibleRef = useRef(true);
   const [hovered, setHovered] = useState<Ekskul | null>(null);
-  const [activeCategory, setActiveCategory] = useState<EkskulCategory | null>(null);
   const router = useRouter();
   const a11yPauseRef = useRef(false);
 
@@ -158,19 +149,6 @@ export default function ConstellationSection() {
   };
 
   useEffect(() => {
-    const el = mapRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        visibleRef.current = entry.isIntersecting;
-      },
-      { threshold: 0.05 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
@@ -187,7 +165,9 @@ export default function ConstellationSection() {
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
 
-      if (pausedRef.current || !visibleRef.current || a11yPauseRef.current) return;
+      // Tidak ada jeda karena hover atau saat di luar layar: orbit harus
+      // berputar terus. Hanya preferensi reduced-motion yang menghentikannya.
+      if (a11yPauseRef.current) return;
 
       let index = 0;
       rings.forEach((ring, ri) => {
@@ -245,17 +225,11 @@ export default function ConstellationSection() {
           <div
             ref={mapRef}
             // Orbit memakai sisa tinggi layar: 92vw di layar sempit (HP),
-            // calc(100svh - 340px) di layar lebar, dibatasi 560px agar tidak
-            // berlebihan di monitor tinggi. 340px = navbar (104) + judul (~107)
-            // + kategori & tombol (~96) + padding bawah (24) + margin aman.
+            // calc(100svh - 286px) di layar lebar, dibatasi 620px agar tidak
+            // berlebihan di monitor tinggi. 286px = navbar (104) + judul (~107)
+            // + tombol (~44) + padding bawah (24) + margin aman.
             // Dengan begitu bagian ini selalu pas satu layar tanpa scroll.
-            className="orbit-map relative mx-auto aspect-square w-[min(92vw,calc(100svh-340px))] max-w-[560px]"
-            onPointerEnter={() => {
-              pausedRef.current = true;
-            }}
-            onPointerLeave={() => {
-              pausedRef.current = false;
-            }}
+            className="orbit-map relative mx-auto aspect-square w-[min(92vw,calc(100svh-286px))] max-w-[620px]"
           >
             <svg
               viewBox={`0 0 ${VIEW} ${VIEW}`}
@@ -283,7 +257,7 @@ export default function ConstellationSection() {
                   r={ringRadii[ri]}
                   fill="none"
                   stroke="white"
-                  strokeOpacity={activeCategory ? 0.05 : 0.09}
+                  strokeOpacity={0.09}
                   strokeWidth={1}
                 />
               ))}
@@ -320,11 +294,7 @@ export default function ConstellationSection() {
                         ref={(el) => {
                           groupRefs.current[index] = el;
                         }}
-                        className={`orbit-planet transition-opacity duration-300 ${
-                          activeCategory && item.category !== activeCategory
-                            ? "opacity-20"
-                            : "opacity-100"
-                        }`}
+                        className="orbit-planet"
                         tabIndex={0}
                         role="link"
                         aria-label={`${item.name} — ${item.category}. Lihat ringkasan ekskul`}
@@ -513,34 +483,7 @@ export default function ConstellationSection() {
           </div>
         </motion.div>
 
-        <div className="mt-3 shrink-0 flex flex-col items-center gap-3">
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            {EKSKUL_CATEGORIES.map((cat) => {
-              const active = activeCategory === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(active ? null : cat)}
-                  aria-pressed={active}
-                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
-                    active
-                      ? "border-brand-lime bg-surface-3 text-white"
-                      : "border-edge-1 text-white/55 hover:text-white hover:border-edge-2"
-                  }`}
-                >
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: categoryColors[cat].color }}
-                  />
-                  {cat}
-                  <span className={active ? "text-white/60" : "text-white/30"}>
-                    {ekskulList.filter((e) => e.category === cat).length}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
+        <div className="mt-3 shrink-0 flex flex-col items-center">
           <Link
             href="/kehidupan/ekskul"
             className="btn-accent"
