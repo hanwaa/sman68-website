@@ -212,8 +212,10 @@ export default function ConstellationSection() {
 
   return (
     <section
-      className="bg-brand-pine overflow-hidden pt-20 pb-6 md:pt-[6.5rem] md:pb-6 flex flex-col"
-      style={{ minHeight: "100svh" }}
+      // Tinggi satu layar hanya di desktop. Di HP section dibiarkan mengikuti
+      // tinggi isinya supaya tidak memaksa halaman melompat saat berganti
+      // address bar saat scroll.
+      className="bg-brand-pine overflow-hidden pt-20 pb-6 md:min-h-[100svh] md:pt-[6.5rem] md:pb-6 flex flex-col"
       aria-label="Ekskul & Organisasi"
     >
       <div className="container-custom">
@@ -409,18 +411,22 @@ export default function ConstellationSection() {
                       strokeDasharray="5 7"
                     />
                     {selected.thumb ? (
-                      <>
-                        <circle cx={CX} cy={CY - 48} r={22} fill="#ffffff" />
+                      // Dibungkus <g transform> supaya koordinatnya lokal
+                      // terhadap pusat lingkaran; clipPath di-center di (0,0)
+                      // dan tidak akan memotong gambar kalau memakai
+                      // koordinat absolut SVG.
+                      <g transform={`translate(${CX} ${CY - 48})`}>
+                        <circle cx={0} cy={0} r={22} fill="#ffffff" />
                         <image
                           href={selected.thumb}
-                          x={CX - 18}
-                          y={CY - 66}
+                          x={-18}
+                          y={-18}
                           width={36}
                           height={36}
                           preserveAspectRatio="xMidYMid meet"
                           clipPath="url(#orbit-detail-clip)"
                         />
-                      </>
+                      </g>
                     ) : (
                       <text
                         x={CX}
