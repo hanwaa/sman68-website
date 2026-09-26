@@ -54,3 +54,6 @@ next-env.d.ts
 # slot build sementara untuk swap deploy
 .next-new
 .next-old
+
+# cache Turbopack yang disimpan antar deploy
+.turbopack-cache

@@ -61,8 +61,25 @@ bash -c '
   # dihapus. Artefak ini hanya dipakai saat build, jadi aman dihapus dulu;
   # build baru akan membuat ulang di .next-new/types.
   rm -rf .next/types .next/dev/types
+
+  # Cache Turbopack disimpan di <distDir>/cache/turbopack. Karena build ditulis
+  # ke .next-new dan folder itu baru saja dihapus, cache selalu terbuang dan
+  # setiap deploy jadi cold build. Salin cache dari build yang sedang aktif
+  # supaya Turbopack memakai ulang hasil transformasi sebelumnya.
+  if [ -d .next/cache ]; then
+    mkdir -p .next-new/cache
+    cp -r .next/cache/. .next-new/cache/ 2>/dev/null || true
+  fi
+
   NEXT_BUILD_CPUS="$BUILD_CPUS" NEXT_DIST_DIR=".next-new" npm run build
   [ -f .next-new/BUILD_ID ] || { echo "!! build tidak menghasilkan .next-new/BUILD_ID — dibatalkan." >&2; exit 1; }
+
+  # Simpan cache build baru di luar .next, supaya tetap ada untuk deploy
+  # berikutnya setelah .next lama dibersihkan.
+  CACHE_KEEP="$APP_DIR/.turbopack-cache"
+  rm -rf "$CACHE_KEEP"
+  mkdir -p "$CACHE_KEEP"
+  [ -d .next-new/cache ] && cp -r .next-new/cache/. "$CACHE_KEEP/" 2>/dev/null || true
 
   # --- 3. Swap: rename lama, pasang baru, reload ---
   echo "== swap .next ↔ .next-new + pm2 reload =="
