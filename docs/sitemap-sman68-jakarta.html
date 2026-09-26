@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Sitemap Website — SMAN 68 Jakarta</title>
+<style>
+  :root{
+    --pine:#0B2E20; --green:#16794A; --deep:#0F5F39; --leaf:#2FA36B;
+    --lime:#B7EC6E; --mist:#EAF4EE; --ink:#0E1B15; --cream:#F6F8F5;
+    --line:#D7E1DA; --muted:#5C6B62;
+  }
+  *{box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  @page{ size:A4 landscape; margin:0; }
+  html,body{margin:0; padding:0;}
+  body{
+    width:297mm; min-height:210mm; padding:6mm 8mm 4mm;
+    font-family:"Noto Sans","DejaVu Sans",Arial,sans-serif;
+    color:var(--ink); background:#fff; font-size:8px;
+  }
+  .head{display:flex; align-items:center; gap:3.4mm; border-bottom:2.5px solid var(--pine); padding-bottom:2mm;}
+  .head img{width:12mm; height:12mm; object-fit:contain;}
+  .head .t1{font-size:7px; letter-spacing:2.2px; font-weight:700; color:var(--green); text-transform:uppercase;}
+  .head .t2{font-size:16.5px; font-weight:800; color:var(--pine); line-height:1.1; letter-spacing:-.2px;}
+  .head .t3{font-size:7.4px; color:var(--muted); margin-top:.5mm;}
+  .head .right{margin-left:auto; text-align:right; font-size:7.1px; color:var(--muted); line-height:1.5;}
+  .head .right b{color:var(--pine);}
+
+  .legend{display:flex; gap:3.4mm; align-items:center; margin:1.8mm 0 .8mm; font-size:7px; color:var(--muted);}
+  .legend .item{display:inline-flex; align-items:center; gap:1.1mm; font-weight:600;}
+  .dot{width:2.1mm; height:2.1mm; border-radius:999px; flex:0 0 auto; display:inline-block;}
+  .dot.public{background:var(--green);}
+  .dot.dyn{background:var(--lime); border:1px solid #9CCB57;}
+  .dot.auth{background:var(--pine);}
+  .dot.role{background:var(--leaf);}
+  .dot.ext{background:#fff; border:1.4px dashed var(--muted);}
+  .dot.sys{background:#C2CEC5;}
+
+  .diagram{margin-top:.8mm;}
+
+  .root{
+    width:58mm; margin:0 auto; background:var(--pine); color:#fff; text-align:center;
+    border-radius:3mm; padding:1.7mm 2.6mm 1.9mm; box-shadow:0 1px 0 #00000012;
+  }
+  .root .rl{font-size:10px; font-weight:800; letter-spacing:.2px;}
+  .root .rp{font-size:7px; color:var(--lime); font-weight:700; margin-top:.3mm;}
+  .root .rs{font-size:6.4px; color:#ffffffb0; margin-top:.5mm;}
+  .vconn{width:2px; height:4mm; background:var(--line); margin:0 auto;}
+
+  .branches{display:flex; position:relative; padding-top:4.6mm;}
+  .branches::before{content:""; position:absolute; top:0; height:2px; background:var(--line); left:8.333%; right:8.333%;}
+  .branch{flex:1 1 0; padding:0 1.2mm; position:relative; min-width:0;}
+  .branch::before{content:""; position:absolute; top:-4.6mm; left:50%; transform:translateX(-50%); width:2px; height:4.6mm; background:var(--line);}
+  .bhead{border-radius:2mm 2mm 0 0; padding:1.2mm 1.6mm; color:#fff; font-weight:800; font-size:7.5px; line-height:1.15; text-align:center;}
+  .bhead .bh-path{display:block; font-size:6.1px; font-weight:600; opacity:.78; margin-top:.25mm;}
+  .bhead.g1{background:var(--deep);}
+  .bhead.g2{background:var(--green);}
+  .bhead.g3{background:var(--leaf);}
+  .bhead.g4{background:#1C8F5C;}
+  .bhead.g5{background:#14603C;}
+  .bhead.g6{background:#3E5C4C;}
+  .bhead.role{background:var(--pine);}
+
+  .pages{border:1px solid var(--line); border-top:none; border-radius:0 0 2mm 2mm; padding:1mm .9mm; background:#fff;}
+  .page{display:flex; align-items:center; gap:1.2mm; padding:.95mm 1.1mm; border-radius:1.3mm; background:var(--cream); border:1px solid #EDF2EE; margin-bottom:.7mm;}
+  .page:last-child{margin-bottom:0;}
+  .page .txt{min-width:0; flex:1;}
+  .page .plabel{font-weight:700; font-size:7px; line-height:1.2; display:block;}
+  .page .ppath{font-size:6px; color:var(--muted); display:block; margin-top:.2mm; font-family:"DejaVu Sans Mono",monospace; word-break:break-all;}
+  .tag{font-size:5.4px; font-weight:800; text-transform:uppercase; letter-spacing:.3px; padding:.3mm .9mm; border-radius:999px; white-space:nowrap;}
+  .tag.dyn{background:var(--lime); color:#274B10;}
+  .tag.ext{background:#fff; color:var(--muted); border:1px dashed var(--muted);}
+  .tag.sys{background:#EDF1EE; color:var(--muted);}
+  .tag.tab{background:var(--mist); color:var(--deep);}
+
+  .dashwrap{margin-top:3.2mm; border-top:1.6px dashed #C9D6CD; padding-top:2.2mm;}
+  .dashlabel{text-align:center; font-size:6.8px; font-weight:800; letter-spacing:1.8px; color:var(--muted); text-transform:uppercase; margin-bottom:1.6mm;}
+  .dashrow{display:flex; justify-content:center; align-items:center; gap:3mm;}
+  .chain{display:flex; align-items:center; gap:2.2mm;}
+  .node{
+    border:1.6px solid var(--pine); color:var(--pine); background:#fff;
+    border-radius:2.2mm; padding:1.4mm 2.8mm; text-align:center; font-weight:800; font-size:7.8px;
+  }
+  .node .np{display:block; font-size:6.1px; font-weight:600; color:var(--muted); margin-top:.25mm; font-family:"DejaVu Sans Mono",monospace;}
+  .node.dark{background:var(--pine); color:#fff; border-color:var(--pine);}
+  .node.dark .np{color:var(--lime);}
+  .arrow{color:#9BB0A3; font-size:9px; font-weight:800;}
+  .rolecols{display:flex; position:relative; padding-top:4.6mm; margin-top:0;}
+  .rolecols::before{content:""; position:absolute; top:0; height:2px; background:var(--line); left:16.666%; right:16.666%;}
+  .rolehead{display:inline-block; border-radius:999px; background:var(--mist); color:var(--deep); font-weight:800; font-size:7.2px; padding:.8mm 2.6mm; margin:0 auto 1.1mm; text-align:center;}
+  .branch .roleheadwrap{text-align:center;}
+
+  .foot{margin-top:2.4mm; border-top:1px solid var(--line); padding-top:1.1mm; display:flex; gap:6mm; font-size:6.3px; color:var(--muted); line-height:1.45;}
+  .foot b{color:var(--pine);}
+</style>
+</head>
+<body>
+
+  <header class="head">
+    <img src="../public/assets/logo.png" alt="Logo SMAN 68 Jakarta">
+    <div>
+      <div class="t1">UI/UX Documentation · Information Architecture</div>
+      <div class="t2">Sitemap Website SMAN 68 Jakarta</div>
+      <div class="t3">Peta halaman publik, autentikasi, dan dashboard per peran — sumber: struktur route aplikasi Next.js</div>
+    </div>
+    <div class="right">
+      Domain: <b>sman68-jkt.my.id</b><br>
+      Jenis: <b>Sitemap / Peta Navigasi</b><br>
+      Tanggal: <b>25 September 2026</b>
+    </div>
+  </header>
+
+  <div class="legend">
+    <span class="item"><span class="dot public"></span> Halaman publik</span>
+    <span class="item"><span class="dot dyn"></span> Halaman dinamis</span>
+    <span class="item"><span class="dot auth"></span> Butuh login</span>
+    <span class="item"><span class="dot role"></span> Menu dashboard per peran</span>
+    <span class="item"><span class="dot ext"></span> Tautan eksternal</span>
+    <span class="item"><span class="tag sys">Sistem</span> halaman teknis (non-UI)</span>
+  </div>
+
+  <div class="diagram">
+    <!-- LEVEL 0 -->
+    <div class="root">
+      <div class="rl">Beranda</div>
+      <div class="rp">/</div>
+      <div class="rs">Halaman utama — hero, sambutan, berita, prestasi, fasilitas, testimoni, kontak</div>
+    </div>
+    <div class="vconn"></div>
+
+    <!-- LEVEL 1: 6 CABANG PUBLIK -->
+    <div class="branches">
+      <div class="branch">
+        <div class="bhead g1">Profil<span class="bh-path">/tentang</span></div>
+        <div class="pages">
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Profil Sekolah</span><span class="ppath">/tentang/profil</span></span></div>
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Visi &amp; Misi</span><span class="ppath">/tentang/visi-misi</span></span></div>
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Sejarah</span><span class="ppath">/tentang/sejarah</span></span></div>
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Kepala Sekolah</span><span class="ppath">/tentang/kepala-sekolah</span></span></div>
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Guru &amp; Staf</span><span class="ppath">/tentang/guru-staf</span></span></div>
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Fasilitas</span><span class="ppath">/tentang/fasilitas</span></span></div>
+        </div>
+      </div>
+
+      <div class="branch">
+        <div class="bhead g2">Akademik<span class="bh-path">/akademik</span></div>
+        <div class="pages">
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Program Studi</span><span class="ppath">/akademik/program</span></span></div>
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Ekstrakurikuler</span><span class="ppath">/kehidupan/ekskul</span></span></div>
+        </div>
+      </div>
+
+      <div class="branch">
+        <div class="bhead g3">Informasi<span class="bh-path">/berita</span></div>
+        <div class="pages">
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Berita</span><span class="ppath">/berita</span></span></div>
+          <div class="page"><span class="dot dyn"></span><span class="txt"><span class="plabel">Detail Berita</span><span class="ppath">/berita/[slug]</span></span><span class="tag dyn">dinamis</span></div>
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Prestasi</span><span class="ppath">/prestasi</span></span></div>
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Galeri</span><span class="ppath">/kehidupan/galeri</span></span></div>
+        </div>
+      </div>
+
+      <div class="branch">
+        <div class="bhead g4">PPDB<span class="bh-path">/ppdb</span></div>
+        <div class="pages">
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Alur &amp; Jadwal</span><span class="ppath">/ppdb#alur</span></span></div>
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Biaya &amp; Beasiswa</span><span class="ppath">/ppdb/biaya</span></span></div>
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">FAQ PPDB</span><span class="ppath">/ppdb/faq</span></span></div>
+          <div class="page"><span class="dot ext"></span><span class="txt"><span class="plabel">Portal PPDB Resmi</span><span class="ppath">ppdb.jakarta.go.id</span></span><span class="tag ext">eksternal</span></div>
+        </div>
+      </div>
+
+      <div class="branch">
+        <div class="bhead g5">Komunitas<span class="bh-path">/komunitas</span></div>
+        <div class="pages">
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Jaringan Alumni</span><span class="ppath">/komunitas/alumni</span></span></div>
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Testimoni</span><span class="ppath">/#testimoni</span></span></div>
+        </div>
+      </div>
+
+      <div class="branch">
+        <div class="bhead g6">Pendukung<span class="bh-path">Kebijakan &amp; sistem</span></div>
+        <div class="pages">
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Kebijakan Privasi</span><span class="ppath">/kebijakan-privasi</span></span></div>
+          <div class="page"><span class="dot public"></span><span class="txt"><span class="plabel">Aksesibilitas</span><span class="ppath">/aksesibilitas</span></span></div>
+          <div class="page"><span class="dot sys"></span><span class="txt"><span class="plabel">Sitemap XML</span><span class="ppath">/sitemap.xml</span></span><span class="tag sys">sistem</span></div>
+          <div class="page"><span class="dot sys"></span><span class="txt"><span class="plabel">Robots</span><span class="ppath">/robots.txt</span></span><span class="tag sys">sistem</span></div>
+          <div class="page"><span class="dot sys"></span><span class="txt"><span class="plabel">Manifest PWA</span><span class="ppath">/manifest.webmanifest</span></span><span class="tag sys">sistem</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEVEL 1: AUTENTIKASI & DASHBOARD -->
+    <div class="dashwrap">
+      <div class="dashlabel">Area Terautentikasi</div>
+      <div class="dashrow">
+        <div class="chain">
+          <div class="node">Halaman Login<span class="np">/login</span></div>
+          <span class="arrow">&#10230;</span>
+          <div class="node dark">Dashboard<span class="np">/dashboard</span></div>
+        </div>
+      </div>
+      <div class="vconn" style="height:3.4mm;"></div>
+
+      <div class="rolecols">
+        <div class="branch">
+          <div class="roleheadwrap"><span class="rolehead">Siswa</span></div>
+          <div class="pages">
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Beranda</span><span class="ppath">ringkasan, jadwal, pengumuman</span></span></div>
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Kelas Digital</span><span class="ppath">forum, tugas, nilai, anggota</span></span></div>
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Agenda Sekolah</span><span class="ppath">kalender kegiatan</span></span></div>
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Absensi</span><span class="ppath">check-in selfie &amp; rekap</span></span></div>
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Pengumuman</span><span class="ppath">filter belum dibaca / mendesak</span></span></div>
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Prestasi Saya</span><span class="ppath">portofolio &amp; leaderboard</span></span></div>
+          </div>
+        </div>
+
+        <div class="branch">
+          <div class="roleheadwrap"><span class="rolehead">Guru</span></div>
+          <div class="pages">
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Beranda</span><span class="ppath">ringkasan kelas &amp; agenda</span></span></div>
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Kelas Digital</span><span class="ppath">materi, tugas, nilai, permintaan join</span></span></div>
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Agenda Sekolah</span><span class="ppath">kalender kegiatan</span></span></div>
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Absensi Kelas</span><span class="ppath">rekap harian siswa</span></span></div>
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Pengumuman</span><span class="ppath">kelola &amp; terbitkan</span></span></div>
+          </div>
+        </div>
+
+        <div class="branch">
+          <div class="roleheadwrap"><span class="rolehead">Admin</span></div>
+          <div class="pages">
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Ringkasan &amp; Metrik</span><span class="ppath">statistik realtime &amp; moderasi</span></span></div>
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Agenda Sekolah</span><span class="ppath">kelola event</span></span></div>
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Manajemen Data</span><span class="ppath">CMS seluruh konten</span></span></div>
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Data Pengguna</span><span class="ppath">tambah, edit, hapus, reset password</span></span></div>
+            <div class="page"><span class="dot role"></span><span class="txt"><span class="plabel">Pengaturan Akun</span><span class="ppath">profil &amp; preferensi notifikasi</span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <div style="flex:1">
+      <b>Catatan:</b> Menu dashboard bersifat <i>conditional rendering</i> (satu route <span style="font-family:monospace">/dashboard</span>, konten menyesuaikan peran akun).
+      Halaman <b>Kelas Digital</b> mencakup sub-tab Forum, Tugas, Nilai, Orang, dan Permintaan (khusus guru).
+    </div>
+    <div style="flex:1">
+      <b>Sumber:</b> struktur <span style="font-family:monospace">src/app</span> (Next.js App Router), navigasi Navbar &amp; Footer, serta menu sidebar dashboard.
+      Dibuat untuk keperluan dokumentasi UI/UX.
+    </div>
+  </footer>
+
+</body>
+</html>
