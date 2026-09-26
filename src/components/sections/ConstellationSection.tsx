@@ -219,7 +219,7 @@ export default function ConstellationSection() {
       // Tinggi satu layar hanya di desktop. Di HP section dibiarkan mengikuti
       // tinggi isinya supaya tidak memaksa halaman melompat saat berganti
       // address bar saat scroll.
-      className="bg-brand-pine overflow-hidden pt-20 pb-6 md:min-h-[100svh] md:pt-[6.5rem] md:pb-6 flex flex-col"
+      className="bg-brand-pine overflow-hidden pt-20 pb-6 md:min-h-[100svh] md:pt-[6.5rem] md:pb-4 flex flex-col"
       aria-label="Ekskul & Organisasi"
     >
       <div className="container-custom">
@@ -228,16 +228,16 @@ export default function ConstellationSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="max-w-2xl mx-auto text-center mb-3 shrink-0"
+          className="max-w-2xl mx-auto text-center mb-2 shrink-0"
         >
-          <h2 className="font-display font-extrabold uppercase text-white text-balance text-2xl sm:text-3xl md:text-4xl lg:text-5xl tracking-[0.08em] sm:tracking-[0.12em] md:tracking-[0.16em]">
+          <h2 className="font-display font-extrabold uppercase text-white text-balance text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] tracking-[0.08em] sm:tracking-[0.12em] md:tracking-[0.16em]">
             Ekstrakurikuler
           </h2>
           <span
-            className="block w-14 h-0.5 bg-brand-lime mx-auto mt-3"
+            className="block w-14 h-0.5 bg-brand-lime mx-auto mt-2.5"
             aria-hidden="true"
           />
-          <p className="mt-2 text-sm text-white/60">
+          <p className="mt-1.5 text-sm text-white/60">
             Klik salah satu ekskul untuk melihat ringkasannya
           </p>
         </motion.div>
@@ -252,11 +252,10 @@ export default function ConstellationSection() {
           <div
             ref={mapRef}
             // Orbit memakai sisa tinggi layar: 92vw di layar sempit (HP),
-            // calc(100svh - 286px) di layar lebar, dibatasi 620px agar tidak
-            // berlebihan di monitor tinggi. 286px = navbar (104) + judul (~107)
-            // + tombol (~44) + padding bawah (24) + margin aman.
+            // calc(100svh - 262px) di layar lebar, dibatasi 760px. 262px = navbar
+            // (104) + judul (~92) + tombol (~44) + padding bawah (16) + margin aman.
             // Dengan begitu bagian ini selalu pas satu layar tanpa scroll.
-            className="orbit-map relative mx-auto aspect-square w-[min(92vw,calc(100svh-286px))] max-w-[620px]"
+            className="orbit-map relative mx-auto aspect-square w-[min(92vw,calc(100svh-262px))] max-w-[760px]"
           >
             <svg
               viewBox={`0 0 ${VIEW} ${VIEW}`}
@@ -514,7 +513,7 @@ export default function ConstellationSection() {
           </div>
         </motion.div>
 
-        <div className="mt-3 shrink-0 flex flex-col items-center">
+        <div className="mt-2 shrink-0 flex flex-col items-center">
           <Link
             href="/kehidupan/ekskul"
             className="btn-accent"
