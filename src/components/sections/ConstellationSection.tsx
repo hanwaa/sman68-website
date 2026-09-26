@@ -210,23 +210,27 @@ export default function ConstellationSection() {
   }, [rings]);
 
   return (
-    <section className="py-12 md:py-16 bg-brand-pine overflow-hidden" aria-label="Ekskul & Organisasi">
+    <section
+      className="bg-brand-pine overflow-hidden pt-20 pb-6 md:pt-[6.5rem] md:pb-6 flex flex-col"
+      style={{ minHeight: "100svh" }}
+      aria-label="Ekskul & Organisasi"
+    >
       <div className="container-custom">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="max-w-2xl mx-auto text-center mb-6 md:mb-8"
+          className="max-w-2xl mx-auto text-center mb-3 shrink-0"
         >
           <h2 className="font-display font-extrabold uppercase text-white text-balance text-2xl sm:text-3xl md:text-4xl lg:text-5xl tracking-[0.08em] sm:tracking-[0.12em] md:tracking-[0.16em]">
             Ekstrakurikuler
           </h2>
           <span
-            className="block w-14 h-0.5 bg-brand-lime mx-auto mt-5"
+            className="block w-14 h-0.5 bg-brand-lime mx-auto mt-3"
             aria-hidden="true"
           />
-          <p className="mt-4 text-sm text-white/60">
+          <p className="mt-2 text-sm text-white/60">
             Klik salah satu ekskul untuk melihat ringkasannya
           </p>
         </motion.div>
@@ -236,10 +240,16 @@ export default function ConstellationSection() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
+          className="flex-1 min-h-0 flex items-center justify-center"
         >
           <div
             ref={mapRef}
-            className="orbit-map relative max-w-[420px] sm:max-w-[480px] mx-auto"
+            // Orbit memakai sisa tinggi layar: 92vw di layar sempit (HP),
+            // calc(100svh - 340px) di layar lebar, dibatasi 560px agar tidak
+            // berlebihan di monitor tinggi. 340px = navbar (104) + judul (~107)
+            // + kategori & tombol (~96) + padding bawah (24) + margin aman.
+            // Dengan begitu bagian ini selalu pas satu layar tanpa scroll.
+            className="orbit-map relative mx-auto aspect-square w-[min(92vw,calc(100svh-340px))] max-w-[560px]"
             onPointerEnter={() => {
               pausedRef.current = true;
             }}
@@ -503,7 +513,7 @@ export default function ConstellationSection() {
           </div>
         </motion.div>
 
-        <div className="mt-6 md:mt-8 flex flex-col items-center gap-5">
+        <div className="mt-3 shrink-0 flex flex-col items-center gap-3">
           <div className="flex flex-wrap items-center justify-center gap-2">
             {EKSKUL_CATEGORIES.map((cat) => {
               const active = activeCategory === cat;
