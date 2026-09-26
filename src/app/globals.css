@@ -221,8 +221,8 @@
 
   .btn-danger {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5
-           bg-red-600 text-white font-semibold text-sm tracking-[-0.01em]
-           hover:bg-red-700 active:translate-y-px
+           bg-danger-deep text-white font-semibold text-sm tracking-[-0.01em]
+           hover:bg-danger-deep active:translate-y-px
            disabled:pointer-events-none disabled:opacity-50
            transition-colors duration-150;
   }
@@ -424,36 +424,23 @@ html.a11y-focus :focus-visible {
 }
 
 /* Ramah buta warna: ganti merah dengan jingga tegas (terbedakan untuk protanopia/deuteranopia) */
-html.a11y-colorblind .text-red-500,
-html.a11y-colorblind .text-red-600,
-html.a11y-colorblind .text-red-700 {
+html.a11y-colorblind .text-danger-deep {
   color: #b45309 !important;
 }
 
-html.a11y-colorblind .bg-red-50,
-html.a11y-colorblind .bg-red-50\/50,
-html.a11y-colorblind .bg-red-50\/60 {
-  background-color: #fdf0dd !important;
-}
-
-html.a11y-colorblind .bg-red-100 {
+html.a11y-colorblind .bg-danger-tint,
+html.a11y-colorblind .bg-danger-tint\/50,
+html.a11y-colorblind .bg-danger-tint\/60 {
   background-color: #fde7cc !important;
 }
 
-html.a11y-colorblind .border-red-100 {
-  border-color: #f5cfa1 !important;
-}
-
-html.a11y-colorblind .border-red-500,
-html.a11y-colorblind .border-l-red-500 {
+html.a11y-colorblind .border-danger,
+html.a11y-colorblind .border-danger\/40 {
   border-color: #d97706 !important;
 }
 
-html.a11y-colorblind .border-l-red-500 {
-  border-left-color: #d97706 !important;
-}
-
-html.a11y-colorblind .hover\:bg-red-500:hover {
+html.a11y-colorblind .hover\:bg-danger-deep:hover,
+html.a11y-colorblind .hover\:bg-danger-tint:hover {
   background-color: #d97706 !important;
 }
 
@@ -515,7 +502,7 @@ html.a11y-touch textarea {
   border-radius: 4px;
 }
 
-/* Leaflet � Peta Kampus Alumni */
+/* Leaflet untuk Peta Kampus Alumni */
 .leaflet-container {
   font-family: inherit;
   background: #eaf4ee;

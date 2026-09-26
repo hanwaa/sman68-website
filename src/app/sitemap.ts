@@ -2,45 +2,54 @@ import type { MetadataRoute } from "next";
 import { dbConfigured, getDb } from "@/lib/db";
 import { siteBase } from "@/lib/seo";
 
-export const revalidate = 3600;
+/**
+ * Sitemap di-prerender saat build (force-static) dan disajikan Next langsung
+ * dari berkas statis — tanpa runtime Node dan tanpa query DB saat request.
+ * Ini yang membuat Googlebot tidak pernah Dependent dari kondisi server: GSC
+ * sempat mencatat "Pengambilan halaman: Gagal — Error server (5xx)" saat
+ * sitemap masih dirender on-demand.
+ *
+ * Konsekuensi: artikel yang baru terbit belum masuk sitemap sampai deploy
+ * berikutnya (artikelnya tetap terindeks lewat link internal & Peta Situs
+ * Google News).
+ */
+export const dynamic = "force-static";
 
-type ChangeFrequency = MetadataRoute.Sitemap[number]["changeFrequency"];
-
-const staticRoutes: Array<{
-  path: string;
-  priority: number;
-  changeFrequency: ChangeFrequency;
-}> = [
-  { path: "", priority: 1, changeFrequency: "weekly" },
-  { path: "/berita", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/prestasi", priority: 0.8, changeFrequency: "weekly" },
-  { path: "/ppdb", priority: 0.9, changeFrequency: "monthly" },
-  { path: "/ppdb/biaya", priority: 0.7, changeFrequency: "monthly" },
-  { path: "/ppdb/faq", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/akademik/program", priority: 0.8, changeFrequency: "monthly" },
-  { path: "/kehidupan/ekskul", priority: 0.7, changeFrequency: "monthly" },
-  { path: "/kehidupan/galeri", priority: 0.7, changeFrequency: "weekly" },
-  { path: "/komunitas/alumni", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/tentang/profil", priority: 0.8, changeFrequency: "monthly" },
-  { path: "/tentang/visi-misi", priority: 0.7, changeFrequency: "monthly" },
-  { path: "/tentang/sejarah", priority: 0.6, changeFrequency: "yearly" },
-  { path: "/tentang/kepala-sekolah", priority: 0.6, changeFrequency: "yearly" },
-  { path: "/tentang/guru-staf", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/tentang/fasilitas", priority: 0.8, changeFrequency: "monthly" },
-  { path: "/kebijakan-privasi", priority: 0.3, changeFrequency: "yearly" },
-  { path: "/aksesibilitas", priority: 0.3, changeFrequency: "yearly" },
+/**
+ * Hanya <loc> dan <lastmod> yang dipakai. Google mengabaikan <changefreq> dan
+ * <priority>, jadi keduanya dihilangkan agar sitemap sesederhana mungkin.
+ *
+ * lastmod memakai format tanggal saja (YYYY-MM-DD) sesuai contoh minimal
+ * sitemap.org. Rute statis sengaja tanpa lastmod: kalau diisi `now`, setiap
+ * sitemap yang di-regenerate menandai semua halaman berubah dan Google
+ * encouraged untuk recrawl semuanya tanpa alasan.
+ */
+const staticRoutes: string[] = [
+  "",
+  "/berita",
+  "/prestasi",
+  "/ppdb",
+  "/ppdb/biaya",
+  "/ppdb/faq",
+  "/akademik/program",
+  "/kehidupan/ekskul",
+  "/kehidupan/galeri",
+  "/komunitas/alumni",
+  "/tentang/profil",
+  "/tentang/visi-misi",
+  "/tentang/kepala-sekolah",
+  "/tentang/struktur",
+  "/tentang/fasilitas",
+  "/kebijakan-privasi",
+  "/aksesibilitas",
 ];
+
+const dateOnly = (value: Date): string => value.toISOString().slice(0, 10);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteBase();
-  const now = new Date();
 
-  const entries: MetadataRoute.Sitemap = staticRoutes.map((route) => ({
-    url: base + route.path,
-    lastModified: now,
-    changeFrequency: route.changeFrequency,
-    priority: route.priority,
-  }));
+  const entries: MetadataRoute.Sitemap = staticRoutes.map((path) => ({ url: base + path }));
 
   try {
     if (dbConfigured()) {
@@ -56,9 +65,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         if (!slug) continue;
         entries.push({
           url: `${base}/berita/${slug}`,
-          lastModified: row.published_at ? new Date(String(row.published_at)) : now,
-          changeFrequency: "monthly",
-          priority: 0.6,
+          ...(row.published_at ? { lastModified: dateOnly(new Date(String(row.published_at))) } : {}),
         });
       }
     }

@@ -1,8 +1,10 @@
 import "server-only";
 
 import { dbConfigured, getDb } from "@/lib/db";
+import { filterPublicRooms } from "@/lib/fasilitas-publik";
 
 export type Facility = {
+  id: string;
   name: string;
   category: string | null;
   floor: string | null;
@@ -66,24 +68,32 @@ function detectFloor(message: string): string | null {
   return null;
 }
 
+/**
+ * Ruangan yang boleh disebut ke pengunjung lewat chatbot.
+ * Ruang administrasi sekolah (ruang guru, kepala sekolah, tata usaha, dst.)
+ * disaring di sini agar tidak bocor lewat jawaban chat.
+ */
 export async function getFacilities(): Promise<Facility[]> {
   if (cache && Date.now() - cache.at < CACHE_TTL) return cache.items;
   if (!dbConfigured()) return [];
 
   try {
     const rows = await getDb()`
-      select name, category, floor, building, capacity, description
+      select id, name, category, floor, building, capacity, description
       from facilities
       order by sort asc
     `;
-    const items: Facility[] = rows.map((row) => ({
-      name: String(row.name ?? ""),
-      category: row.category == null ? null : String(row.category),
-      floor: row.floor == null ? null : String(row.floor),
-      building: row.building == null ? null : String(row.building),
-      capacity: row.capacity == null ? null : Number(row.capacity),
-      description: row.description == null ? null : String(row.description),
-    }));
+    const items: Facility[] = filterPublicRooms(
+      rows.map((row) => ({
+        id: String(row.id ?? ""),
+        name: String(row.name ?? ""),
+        category: row.category == null ? null : String(row.category),
+        floor: row.floor == null ? null : String(row.floor),
+        building: row.building == null ? null : String(row.building),
+        capacity: row.capacity == null ? null : Number(row.capacity),
+        description: row.description == null ? null : String(row.description),
+      }))
+    );
     cache = { at: Date.now(), items };
     return items;
   } catch (error) {
@@ -91,8 +101,11 @@ export async function getFacilities(): Promise<Facility[]> {
     return [];
   }
 }
-
-/** Kata kunci yang menunjuk ke ruang tertentu (dicari dari nama & deskripsi ruang). */
+/**
+ * Kata kunci yang menunjuk ke ruang tertentu (dicari dari nama & deskripsi ruang).
+ * Hanya ruang consumption publik — ruang administrasi disaring oleh
+ * `getFacilities` dan karena itu tidak perlu dicantumkan di sini.
+ */
 const SUBJECT_HINTS: { needle: string; label: string }[] = [
   { needle: "perpustakaan", label: "perpustakaan" },
   { needle: "lab komputer", label: "Lab Komputer" },
@@ -113,15 +126,10 @@ const SUBJECT_HINTS: { needle: string; label: string }[] = [
   { needle: "climbing", label: "Climbing Wall" },
   { needle: "gudang olahraga", label: "Gudang Olahraga" },
   { needle: "koperasi", label: "Koperasi Sekolah" },
-  { needle: "satpam", label: "Pos Satpam" },
   { needle: "uks", label: "Ruang UKS" },
   { needle: "bk", label: "Ruang BK" },
-  { needle: "piket", label: "Ruang Piket" },
   { needle: "audio visual", label: "Ruang Audio Visual" },
   { needle: "galeri", label: "Galeri Prestasi" },
-  { needle: "tata usaha", label: "Tata Usaha" },
-  { needle: "kepala sekolah", label: "Ruang Kepala Sekolah" },
-  { needle: "ruang guru", label: "Ruang Guru" },
 ];
 
 function detectSubject(message: string, items: Facility[]) {

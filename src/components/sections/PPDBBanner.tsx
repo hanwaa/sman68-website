@@ -93,7 +93,7 @@ export default function PPDBBanner() {
               Prosesnya transparan dan didampingi panitia sampai kamu resmi menjadi siswa.
             </p>
 
-            <div className="mt-8 inline-flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-8 rounded-2xl border border-white/15 bg-white/5 px-7 py-6">
+            <div className="mt-8 inline-flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-8 rounded-2xl border border-edge-1 bg-surface-1 px-7 py-6">
               <span className="flex items-center gap-2 text-brand-lime text-xs font-semibold uppercase tracking-wider">
                 <Timer size={14} aria-hidden="true" />
                 Menuju pembukaan
@@ -141,7 +141,7 @@ export default function PPDBBanner() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.45, delay: i * 0.1 }}
-                  className="flex gap-4 rounded-2xl border border-white/10 bg-white/5 p-5"
+                  className="flex gap-4 rounded-2xl border border-edge-1 bg-surface-1 p-5"
                 >
                   <span className="w-11 h-11 rounded-xl bg-brand-lime/15 flex items-center justify-center flex-shrink-0">
                     <Icon size={20} className="text-brand-lime" aria-hidden="true" />

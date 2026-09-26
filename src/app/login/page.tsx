@@ -160,7 +160,7 @@ function LoginForm() {
             {error && (
               <p
                 role="alert"
-                className="flex items-start gap-2 text-[11px] text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2"
+                className="flex items-start gap-2 text-[11px] text-danger-deep bg-danger-tint border border-danger rounded-lg px-3 py-2"
               >
                 <AlertCircle size={13} className="mt-0.5 flex-shrink-0" />
                 {error}

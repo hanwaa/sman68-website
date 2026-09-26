@@ -56,7 +56,7 @@ export default function StudentAnnouncements({
             {unreadCount} belum dibaca
           </span>
           {urgentCount > 0 && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 border border-red-200 px-3 py-1.5 text-[11px] font-semibold text-red-700 shadow-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-danger-tint border border-danger px-3 py-1.5 text-[11px] font-semibold text-danger-deep shadow-sm">
               <AlertCircle size={12} aria-hidden="true" />
               {urgentCount} mendesak
             </span>
@@ -115,7 +115,7 @@ export default function StudentAnnouncements({
               <span
                 className={cn(
                   "absolute inset-y-0 left-0 w-1",
-                  ann.isUrgent ? "bg-red-500" : ann.isPinned ? "bg-brand-lime" : "bg-brand-green/40"
+                  ann.isUrgent ? "bg-danger-deep" : ann.isPinned ? "bg-brand-lime" : "bg-brand-green/40"
                 )}
                 aria-hidden="true"
               />
@@ -124,7 +124,7 @@ export default function StudentAnnouncements({
                   className={cn(
                     "w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0",
                     ann.isUrgent
-                      ? "bg-red-100 text-red-600"
+                      ? "bg-danger-tint text-danger-deep"
                       : ann.isPinned
                         ? "bg-brand-lime/25 text-brand-pine"
                         : "bg-brand-green/10 text-brand-green"
@@ -142,7 +142,7 @@ export default function StudentAnnouncements({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2 mb-1.5">
                     {ann.isUrgent && (
-                      <span className="badge bg-red-100 text-red-700 text-[10px] font-bold">Mendesak</span>
+                      <span className="badge bg-danger-tint text-danger-deep text-[10px] font-bold">Mendesak</span>
                     )}
                     {ann.isPinned && (
                       <span className="badge bg-brand-lime/25 text-brand-pine text-[10px] font-bold inline-flex items-center gap-1">

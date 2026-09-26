@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, Filter, Users, Trophy, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EKSKUL_CATEGORIES, type Ekskul } from "@/lib/ekskul";
+import type { AchievementContent } from "@/lib/content";
+import EkskulAchievements from "@/components/features/EkskulAchievements";
 import { useModalA11y } from "@/lib/useModalA11y";
 import { useContentResource } from "@/lib/use-content";
 import { Skeleton, SkeletonGrid } from "@/components/ui/Skeleton";
@@ -55,8 +57,19 @@ function LogoBox({
   );
 }
 
-export default function EkskulList({ initialEkskul }: { initialEkskul: Ekskul[] }) {
+export default function EkskulList({
+  initialEkskul,
+  initialAchievements,
+}: {
+  initialEkskul: Ekskul[];
+  initialAchievements?: AchievementContent[];
+}) {
   const { data: ekskulList, loading } = useContentResource<Ekskul[]>("ekskul", [], initialEkskul);
+  const { data: achievementList } = useContentResource<AchievementContent[]>(
+    "achievements",
+    [],
+    initialAchievements
+  );
   const [activeCategory, setActiveCategory] = useState("Semua");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Ekskul | null>(null);
@@ -241,7 +254,7 @@ export default function EkskulList({ initialEkskul }: { initialEkskul: Ekskul[] 
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative bg-white rounded-xl p-6 sm:p-8 max-w-md w-full shadow-card overflow-hidden focus:outline-none"
+              className="relative max-h-[90vh] overflow-y-auto bg-white rounded-xl p-6 sm:p-8 max-w-md w-full shadow-card focus:outline-none"
             >
               <button
                 onClick={() => setSelected(null)}
@@ -274,6 +287,14 @@ export default function EkskulList({ initialEkskul }: { initialEkskul: Ekskul[] 
                   </div>
                 ))}
               </div>
+
+              <div className="mt-5 border-t border-line pt-4">
+                <EkskulAchievements
+                  ekskulId={selected.id}
+                  achievements={achievementList}
+                />
+              </div>
+
             </motion.div>
           </div>
         )}

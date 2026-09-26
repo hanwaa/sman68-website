@@ -38,6 +38,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { filterPublicRooms } from "@/lib/fasilitas-publik";
 import PageHero from "@/components/ui/PageHero";
 import { schoolData } from "@/lib/school-data";
 import type { FacilityContent } from "@/lib/content";
@@ -100,7 +101,9 @@ export default function FasilitasMap() {
 
   const rooms = useMemo(
     () =>
-      facilities.map((facility) => ({
+      // Ruangan internal tidak ditampilkan: dipakai untuk keperluan
+      // administrasi sekolah, bukan konsumsi publik.
+      filterPublicRooms(facilities).map((facility) => ({
         ...facility,
         images: facility.images ?? [],
         icon: ROOM_ICONS[facility.id] ?? BookOpen,

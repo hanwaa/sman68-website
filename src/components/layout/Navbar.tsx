@@ -78,9 +78,8 @@ const navItems = [
     children: [
       { label: "Profil Sekolah", href: "/tentang/profil", icon: BookOpen },
       { label: "Visi & Misi", href: "/tentang/visi-misi", icon: Star },
-      { label: "Sejarah", href: "/tentang/sejarah", icon: BookOpen },
       { label: "Kepala Sekolah", href: "/tentang/kepala-sekolah", icon: Users },
-      { label: "Guru & Staf", href: "/tentang/guru-staf", icon: Users },
+      { label: "Struktur Organisasi", href: "/tentang/struktur", icon: Users },
       { label: "Fasilitas", href: "/tentang/fasilitas", icon: Map },
     ],
   },
@@ -501,7 +500,6 @@ export default function Navbar() {
                     { title: "Tim Robotika SMAN 68 Raih Juara 1 Nasional", type: "Berita", href: "/berita/tim-robotika-juara-1-nasional" },
                     { title: "PPDB Resmi Dibuka — Jadwal & Syarat", type: "Pengumuman", href: "/ppdb" },
                     { title: "Festival Seni SMAN 68", type: "Kegiatan", href: "/berita/festival-seni-sman-68" },
-                    { title: "Drs. Ahmad Fauzi, M.Pd. — Matematika", type: "Guru", href: "/tentang/guru-staf" },
                     { title: "Basket Putra", type: "Ekskul", href: "/kehidupan/ekskul" },
                     { title: "Paduan Suara", type: "Ekskul", href: "/kehidupan/ekskul" },
                     { title: "Robotika", type: "Ekskul", href: "/kehidupan/ekskul" },
@@ -547,7 +545,6 @@ export default function Navbar() {
                       { label: "Agenda & Jadwal", href: "/dashboard", icon: Calendar },
                       { label: "Info PPDB", href: "/ppdb", icon: BookOpen },
                       { label: "Ekskul & Organisasi", href: "/kehidupan/ekskul", icon: Users },
-                      { label: "Guru & Staf", href: "/tentang/guru-staf", icon: Users },
                       { label: "Fasilitas & Denah Ruang", href: "/tentang/fasilitas", icon: Map },
                     ].map((item) => {
                       const Icon = item.icon;

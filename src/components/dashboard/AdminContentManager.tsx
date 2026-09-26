@@ -67,8 +67,8 @@ const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-100 text-amber-700",
   draft: "bg-line text-muted",
   Nonaktif: "bg-line text-muted",
-  rejected: "bg-red-100 text-red-600",
-  archived: "bg-red-100 text-red-600",
+  rejected: "bg-danger-tint text-danger-deep",
+  archived: "bg-danger-tint text-danger-deep",
 };
 
 const formatCell = (value: unknown) => {
@@ -451,7 +451,7 @@ export default function AdminContentManager({ onShowToast = () => {} }: AdminCon
                         {!resource.singleton && (
                           <button
                             onClick={() => handleDelete(row)}
-                            className="btn-icon h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600"
+                            className="btn-icon h-8 w-8 text-danger-deep hover:bg-danger-tint hover:text-danger-deep"
                             aria-label="Hapus"
                             title="Hapus"
                           >
@@ -520,7 +520,7 @@ export default function AdminContentManager({ onShowToast = () => {} }: AdminCon
                     <div key={field.name} className={cn(wide && "sm:col-span-2")}>
                       <label className="mb-1 block text-xs font-semibold text-ink">
                         {field.label}
-                        {field.required && <span className="text-red-500"> *</span>}
+                        {field.required && <span className="text-danger-deep"> *</span>}
                       </label>
                       {isPrimaryKey ? (
                         <div>
@@ -582,7 +582,7 @@ export default function AdminContentManager({ onShowToast = () => {} }: AdminCon
                             <button
                               type="button"
                               onClick={() => setForm((prev) => ({ ...prev, [field.name]: "" }))}
-                              className="text-[11px] font-semibold text-red-500 hover:underline"
+                              className="text-[11px] font-semibold text-danger-deep hover:underline"
                             >
                               Hapus gambar
                             </button>
@@ -637,7 +637,7 @@ export default function AdminContentManager({ onShowToast = () => {} }: AdminCon
                                       }))
                                     }
                                     aria-label="Hapus foto"
-                                    className="absolute right-0.5 top-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-red-500"
+                                    className="absolute right-0.5 top-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-danger-deep"
                                   >
                                     <X size={10} />
                                   </button>

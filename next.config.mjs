@@ -1,7 +1,13 @@
 /** @type {import('next').NextConfig} */
 const buildCpus = Number(process.env.NEXT_BUILD_CPUS);
 
+// Deploy memakai swap dua slot: build baru ditulis ke .next-new sementara app
+// masih melayani dari .next, lalu keduanya ditukar saat reload. Lihat
+// deploy/remote-deploy.sh. Nilai default tetap ".next" untuk dev & build lokal.
+const distDir = process.env.NEXT_DIST_DIR || ".next";
+
 const nextConfig = {
+  distDir,
   poweredByHeader: false,
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion", "recharts"],
@@ -22,7 +28,19 @@ const nextConfig = {
         ],
       },
       {
-        source: "/api/:path*",
+        // Sitemap & robots: dibuat stabil di cache edge supaya fetch Google
+        // tidak pernah menyentuh origin (dan tidak gagal saat deploy).
+        source: "/sitemap.xml",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=600, s-maxage=86400, stale-while-revalidate=604800",
+          },
+        ],
+      },
+      {
+        // /api/og dikecualikan: og:image tidak boleh noindex agar preview ke-trigger.
+        source: "/api/:path((?!og$).*)",
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
       {

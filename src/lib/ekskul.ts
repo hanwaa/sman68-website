@@ -31,10 +31,10 @@ export const EKSKUL_CATEGORIES: EkskulCategory[] = [
 ];
 
 export const categoryColors: Record<EkskulCategory, { color: string; soft: string }> = {
-  Olahraga: { color: "#B7EC6E", soft: "#DDF7AE" },
+  Olahraga: { color: "#FFFF00", soft: "#FFF97A" },
   "Seni & Budaya": { color: "#4FBE86", soft: "#9EE3BC" },
   Akademik: { color: "#8FE0B4", soft: "#CDF3E0" },
-  Teknologi: { color: "#2FA36B", soft: "#7BD9A6" },
+  Teknologi: { color: "#0B7688", soft: "#3FD3E0" },
   Sosial: { color: "#5CCB94", soft: "#A5E8C6" },
   Keagamaan: { color: "#A5E8C6", soft: "#D6F5E5" },
   Bahasa: { color: "#6FD3A0", soft: "#B9ECD3" },

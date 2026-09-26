@@ -43,3 +43,10 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# build output untuk test
+.test-build
+
+# slot build sementara untuk swap deploy
+.next-new
+.next-old

@@ -3,7 +3,7 @@ import Footer from "@/components/layout/Footer";
 import EkskulPage from "@/components/features/EkskulList";
 import JsonLd from "@/components/seo/JsonLd";
 import type { Metadata } from "next";
-import { getEkskul } from "@/lib/content-server";
+import { getAchievements, getEkskul } from "@/lib/content-server";
 import { breadcrumbSchema } from "@/lib/schema";
 import { buildMetadata } from "@/lib/seo";
 
@@ -16,7 +16,7 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function Ekskul() {
-  const ekskul = await getEkskul();
+  const [ekskul, achievements] = await Promise.all([getEkskul(), getAchievements()]);
   return (
     <>
       <Navbar />
@@ -27,7 +27,7 @@ export default async function Ekskul() {
             { name: "Ekskul & Organisasi", path: "/kehidupan/ekskul" },
           ])}
         />
-        <EkskulPage initialEkskul={ekskul} />
+        <EkskulPage initialEkskul={ekskul} initialAchievements={achievements} />
       </main>
       <Footer />
     </>

@@ -4,30 +4,35 @@ export type AchievementContent = {
   id: string; title: string; description: string;
   level: "internasional" | "nasional" | "provinsi" | "kota" | "sekolah";
   category: string;
-  awardType: "juara1" | "juara2" | "juara3" | "semifinal" | "partisipasi" | "penghargaan";
+  awardType: "juara1" | "juara2" | "juara3" | "semifinal" | "participasi" | "penghargaan";
   year: number;
   cover: string;
   participants?: string[];
   studentName?: string | null;
+  /** Ekskul pemilik prestasi ini. Kosong = prestasi tingkat sekolah. */
+  ekskulId?: string | null;
   createdAt?: string | null;
+  /** Slug berita terkait, diisi dari tabel `news`. */
+  newsSlug?: string | null;
+  newsTitle?: string | null;
 };
 
 export const achievements: AchievementContent[] = [
-  { id: "1", title: "Juara 1 Olimpiade Matematika Nasional", description: "Tim SMAN 68 meraih medali emas di Olimpiade Matematika tingkat nasional yang diikuti oleh 500+ peserta dari seluruh Indonesia.", level: "nasional", category: "akademik", awardType: "juara1", year: 2024, cover: "/assets/sekolah/sekolah-07-presentasi-kelas.jpg", participants: ["Rafi Ahmad", "Putri Sari"] },
-  { id: "2", title: "Best Innovation — International Science Fair", description: "Proyek inovasi energi terbarukan karya siswa kelas XII meraih penghargaan tertinggi di kompetisi sains internasional.", level: "internasional", category: "sains", awardType: "penghargaan", year: 2024, cover: "/assets/sekolah/sekolah-08-seminar-karya-ilmiah.jpg", participants: ["Kevin Pratama", "Nadia Kusuma"] },
-  { id: "3", title: "Juara 1 FLS2N — Paduan Suara Provinsi", description: "Paduan Suara SMAN 68 tampil memukau dan meraih juara 1 di Festival Lomba Seni Siswa Nasional tingkat provinsi.", level: "provinsi", category: "seni", awardType: "juara1", year: 2024, cover: "/assets/sekolah/sekolah-15-fls2n.jpg" },
-  { id: "4", title: "Medali Emas Olimpiade Fisika Kota", description: "Siswa SMAN 68 meraih medali emas di kompetisi fisika tingkat kota Jakarta.", level: "kota", category: "akademik", awardType: "juara1", year: 2024, cover: "/assets/sekolah/sekolah-09-pembelajaran.jpg", participants: ["Bima Putra"] },
-  { id: "5", title: "Juara Umum O2SN Jakarta Pusat", description: "Atlet SMAN 68 dominasi Olimpiade Olahraga Siswa Nasional tingkat kota Jakarta.", level: "kota", category: "olahraga", awardType: "juara1", year: 2024, cover: "/assets/sekolah/sekolah-06-apel.jpg" },
-  { id: "6", title: "Juara 2 Debat Bahasa Inggris Nasional", description: "Tim Debat SMAN 68 raih posisi runner-up di kompetisi debat bahasa Inggris tingkat nasional.", level: "nasional", category: "akademik", awardType: "juara2", year: 2023, cover: "/assets/foto-2.webp", participants: ["Anisa Rahma", "Dito Prasetyo"] },
-  { id: "7", title: "Medali Perunggu Olimpiade Kimia Nasional", description: "Prestasi membanggakan di Olimpiade Kimia Nasional — membuktikan kekuatan akademik SMAN 68.", level: "nasional", category: "sains", awardType: "juara3", year: 2023, cover: "/assets/foto-1.jpg", participants: ["Sari Dewi"] },
-  { id: "8", title: "Juara 1 O2SN Basket Putra Kota", description: "Tim basket putra SMAN 68 tak terkalahkan di O2SN tingkat kota Jakarta.", level: "kota", category: "olahraga", awardType: "juara1", year: 2023, cover: "/assets/foto-4.jpg" },
-  { id: "9", title: "Penghargaan Sekolah Sehat Nasional", description: "SMAN 68 mendapatkan penghargaan Sekolah Sehat dari Kementerian Kesehatan RI.", level: "nasional", category: "sosial", awardType: "penghargaan", year: 2023, cover: "/assets/sekolah/sekolah-13-pentas-siswa.jpg" },
-  { id: "10", title: "Juara 1 Karya Ilmiah Remaja Provinsi", description: "Penelitian inovatif siswa SMAN 68 mengungguli 200+ peserta se-DKI Jakarta.", level: "provinsi", category: "akademik", awardType: "juara1", year: 2022, cover: "/assets/hero-1.png", participants: ["Rizky Maulana", "Fitri Handayani"] },
-  { id: "11", title: "Semifinal ASEAN Robotics Championship", description: "Tim Robotika SMAN 68 berhasil menembus babak semifinal kompetisi robotika tingkat ASEAN.", level: "internasional", category: "teknologi", awardType: "semifinal", year: 2022, cover: "/assets/hero-2.png" },
-  { id: "12", title: "Juara 2 FLS2N Seni Tari", description: "Penari SMAN 68 menampilkan karya tari kontemporer yang memukau dan meraih juara 2.", level: "provinsi", category: "seni", awardType: "juara2", year: 2022, cover: "/assets/hero-4.jpeg" },
-  { id: "13", title: "Juara 3 OSN Informatika Nasional", description: "Siswa kelas XI SMAN 68 meraih perunggu pada Olimpiade Sains Nasional bidang Informatika.", level: "nasional", category: "teknologi", awardType: "juara3", year: 2023, cover: "/assets/foto-2.webp" },
-  { id: "14", title: "Juara 2 LKTI Universitas Indonesia", description: "Karya ilmiah tim KIR SMAN 68 menempati posisi kedua tingkat nasional.", level: "nasional", category: "sains", awardType: "juara2", year: 2023, cover: "/assets/foto-1.jpg" },
-  { id: "15", title: "Medali Perak Kejurnas Atletik", description: "Sprinter SMAN 68 meraih medali perak pada Kejuaraan Nasional Atletik Pelajar.", level: "nasional", category: "olahraga", awardType: "juara2", year: 2022, cover: "/assets/foto-4.jpg" },
+  { id: "1", title: "Juara 1 Olimpiade Matematika Nasional", description: "Tim SMAN 68 meraih medali emas di Olimpiade Matematika tingkat nasional yang diikuti oleh 500+ peserta dari seluruh Indonesia.", level: "nasional", category: "akademik", awardType: "juara1", year: 2024, cover: "/assets/sekolah/sekolah-07-presentasi-kelas.jpg", participants: ["Rafi Ahmad", "Putri Sari"], ekskulId: "kir" },
+  { id: "2", title: "Best Innovation — International Science Fair", description: "Proyek inovasi energi terbarukan karya siswa kelas XII meraih penghargaan tertinggi di kompetisi sains internasional.", level: "internasional", category: "sains", awardType: "penghargaan", year: 2024, cover: "/assets/sekolah/sekolah-08-seminar-karya-ilmiah.jpg", participants: ["Kevin Pratama", "Nadia Kusuma"], ekskulId: "ivratix" },
+  { id: "3", title: "Juara 1 FLS2N — Paduan Suara Provinsi", description: "Paduan Suara SMAN 68 tampil memukau dan meraih juara 1 di Festival Lomba Seni Siswa Nasional tingkat provinsi.", level: "provinsi", category: "seni", awardType: "juara1", year: 2024, cover: "/assets/sekolah/sekolah-15-fls2n.jpg", ekskulId: "mbrass" },
+  { id: "4", title: "Medali Emas Olimpiade Fisika Kota", description: "Siswa SMAN 68 meraih medali emas di kompetisi fisika tingkat kota Jakarta.", level: "kota", category: "akademik", awardType: "juara1", year: 2024, cover: "/assets/sekolah/sekolah-09-pembelajaran.jpg", participants: ["Bima Putra"], ekskulId: "tosla" },
+  { id: "5", title: "Juara Umum O2SN Jakarta Pusat", description: "Atlet SMAN 68 dominasi Olimpiade Olahraga Siswa Nasional tingkat kota Jakarta.", level: "kota", category: "olahraga", awardType: "juara1", year: 2024, cover: "/assets/sekolah/sekolah-06-apel.jpg", ekskulId: "tosla" },
+  { id: "6", title: "Juara 2 Debat Bahasa Inggris Nasional", description: "Tim Debat SMAN 68 raih posisi runner-up di kompetisi debat bahasa Inggris tingkat nasional.", level: "nasional", category: "akademik", awardType: "juara2", year: 2023, cover: "/assets/foto-2.webp", participants: ["Anisa Rahma", "Dito Prasetyo"], ekskulId: "kir" },
+  { id: "7", title: "Medali Perunggu Olimpiade Kimia Nasional", description: "Prestasi membanggakan di Olimpiade Kimia Nasional — membuktikan kekuatan akademik SMAN 68.", level: "nasional", category: "sains", awardType: "juara3", year: 2023, cover: "/assets/foto-1.jpg", participants: ["Sari Dewi"], ekskulId: "kir" },
+  { id: "8", title: "Juara 1 O2SN Basket Putra Kota", description: "Tim basket putra SMAN 68 tak terkalahkan di O2SN tingkat kota Jakarta.", level: "kota", category: "olahraga", awardType: "juara1", year: 2023, cover: "/assets/foto-4.jpg", ekskulId: "sight-basketball" },
+  { id: "9", title: "Penghargaan Sekolah Sehat Nasional", description: "SMAN 68 mendapatkan penghargaan Sekolah Sehat dari Kementerian Kesehatan RI.", level: "nasional", category: "sosial", awardType: "penghargaan", year: 2023, cover: "/assets/sekolah/sekolah-13-pentas-siswa.jpg", ekskulId: "pmr" },
+  { id: "10", title: "Juara 1 Karya Ilmiah Remaja Provinsi", description: "Penelitian inovatif siswa SMAN 68 mengungguli 200+ peserta se-DKI Jakarta.", level: "provinsi", category: "akademik", awardType: "juara1", year: 2022, cover: "/assets/hero-1.png", participants: ["Rizky Maulana", "Fitri Handayani"], ekskulId: "kir" },
+  { id: "11", title: "Semifinal ASEAN Robotics Championship", description: "Tim Robotika SMAN 68 berhasil menembus babak semifinal kompetisi robotika tingkat ASEAN.", level: "internasional", category: "teknologi", awardType: "semifinal", year: 2022, cover: "/assets/hero-2.png", ekskulId: "ivratix" },
+  { id: "12", title: "Juara 2 FLS2N Seni Tari", description: "Penari SMAN 68 menampilkan karya tari kontemporer yang memukau dan meraih juara 2.", level: "provinsi", category: "seni", awardType: "juara2", year: 2022, cover: "/assets/hero-4.jpeg", ekskulId: "mbrass" },
+  { id: "13", title: "Juara 3 OSN Informatika Nasional", description: "Siswa kelas XI SMAN 68 meraih perunggu pada Olimpiade Sains Nasional bidang Informatika.", level: "nasional", category: "teknologi", awardType: "juara3", year: 2023, cover: "/assets/foto-2.webp", ekskulId: "nest-esport" },
+  { id: "14", title: "Juara 2 LKTI Universitas Indonesia", description: "Karya ilmiah tim KIR SMAN 68 menempati posisi kedua tingkat nasional.", level: "nasional", category: "sains", awardType: "juara2", year: 2023, cover: "/assets/foto-1.jpg", ekskulId: "kir" },
+  { id: "15", title: "Medali Perak Kejurnas Atletik", description: "Sprinter SMAN 68 meraih medali perak pada Kejuaraan Nasional Atletik Pelajar.", level: "nasional", category: "olahraga", awardType: "juara2", year: 2022, cover: "/assets/foto-4.jpg", ekskulId: "tracesight" },
 ];
 
 export type GalleryAlbumContent = { id: string; title: string; category: string; cover: string };

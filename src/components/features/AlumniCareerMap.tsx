@@ -330,7 +330,7 @@ export default function AlumniCareerMap() {
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
           <AnimatePresence mode="popLayout">
             {visibleAlumni.map((a, i) => {
               return (
@@ -344,7 +344,7 @@ export default function AlumniCareerMap() {
                 >
                   <button
                     onClick={() => setSelected(a)}
-                    className="group relative block aspect-[4/3] w-full overflow-hidden rounded-2xl bg-brand-pine text-left"
+                    className="group relative block aspect-[16/10] w-full overflow-hidden rounded-2xl bg-brand-pine text-left sm:aspect-[4/3]"
                     aria-label={`Lihat detail ${a.name}`}
                   >
                     {a.photo ? (
@@ -368,15 +368,17 @@ export default function AlumniCareerMap() {
                       aria-hidden="true"
                     />
                     <span className="absolute inset-x-0 bottom-0 p-4">
-                      <span className="block font-display text-sm font-bold leading-snug text-white line-clamp-2 group-hover:underline decoration-brand-lime/60 decoration-2 underline-offset-4">
+                      <span className="block font-display text-base font-bold leading-snug text-white line-clamp-2 group-hover:underline decoration-brand-lime/60 decoration-2 underline-offset-4 sm:text-sm">
                         {a.name}
                       </span>
-                      <span className="mt-1.5 block truncate text-[11px] text-white/80">{a.role}</span>
-                      <span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/60">
-                        <GraduationCap size={11} aria-hidden="true" />
+                      <span className="mt-1.5 block truncate text-xs text-white/85 sm:text-[11px] sm:text-white/80">
+                        {a.role}
+                      </span>
+                      <span className="mt-0.5 flex items-center gap-1.5 text-xs text-white/70 sm:text-[11px] sm:text-white/60">
+                        <GraduationCap size={12} className="shrink-0" aria-hidden="true" />
                         <span className="truncate">{a.university}</span>
                       </span>
-                      <span className="mt-2 inline-flex rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[9px] font-bold text-white/90 backdrop-blur">
+                      <span className="mt-2 inline-flex rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white/90 backdrop-blur sm:px-2 sm:py-0.5 sm:text-[9px]">
                         {a.field}
                       </span>
                     </span>

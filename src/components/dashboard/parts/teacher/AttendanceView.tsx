@@ -11,14 +11,14 @@ const STATUS_BTN: Record<AbsensiStatus, string> = {
   Masuk: "border-brand-green bg-brand-green text-white",
   Izin: "border-amber-400 bg-amber-400 text-amber-950",
   Sakit: "border-sky-400 bg-sky-400 text-sky-950",
-  Alpa: "border-red-500 bg-red-500 text-white",
+  Alpa: "border-danger bg-danger-deep text-white",
 };
 
 const STATUS_META: Record<AbsensiStatus, { color: string; icon: typeof CheckCircle }> = {
   Masuk: { color: "text-brand-green", icon: CheckCircle },
   Izin: { color: "text-amber-600", icon: Clock },
   Sakit: { color: "text-sky-600", icon: FileCheck },
-  Alpa: { color: "text-red-600", icon: XCircle },
+  Alpa: { color: "text-danger-deep", icon: XCircle },
 };
 
 type Props = {

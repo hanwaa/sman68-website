@@ -4,7 +4,7 @@ import FabWidget from "@/components/features/FabWidget";
 import VisitorTracker from "@/components/features/VisitorTracker";
 import JsonLd from "@/components/seo/JsonLd";
 import { schoolSchema, websiteSchema } from "@/lib/schema";
-import { DEFAULT_OG_IMAGE, SITE_NAME, siteBase } from "@/lib/seo";
+import { DEFAULT_OG_IMAGE, SITE_NAME, absoluteUrl, siteBase } from "@/lib/seo";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteBase()),
@@ -23,27 +23,32 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     description:
       "Situs resmi SMA Negeri 68 Jakarta untuk siswa, guru, orang tua, dan alumni.",
-    images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: SITE_NAME }],
+    images: [
+      {
+        url: absoluteUrl(DEFAULT_OG_IMAGE),
+        secureUrl: absoluteUrl(DEFAULT_OG_IMAGE),
+        type: "image/png",
+        width: 1200,
+        height: 630,
+        alt: SITE_NAME,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_NAME,
     description:
       "Situs resmi SMA Negeri 68 Jakarta untuk siswa, guru, orang tua, dan alumni.",
-    images: [DEFAULT_OG_IMAGE],
+    images: [absoluteUrl(DEFAULT_OG_IMAGE)],
   },
   robots: {
     index: true,
     follow: true,
   },
-  icons: {
-    icon: "/icon.png",
-    apple: "/apple-icon.png",
-  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0B2E20",
+  themeColor: "#062A31",
 };
 
 export default function RootLayout({

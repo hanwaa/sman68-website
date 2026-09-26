@@ -11,7 +11,7 @@ export type CareerField = (typeof CAREER_FIELDS)[number];
 
 export const fieldStyle: Record<CareerField, string> = {
   Teknologi: "bg-sky-50 text-sky-700 border-sky-200",
-  Kesehatan: "bg-rose-50 text-rose-700 border-rose-200",
+  Kesehatan: "bg-danger-tint text-danger-deep border-danger",
   "Bisnis & Keuangan": "bg-amber-50 text-amber-700 border-amber-200",
   "Kreatif & Media": "bg-violet-50 text-violet-700 border-violet-200",
   "Pendidikan & Riset": "bg-emerald-50 text-emerald-700 border-emerald-200",

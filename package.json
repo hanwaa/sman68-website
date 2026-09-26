@@ -9,7 +9,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint src --ext .ts,.tsx"
+    "lint": "eslint src --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc -p tsconfig.tests.json && node --test tests/*.test.mjs",
+    "audit": "npm audit --omit=dev"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1137.0",

@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { presignUpload, r2Configured, r2PublicUrl, safeKey } from "@/lib/r2";
 import { requireAccount } from "@/lib/api-auth";
+import { validateUpload } from "@/lib/upload-policy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const MAX_BYTES = 25 * 1024 * 1024;
 
 export async function POST(request: NextRequest) {
   const account = await requireAccount();
@@ -18,22 +17,21 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const body = (await request.json().catch(() => null)) as
-    | { fileName?: string; contentType?: string; folder?: string; size?: number }
-    | null;
+  const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
 
-  const fileName = String(body?.fileName ?? "").trim();
-  if (!fileName) {
-    return NextResponse.json({ error: "fileName wajib diisi." }, { status: 400 });
-  }
-  if (body?.size && body.size > MAX_BYTES) {
-    return NextResponse.json({ error: "Ukuran berkas melebihi 25 MB." }, { status: 413 });
+  const decision = validateUpload({
+    folder: body?.folder,
+    fileName: body?.fileName,
+    contentType: body?.contentType,
+    size: body?.size,
+  });
+  if (!decision.ok) {
+    return NextResponse.json({ error: decision.error }, { status: decision.status });
   }
 
-  const folder = String(body?.folder ?? "uploads");
-  const contentType = String(body?.contentType ?? "application/octet-stream");
-  const key = safeKey(folder, fileName);
-  const uploadUrl = await presignUpload(key, contentType);
+  // Content-Type ditandatangani dari ekstensi, bukan dari klaim client.
+  const key = safeKey(decision.folder, String(body?.fileName));
+  const uploadUrl = await presignUpload(key, decision.contentType);
 
   return NextResponse.json({ key, uploadUrl, publicUrl: r2PublicUrl(key) });
 }

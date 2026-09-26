@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { dbConfigured, getDb } from "@/lib/db";
 import { cmsResourceById, type CmsField } from "@/lib/cms";
 import { requireRole } from "@/lib/api-auth";
+import { isSameOrigin } from "@/lib/csrf";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,6 +52,9 @@ const placeholderFor = (field: CmsField, index: number) =>
 async function guard(request: NextRequest) {
   const account = await requireRole(["admin"]);
   if (account instanceof NextResponse) return account;
+  if (request.method !== "GET" && !isSameOrigin(request)) {
+    return NextResponse.json({ error: "Permintaan ditolak." }, { status: 403 });
+  }
   if (!dbConfigured()) {
     return NextResponse.json({ error: "Database belum dikonfigurasi." }, { status: 503 });
   }

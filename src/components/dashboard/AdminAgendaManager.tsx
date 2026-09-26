@@ -385,7 +385,7 @@ export default function AdminAgendaManager({ onShowToast = () => {} }: AdminAgen
                       </button>
                       <button
                         onClick={() => handleDelete(event)}
-                        className="btn-icon h-7 w-7 text-red-500 hover:bg-red-50 hover:text-red-600"
+                        className="btn-icon h-7 w-7 text-danger-deep hover:bg-danger-tint hover:text-danger-deep"
                         aria-label="Hapus agenda"
                       >
                         <Trash2 size={13} />
@@ -437,7 +437,7 @@ export default function AdminAgendaManager({ onShowToast = () => {} }: AdminAgen
               <form onSubmit={handleSave} className="mt-4 space-y-3.5">
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-ink">
-                    Nama Kegiatan <span className="text-red-500">*</span>
+                    Nama Kegiatan <span className="text-danger-deep">*</span>
                   </label>
                   <input
                     value={form.title}
@@ -464,7 +464,7 @@ export default function AdminAgendaManager({ onShowToast = () => {} }: AdminAgen
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-semibold text-ink">
-                      Waktu (WIB) <span className="text-red-500">*</span>
+                      Waktu (WIB) <span className="text-danger-deep">*</span>
                     </label>
                     <input
                       type="datetime-local"

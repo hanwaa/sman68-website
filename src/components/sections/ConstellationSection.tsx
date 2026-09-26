@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, Trophy, Users, X } from "lucide-react";
 import {
   EKSKUL_CATEGORIES,
   categoryColors,
@@ -28,7 +28,7 @@ const CY = 400;
 const VIEW = 800;
 
 const RING_SIZES = [6, 5, 5, 5, 5];
-const RING_RADII = [95, 150, 205, 260, 315];
+const RING_RADII = [112, 176, 240, 300, 358];
 const RING_DURATIONS = [48, 64, 80, 96, 112];
 const RING_ANGLES = [0, 22, 48, 12, 36];
 
@@ -76,6 +76,7 @@ export default function ConstellationSection() {
   const visibleRef = useRef(true);
   const [hovered, setHovered] = useState<Ekskul | null>(null);
   const [activeCategory, setActiveCategory] = useState<EkskulCategory | null>(null);
+  const [selected, setSelected] = useState<Ekskul | null>(null);
   const router = useRouter();
   const a11yPauseRef = useRef(false);
 
@@ -93,8 +94,14 @@ export default function ConstellationSection() {
     return () => window.removeEventListener("sman68:reduced-motion", handler);
   }, []);
 
-  const openEkskul = (id: string) => {
-    router.push(`/kehidupan/ekskul?ekskul=${id}`);
+  /** Klik planet -> buka pop up lingkaran. Klik pop up -> langsung ke halaman ekskul. */
+  const selectEkskul = (item: Ekskul) => {
+    setSelected((current) => (current?.id === item.id ? null : item));
+  };
+
+  const openEkskul = (item: Ekskul) => {
+    setSelected(null);
+    router.push(`/kehidupan/ekskul?ekskul=${item.id}`);
   };
 
   useEffect(() => {
@@ -165,6 +172,9 @@ export default function ConstellationSection() {
             className="block w-14 h-0.5 bg-brand-lime mx-auto mt-5"
             aria-hidden="true"
           />
+          <p className="mt-4 text-sm text-white/60">
+            Klik salah satu ekskul untuk melihat ringkasannya
+          </p>
         </motion.div>
 
         <motion.div
@@ -175,7 +185,7 @@ export default function ConstellationSection() {
         >
           <div
             ref={mapRef}
-            className="orbit-map relative max-w-[420px] sm:max-w-[480px] mx-auto"
+            className="orbit-map relative max-w-[540px] sm:max-w-[660px] lg:max-w-[780px] mx-auto"
             onPointerEnter={() => {
               pausedRef.current = true;
             }}
@@ -211,7 +221,7 @@ export default function ConstellationSection() {
                 />
               ))}
 
-              <circle cx={CX} cy={CY} r={54} fill="#0F5F39" stroke="#B7EC6E" strokeOpacity={0.4} strokeWidth={1.5} />
+              <circle cx={CX} cy={CY} r={54} fill="#04424C" stroke="#FFFF00" strokeOpacity={0.4} strokeWidth={1.5} />
 
               {hovered?.thumb && <circle cx={CX} cy={CY} r={28} fill="#ffffff" />}
 
@@ -246,16 +256,16 @@ export default function ConstellationSection() {
                         }`}
                         tabIndex={0}
                         role="link"
-                        aria-label={`${item.name} — ${item.category}. Buka halaman ekskul`}
+                        aria-label={`${item.name} — ${item.category}. Lihat ringkasan ekskul`}
                         onMouseEnter={() => setHovered(item)}
                         onMouseLeave={() => setHovered(null)}
                         onFocus={() => setHovered(item)}
                         onBlur={() => setHovered(null)}
-                        onClick={() => openEkskul(item.id)}
+                        onClick={() => selectEkskul(item)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
-                            openEkskul(item.id);
+                            selectEkskul(item);
                           }
                         }}
                       >
@@ -297,6 +307,96 @@ export default function ConstellationSection() {
                 </g>
               ))}
             </svg>
+
+            <AnimatePresence>
+              {selected && (
+                <motion.button
+                  type="button"
+                  key={selected.id}
+                  initial={{ opacity: 0, scale: 0.82 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.82 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                  onClick={() => openEkskul(selected)}
+                  aria-label={`Buka halaman ${selected.name}`}
+                  className="group absolute left-1/2 top-1/2 z-10 flex aspect-square w-[42%] max-w-[248px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-1.5 overflow-hidden rounded-full bg-brand-pine/95 px-5 text-center shadow-2xl ring-1 ring-inset ring-white/15 backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-lime"
+                >
+                  <span
+                    className="pointer-events-none absolute inset-0 rounded-full opacity-70 transition-opacity duration-300 group-hover:opacity-100"
+                    style={{
+                      background: `radial-gradient(circle at 50% 32%, ${categoryColorFor(
+                        selected.category
+                      ).color}2e, transparent 68%)`,
+                    }}
+                    aria-hidden="true"
+                  />
+                  <span
+                    className="pointer-events-none absolute inset-[6px] rounded-full border border-dashed border-white/20"
+                    aria-hidden="true"
+                  />
+
+                  <span
+                    className="relative flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-[11px] font-extrabold"
+                    style={{ color: categoryColorFor(selected.category).color }}
+                  >
+                    {selected.thumb ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={selected.thumb}
+                        alt=""
+                        className="h-full w-full object-contain p-1.5"
+                      />
+                    ) : (
+                      initials(selected.name)
+                    )}
+                  </span>
+
+                  <span className="relative block w-full truncate font-display text-xs font-extrabold leading-tight text-white sm:text-sm">
+                    {selected.name}
+                  </span>
+                  <span className="relative block text-[10px] font-medium text-white/55">
+                    {selected.category}
+                  </span>
+
+                  <span className="relative mt-1 flex items-center gap-3 text-[10px] text-white/75">
+                    <span className="flex items-center gap-1">
+                      <Users size={10} aria-hidden="true" />
+                      {selected.members}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Trophy size={10} aria-hidden="true" />
+                      {selected.achievements}
+                    </span>
+                  </span>
+
+                  <span className="relative mt-1.5 inline-flex items-center gap-1 rounded-full bg-brand-lime px-2.5 py-0.5 text-[10px] font-bold text-brand-pine">
+                    Lihat profil
+                    <ArrowRight
+                      size={10}
+                      className="transition-transform duration-200 group-hover:translate-x-0.5"
+                      aria-hidden="true"
+                    />
+                  </span>
+                </motion.button>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {selected && (
+                <motion.button
+                  type="button"
+                  key={`${selected.id}-close`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setSelected(null)}
+                  aria-label="Tutup ringkasan ekskul"
+                  className="absolute right-1 top-1 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/70 ring-1 ring-inset ring-white/20 backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-lime sm:right-3 sm:top-6"
+                >
+                  <X size={14} />
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
 
@@ -311,8 +411,8 @@ export default function ConstellationSection() {
                   aria-pressed={active}
                   className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
                     active
-                      ? "border-brand-lime/60 bg-white/10 text-white"
-                      : "border-white/10 text-white/55 hover:text-white hover:border-white/25"
+                      ? "border-brand-lime bg-surface-3 text-white"
+                      : "border-edge-1 text-white/55 hover:text-white hover:border-edge-2"
                   }`}
                 >
                   <span

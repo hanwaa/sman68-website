@@ -85,13 +85,13 @@ export function LatestAnnouncements({ announcements }: FeedProps) {
               key={i}
               className={cn(
                 "p-3 rounded-xl text-sm border",
-                ann.urgent ? "bg-red-50/60 border-red-100" : "bg-cream border-line"
+                ann.urgent ? "bg-danger-tint/60 border-danger/40" : "bg-cream border-line"
               )}
             >
               <div className="flex items-center justify-between gap-2 mb-1">
                 <div className="font-semibold text-ink text-xs truncate">{ann.title}</div>
                 {ann.urgent && (
-                  <span className="badge bg-red-100 text-red-700 text-[9px] font-bold flex-shrink-0">
+                  <span className="badge bg-danger-tint text-danger-deep text-[9px] font-bold flex-shrink-0">
                     Penting
                   </span>
                 )}

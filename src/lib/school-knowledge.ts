@@ -329,8 +329,7 @@ function staticItems(): KnowledgeItem[] {
       category: "Profil",
       question: "Guru dan kepala sekolah",
       keywords: ["guru", "staf", "kepsek", "kepala sekolah", "pengajar", "tenaga pendidik"],
-      answer: `SMAN 68 punya ${ptk.guru} guru, dengan ${ptk.persenASN} persen berstatus ASN dan ${ptk.persenSertifikasi} persen sudah bersertifikasi. Daftar lengkap guru, staf, dan kepala sekolah ada di halaman berikut.`,
-      link: { label: "Lihat guru dan staf", href: "/tentang/guru-staf" },
+      answer: `SMAN 68 punya ${ptk.guru} guru, dengan ${ptk.persenASN} persen berstatus ASN dan ${ptk.persenSertifikasi} persen sudah bersertifikasi. Daftar nama lengkap guru dan staf tersedia di dashboard siswa, karena data indoors bersifat internal sekolah.`,
       noWeb: true,
     },
     {

@@ -6,7 +6,9 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: "/",
+      // /api/og serves the Open Graph card — it must stay crawlable, otherwise
+      // WhatsApp/Telegram refuse the preview image.
+      allow: ["/", "/api/og"],
       disallow: ["/dashboard", "/login", "/api/"],
     },
     sitemap: `${base}/sitemap.xml`,

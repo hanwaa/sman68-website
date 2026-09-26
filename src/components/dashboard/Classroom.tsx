@@ -821,7 +821,7 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
             {isTeacher && (
               <button
                 onClick={handleDeleteClass}
-                className="inline-flex items-center gap-2 rounded-lg border border-red-300/40 bg-red-500/20 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-500/40"
+                className="inline-flex items-center gap-2 rounded-lg border border-danger/40 bg-danger-deep/20 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-danger-deep/40"
                 aria-label={`Hapus kelas ${activeClass.name}`}
               >
                 <Trash2 size={13} /> Hapus
@@ -849,7 +849,7 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
             >
               {item.label}
               {badge > 0 && (
-                <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-danger-deep px-1 text-[9px] font-bold text-white">
                   {badge}
                 </span>
               )}

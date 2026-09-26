@@ -17,9 +17,7 @@ const footerLinks = {
     links: [
       { label: "Profil Sekolah", href: "/tentang/profil" },
       { label: "Visi & Misi", href: "/tentang/visi-misi" },
-      { label: "Sejarah", href: "/tentang/sejarah" },
       { label: "Kepala Sekolah", href: "/tentang/kepala-sekolah" },
-      { label: "Guru & Staf", href: "/tentang/guru-staf" },
       { label: "Fasilitas", href: "/tentang/fasilitas" },
     ],
   },

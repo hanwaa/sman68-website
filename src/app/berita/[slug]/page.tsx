@@ -8,7 +8,7 @@ import { ArrowLeft, Calendar, Eye, Tag, User } from "lucide-react";
 import JsonLd from "@/components/seo/JsonLd";
 import { getNewsBySlug, getNewsSlugs } from "@/lib/content-server";
 import { articleSchema, breadcrumbSchema } from "@/lib/schema";
-import { DEFAULT_OG_IMAGE, SITE_NAME, buildMetadata } from "@/lib/seo";
+import { SITE_NAME, buildMetadata, ogCardUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +33,12 @@ export async function generateMetadata({
     description,
     path: `/berita/${article.slug}`,
     type: "article",
-    image: article.cover || DEFAULT_OG_IMAGE,
+    image: ogCardUrl({
+      title: article.title,
+      category: article.category,
+      label: "Berita Sekolah",
+      image: article.cover || null,
+    }),
     publishedTime: article.publishedAt || undefined,
     authors: article.author ? [article.author] : [SITE_NAME],
   });

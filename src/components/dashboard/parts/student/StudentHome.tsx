@@ -126,12 +126,12 @@ export default function StudentHome({
               onClick={() => onMarkRead(ann.id)}
               className={cn(
                 "p-3 rounded-xl text-sm cursor-pointer hover:shadow-sm transition-all border",
-                ann.isUrgent ? "bg-red-50/50 border-red-100" : "bg-cream border-line"
+                ann.isUrgent ? "bg-danger-tint/50 border-danger/40" : "bg-cream border-line"
               )}
             >
               <div className="flex items-start gap-2">
                 {ann.isUrgent && (
-                  <span className="badge bg-red-100 text-red-700 text-[10px] flex-shrink-0">
+                  <span className="badge bg-danger-tint text-danger-deep text-[10px] flex-shrink-0">
                     Mendesak
                   </span>
                 )}

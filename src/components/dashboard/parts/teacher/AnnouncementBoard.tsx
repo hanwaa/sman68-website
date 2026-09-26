@@ -51,7 +51,7 @@ export default function AnnouncementBoard({
       <div className="grid sm:grid-cols-3 gap-3 mb-5">
         {[
           { label: "Total Pengumuman", value: announcements.length, icon: Bell, tone: "bg-brand-green/10 text-brand-green" },
-          { label: "Mendesak", value: urgentCount, icon: AlertCircle, tone: "bg-red-100 text-red-600" },
+          { label: "Mendesak", value: urgentCount, icon: AlertCircle, tone: "bg-danger-tint text-danger-deep" },
           { label: "Terbitan Saya", value: mineCount, icon: User, tone: "bg-brand-lime/25 text-brand-pine" },
         ].map((s) => {
           const Icon = s.icon;
@@ -106,13 +106,13 @@ export default function AnnouncementBoard({
               key={ann.id}
               className={cn(
                 "card relative overflow-hidden p-5 transition-all",
-                ann.urgent && "border-red-200 bg-gradient-to-r from-red-50/60 via-white to-white"
+                ann.urgent && "border-danger bg-gradient-to-r from-red-50/60 via-white to-white"
               )}
             >
               <span
                 className={cn(
                   "absolute inset-y-0 left-0 w-1",
-                  ann.urgent ? "bg-red-500" : ann.pinned ? "bg-brand-lime" : "bg-brand-green/40"
+                  ann.urgent ? "bg-danger-deep" : ann.pinned ? "bg-brand-lime" : "bg-brand-green/40"
                 )}
                 aria-hidden="true"
               />
@@ -120,7 +120,7 @@ export default function AnnouncementBoard({
                 <div
                   className={cn(
                     "w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 font-display font-extrabold text-xs",
-                    ann.urgent ? "bg-red-100 text-red-600" : "bg-brand-pine text-brand-lime"
+                    ann.urgent ? "bg-danger-tint text-danger-deep" : "bg-brand-pine text-brand-lime"
                   )}
                   aria-hidden="true"
                 >
@@ -135,7 +135,7 @@ export default function AnnouncementBoard({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2 mb-1.5">
                     {ann.urgent && (
-                      <span className="badge bg-red-100 text-red-700 text-[10px] font-bold">Penting</span>
+                      <span className="badge bg-danger-tint text-danger-deep text-[10px] font-bold">Penting</span>
                     )}
                     {ann.pinned && (
                       <span className="badge bg-brand-lime/25 text-brand-pine text-[10px] font-bold inline-flex items-center gap-1">

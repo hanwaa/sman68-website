@@ -17,13 +17,21 @@ import {
 } from "lucide-react";
 import { schoolData } from "@/lib/school-data";
 
+// Lengkap 12 tonggak sejarah. Dulu tersebar di /tentang/sejarah; sekarang
+// digabung ke profil agar tidak ada halaman terpisah.
 const milestones = [
-  { year: "1967", title: "Berdiri", desc: "SMAN 68 Jakarta didirikan sebagai salah satu SMA Negeri di Jakarta Pusat." },
-  { year: "1980", title: "Berkembang", desc: "Penambahan gedung dan laboratorium. Jumlah siswa mencapai 1.000 orang." },
-  { year: "1995", title: "Akreditasi A", desc: "Pertama kali meraih Akreditasi A dari Dinas Pendidikan DKI Jakarta." },
-  { year: "2005", title: "Sekolah Berprestasi", desc: "Meraih penghargaan Sekolah Berprestasi tingkat nasional." },
-  { year: "2015", title: "Digitalisasi", desc: "Implementasi sistem informasi sekolah digital pertama di Jakarta Pusat." },
-  { year: "2024", title: "Portal Digital", desc: "Peluncuran portal digital terpadu sebagai sarana informasi dan komunikasi sekolah." },
+  { year: "1967", title: "Lahirnya SMAN 68", desc: "SMA Negeri 68 Jakarta resmi didirikan dan mulai beroperasi dengan ratusan siswa angkatan pertama." },
+  { year: "1972", title: "Gedung Baru", desc: "Pembangunan gedung permanen pertama sebagai wujud komitmen pemerintah terhadap pendidikan berkualitas." },
+  { year: "1980", title: "1.000 Siswa", desc: "SMAN 68 mencapai tonggak bersejarah — jumlah siswa melampaui 1.000 orang untuk pertama kalinya." },
+  { year: "1990", title: "Laboratorium Modern", desc: "Penambahan laboratorium IPA dan komputer pertama, menjadikan SMAN 68 sebagai pelopor teknologi pendidikan." },
+  { year: "1995", title: "Akreditasi A Pertama", desc: "SMAN 68 meraih Akreditasi A dari Dinas Pendidikan DKI Jakarta untuk pertama kalinya." },
+  { year: "2000", title: "Era Baru Milenium", desc: "Memasuki milenium baru dengan berbagai pembaruan kurikulum dan fasilitas yang semakin lengkap." },
+  { year: "2005", title: "Sekolah Berprestasi Nasional", desc: "Meraih penghargaan Sekolah Berprestasi tingkat nasional dari Kementerian Pendidikan RI." },
+  { year: "2010", title: "Olimpiade Sains", desc: "Pertama kali meraih medali emas di Olimpiade Sains Nasional — awal dari era dominasi akademik." },
+  { year: "2015", title: "Digitalisasi Sekolah", desc: "Implementasi sistem informasi sekolah digital, menjadi pelopor transformasi digital pendidikan di Jakarta Pusat." },
+  { year: "2019", title: "International Recognition", desc: "Tim sains SMAN 68 meraih penghargaan di International Science Fair untuk pertama kalinya." },
+  { year: "2022", title: "Kurikulum Merdeka", desc: "SMAN 68 menjadi sekolah penggerak Kurikulum Merdeka — mengimplementasikan pembelajaran berbasis proyek." },
+  { year: "2024", title: "Portal Digital Diluncurkan", desc: "Peluncuran portal digital terpadu SMAN 68 yang menghubungkan seluruh komunitas sekolah." },
 ];
 
 const stats = [

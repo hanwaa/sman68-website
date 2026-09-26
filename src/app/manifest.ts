@@ -8,11 +8,11 @@ export default function manifest(): MetadataRoute.Manifest {
       "Situs resmi SMA Negeri 68 Jakarta — berita, prestasi, PPDB, dan informasi sekolah.",
     start_url: "/",
     display: "standalone",
-    background_color: "#F6F8F5",
-    theme_color: "#0B2E20",
+    background_color: "#F4FAFB",
+    theme_color: "#062A31",
     icons: [
-      { src: "/icon.png", sizes: "any", type: "image/png" },
-      { src: "/apple-icon.png", sizes: "any", type: "image/png" },
+      { src: "/icon.png", sizes: "256x256", type: "image/png" },
+      { src: "/apple-icon.png", sizes: "180x180", type: "image/png" },
     ],
   };
 }

@@ -140,7 +140,7 @@ export default function NotificationPopover({
                         e.stopPropagation();
                         onDismiss(n.id);
                       }}
-                      className="absolute right-2 top-2 inline-flex h-5 w-5 items-center justify-center rounded-md text-muted opacity-70 transition-colors hover:bg-red-50 hover:text-red-600 hover:opacity-100"
+                      className="absolute right-2 top-2 inline-flex h-5 w-5 items-center justify-center rounded-md text-muted opacity-70 transition-colors hover:bg-danger-tint hover:text-danger-deep hover:opacity-100"
                       aria-label={`Hapus notifikasi: ${n.title}`}
                       title="Hapus notifikasi"
                     >

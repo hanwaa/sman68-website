@@ -13,6 +13,7 @@ import {
 } from "@/lib/auth";
 import { SESSION_COOKIE } from "@/lib/auth-constants";
 import { createSession } from "@/lib/auth-server";
+import { isSameOrigin } from "@/lib/csrf";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,6 +21,10 @@ export const dynamic = "force-dynamic";
 type Row = Record<string, unknown>;
 
 export async function POST(request: NextRequest) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "Permintaan ditolak." }, { status: 403 });
+  }
+
   const payload = (await request.json().catch(() => null)) as
     | { username?: string; password?: string; remember?: boolean }
     | null;

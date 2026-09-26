@@ -10,18 +10,39 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Palet utama: cyan #00FFFF, kuning #FFFF00, merah #FF0000 — sesuai
+        // warna logo SMAN 68. Nilai di bawah sudah diturunkan agar kontras
+        // tetap lulus WCAG AA (lihat scripts/check-contrast notes):
+        //   cyan   di pine #062A31 = 12.11:1
+        //   kuning di pine #062A31 = 14.14:1
+        //   putih  di pine #062A31 = 15.18:1
         brand: {
-          pine: "#0B2E20",
-          green: "#16794A",
-          "green-deep": "#0F5F39",
-          leaf: "#2FA36B",
-          lime: "#B7EC6E",
-          mist: "#EAF4EE",
+          pine: "#062A31", // permukaan gelap paling dalam
+          green: "#0A5A66", // aksi utama (putah di atasnya 7.87:1)
+          "green-deep": "#04424C",
+          leaf: "#0B7688", // aksen (putah di atasnya 5.30:1)
+          lime: "#FFFF00", // sekunder
+          mist: "#E4F7FA",
         },
-        ink: "#0E1B15",
-        cream: "#F6F8F5",
-        line: "#E3E9E4",
-        muted: "#5C6B62",
+        // Tersier. #FF0000 dipakai untuk ikon, border, dan teks besar di
+        // latar gelap (3.80:1). Untuk teks biasa dan latar yang membawa teks
+        // putih pakai danger-deep (putah di atasnya 5.74:1); danger-tint untuk
+        // kotak peringatan berlatar muda.
+        danger: "#FF0000",
+        "danger-deep": "#C81E1E",
+        "danger-tint": "#FFE8E8",
+        ink: "#05242B",
+        cream: "#F4FAFB",
+        line: "#CFE7EC",
+        muted: "#4C6B75",
+        // Permukaan solid (flat) pengganti warna transparan/glassmorphism.
+        // Nilai = hasil pencampuran white di atas brand-pine, jadi hierarki
+        // warnanya sama seperti versi transparan tetapi fully opaque.
+        "surface-1": "#0D3A42",
+        "surface-2": "#14454F",
+        "surface-3": "#1B515C",
+        "edge-1": "#14454F",
+        "edge-2": "#2A6472",
       },
       fontFamily: {
         display: ["var(--font-serif)", "Georgia", "serif"],
@@ -32,8 +53,8 @@ const config: Config = {
         "display-sm": ["3rem", { lineHeight: "1.1", fontWeight: "800", letterSpacing: "-0.02em" }],
       },
       backgroundImage: {
-        "hero-gradient": "linear-gradient(150deg, #0B2E20 0%, #14503A 55%, #0B2E20 100%)",
-        "leaf-gradient": "linear-gradient(135deg, #2FA36B 0%, #16794A 100%)",
+        "hero-gradient": "linear-gradient(150deg, #062A31 0%, #0B5560 55%, #062A31 100%)",
+        "leaf-gradient": "linear-gradient(135deg, #00E5F0 0%, #0A5A66 100%)",
       },
       animation: {
         "fade-up": "fadeUp 0.4s ease-out forwards",

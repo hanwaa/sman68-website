@@ -11,7 +11,7 @@ import type {
 const ACHIEVEMENT_STATUS: Record<string, { label: string; className: string }> = {
   pending: { label: "Menunggu verifikasi", className: "bg-amber-100 text-amber-700" },
   draft: { label: "Verifikasi diterima", className: "bg-brand-green/10 text-brand-green" },
-  rejected: { label: "Verifikasi gagal", className: "bg-red-100 text-red-600" },
+  rejected: { label: "Verifikasi gagal", className: "bg-danger-tint text-danger-deep" },
   published: { label: "Verifikasi diterima", className: "bg-brand-green/10 text-brand-green" },
   approved: { label: "Verifikasi diterima", className: "bg-brand-green/10 text-brand-green" },
 };

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Trophy,
@@ -14,6 +15,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Newspaper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useModalA11y } from "@/lib/useModalA11y";
@@ -32,21 +34,21 @@ const LEVEL_CONFIG = {
   sekolah: { color: LEVEL_COLOR, icon: Star, label: "Sekolah", ring: "ring-muted" },
 };
 
-const AWARD_TYPE_LABELS = {
+const AWARD_TYPE_LABELS: Record<AchievementContent["awardType"], string> = {
   juara1: "Juara 1",
   juara2: "Juara 2",
   juara3: "Juara 3",
   semifinal: "Semi Final",
-  partisipasi: "Partisipasi",
+  participasi: "Partisipasi",
   penghargaan: "Penghargaan",
 };
 
-const AWARD_TYPE_COLORS = {
+const AWARD_TYPE_COLORS: Record<AchievementContent["awardType"], string> = {
   juara1: "bg-brand-green/10 text-brand-green",
   juara2: "bg-silver/10 text-muted",
   juara3: "bg-brand-mist text-brand-green",
   semifinal: "bg-brand-mist text-brand-green",
-  partisipasi: "bg-cream text-muted",
+  participasi: "bg-cream text-muted",
   penghargaan: "bg-brand-green/10 text-brand-green",
 };
 
@@ -597,6 +599,20 @@ export default function AchievementWall({
                               </span>
                             ))}
                           </div>
+                        </div>
+                      )}
+
+                      {a.newsSlug && (
+                        <div className="mt-5 border-t border-line pt-4">
+                          <Link
+                            href={`/berita/${a.newsSlug}`}
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-green hover:underline"
+                          >
+                            <Newspaper size={12} aria-hidden="true" />
+                            {a.newsTitle
+                              ? `Baca berita: ${a.newsTitle}`
+                              : "Baca berita terkait"}
+                          </Link>
                         </div>
                       )}
                     </div>

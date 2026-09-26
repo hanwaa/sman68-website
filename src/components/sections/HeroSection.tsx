@@ -152,7 +152,7 @@ export default function HeroSection() {
         </motion.div>
       </div>
 
-      <div className="absolute bottom-0 inset-x-0 z-20 h-[2px] bg-white/10">
+      <div className="absolute bottom-0 inset-x-0 z-20 h-[2px] bg-surface-2">
         <span
           key={currentSlide}
           className="hero-progress block h-full w-full rounded-r-full bg-brand-lime"
@@ -161,7 +161,7 @@ export default function HeroSection() {
 
       <button
         onClick={prevSlide}
-        className="btn-icon-dark absolute left-3 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border border-white/20 bg-brand-pine/80 backdrop-blur-sm hover:border-white/40 hover:bg-brand-pine md:left-6 md:h-12 md:w-12"
+        className="btn-icon-dark absolute left-3 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border border-edge-2 bg-brand-pine hover:border-brand-leaf hover:bg-brand-green-deep md:left-6 md:h-12 md:w-12"
         aria-label="Foto sebelumnya"
       >
         <ChevronLeft size={20} />
@@ -169,7 +169,7 @@ export default function HeroSection() {
 
       <button
         onClick={nextSlide}
-        className="btn-icon-dark absolute right-3 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border border-white/20 bg-brand-pine/80 backdrop-blur-sm hover:border-white/40 hover:bg-brand-pine md:right-6 md:h-12 md:w-12"
+        className="btn-icon-dark absolute right-3 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border border-edge-2 bg-brand-pine hover:border-brand-leaf hover:bg-brand-green-deep md:right-6 md:h-12 md:w-12"
         aria-label="Foto berikutnya"
       >
         <ChevronRight size={20} />

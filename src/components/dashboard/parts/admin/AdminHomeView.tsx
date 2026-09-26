@@ -68,8 +68,8 @@ export default function AdminHomeView({
   }));
   const roleChartData = stats
     ? [
-        { role: "Siswa", count: stats.roles.student, fill: "#16794A" },
-        { role: "Guru", count: stats.roles.teacher, fill: "#2FA36B" },
+        { role: "Siswa", count: stats.roles.student, fill: "#0A5A66" },
+        { role: "Guru", count: stats.roles.teacher, fill: "#0B7688" },
         { role: "Admin", count: stats.roles.admin, fill: "#4FBE86" },
       ]
     : [];
@@ -147,7 +147,7 @@ export default function AdminHomeView({
             icon: Inbox,
             tone:
               stats && stats.moderationPending > 0
-                ? "bg-red-100 text-red-600"
+                ? "bg-danger-tint text-danger-deep"
                 : "bg-brand-mist text-brand-pine",
           },
         ].map((stat, i) => {
@@ -242,7 +242,7 @@ export default function AdminHomeView({
               <FileText size={16} className="text-brand-green" />
               <h2 className="font-semibold text-ink text-sm">Konten Menunggu Persetujuan</h2>
             </div>
-            <span className="badge bg-red-100 text-red-700 text-xs font-bold">
+            <span className="badge bg-danger-tint text-danger-deep text-xs font-bold">
               {moderationLoaded ? `${pendingList.length} Pending` : <Skeleton className="h-4 w-16" />}
             </span>
           </div>

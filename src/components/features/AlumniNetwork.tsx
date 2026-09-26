@@ -188,12 +188,12 @@ export default function AlumniNetwork() {
         {loading && filtered.length === 0 && (
           <SkeletonGrid
             count={8}
-            className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4"
-            itemClassName="aspect-[4/3]"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
+            itemClassName="aspect-[16/10] sm:aspect-[4/3]"
           />
         )}
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
           <AnimatePresence mode="popLayout">
             {filtered.map((a, i) => (
               <motion.div
@@ -207,7 +207,7 @@ export default function AlumniNetwork() {
               >
                 <button
                   onClick={() => setSelected(a)}
-                  className="group relative block aspect-[4/3] w-full overflow-hidden rounded-2xl bg-brand-pine text-left"
+                  className="group relative block aspect-[16/10] w-full overflow-hidden rounded-2xl bg-brand-pine text-left sm:aspect-[4/3]"
                   aria-label={`Lihat detail ${a.name}`}
                 >
                   {a.photo ? (
@@ -231,7 +231,7 @@ export default function AlumniNetwork() {
                     aria-hidden="true"
                   />
 
-                  <span className="absolute left-4 top-4 inline-flex items-center rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
+                  <span className="absolute left-4 top-4 inline-flex items-center rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold text-white backdrop-blur sm:px-2.5 sm:py-1 sm:text-[10px]">
                     Angkatan {a.angkatan}
                   </span>
 
@@ -240,20 +240,20 @@ export default function AlumniNetwork() {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-brand-pine shadow-sm transition-colors hover:bg-white"
+                    className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-brand-pine shadow-sm transition-colors hover:bg-white sm:h-8 sm:w-8"
                     aria-label={`Profil LinkedIn ${a.name}`}
                   >
                     <LinkedinIcon size={14} />
                   </a>
 
-                  <span className="absolute inset-x-0 bottom-0 p-4">
-                    <span className="block font-display text-sm font-bold leading-snug text-white line-clamp-2 group-hover:underline decoration-brand-lime/60 decoration-2 underline-offset-4">
+                  <span className="absolute inset-x-0 bottom-0 p-4 sm:p-4">
+                    <span className="block font-display text-base font-bold leading-snug text-white line-clamp-2 group-hover:underline decoration-brand-lime/60 decoration-2 underline-offset-4 sm:text-sm">
                       {a.name}
                     </span>
-                    <span className="mt-1.5 block truncate text-[11px] text-white/80">
+                    <span className="mt-1.5 block truncate text-xs text-white/80 sm:text-[11px]">
                       {a.jurusan}
                     </span>
-                    <span className="mt-0.5 block truncate text-[11px] text-white/60">
+                    <span className="mt-0.5 block truncate text-xs text-white/70 sm:text-[11px] sm:text-white/60">
                       {a.kuliah}
                     </span>
                   </span>

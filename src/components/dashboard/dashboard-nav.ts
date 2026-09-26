@@ -68,7 +68,7 @@ export const NOTIF_META: Record<NotifKind, { icon: ElementType; tone: string }> 
   tugas: { icon: ClipboardList, tone: "bg-amber-100 text-amber-700" },
   nilai: { icon: Award, tone: "bg-brand-pine/10 text-brand-pine" },
   permintaan: { icon: UserPlus, tone: "bg-brand-lime/25 text-brand-pine" },
-  moderasi: { icon: Shield, tone: "bg-red-100 text-red-600" },
+  moderasi: { icon: Shield, tone: "bg-danger-tint text-danger-deep" },
   akun: { icon: Users, tone: "bg-brand-mist text-brand-green" },
 };
 

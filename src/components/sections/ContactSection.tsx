@@ -88,12 +88,12 @@ export default function ContactSection() {
                     href={item.href}
                     target={item.external ? "_blank" : undefined}
                     rel={item.external ? "noopener noreferrer" : undefined}
-                    className="group flex flex-col h-full rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 hover:bg-white/10 hover:border-white/20 transition-colors"
+                    className="group flex flex-col h-full rounded-2xl border border-edge-1 bg-surface-1 p-4 sm:p-6 hover:bg-surface-2 hover:border-edge-2 transition-colors"
                   >
                     {content}
                   </a>
                 ) : (
-                  <div className="flex flex-col h-full rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
+                  <div className="flex flex-col h-full rounded-2xl border border-edge-1 bg-surface-1 p-4 sm:p-6">
                     {content}
                   </div>
                 )}

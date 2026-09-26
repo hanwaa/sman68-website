@@ -151,7 +151,7 @@ export default function AttendanceHistory({
               </span>
               <span className="flex items-center gap-1.5">
                 <FileCheck size={15} className="text-brand-pine" aria-hidden="true" />
-                <XCircle size={15} className="text-red-500" aria-hidden="true" />
+                <XCircle size={15} className="text-danger-deep" aria-hidden="true" />
               </span>
             </div>
             <div className="text-xs font-semibold text-ink mt-1">
@@ -255,7 +255,7 @@ export default function AttendanceHistory({
                   record?.status === "Masuk" && "bg-brand-green text-white",
                   record?.status === "Izin" && "bg-amber-400 text-amber-950",
                   record?.status === "Sakit" && "bg-sky-400 text-sky-950",
-                  record?.status === "Alpa" && "bg-red-500 text-white"
+                  record?.status === "Alpa" && "bg-danger-deep text-white"
                 )}
               >
                 {day}
@@ -273,7 +273,7 @@ export default function AttendanceHistory({
                   status === "Masuk" && "bg-brand-green",
                   status === "Izin" && "bg-amber-400",
                   status === "Sakit" && "bg-sky-400",
-                  status === "Alpa" && "bg-red-500"
+                  status === "Alpa" && "bg-danger-deep"
                 )}
                 aria-hidden="true"
               />

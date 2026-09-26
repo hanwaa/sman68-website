@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConfigured, getDb } from "@/lib/db";
+import { getSessionAccount } from "@/lib/auth-server";
 import { classInitials } from "@/lib/classroom";
 import { newsArticles, type NewsArticle } from "@/lib/news";
 import {
@@ -18,6 +19,8 @@ import {
   peoplePhotos,
 } from "@/lib/content";
 import { ekskulList, normalizeEkskulCategory } from "@/lib/ekskul";
+import { orgMembers, orgUnits } from "@/lib/struktur-organisasi";
+import { filterPublicRooms } from "@/lib/fasilitas-publik";
 import { getInstagramFeed } from "@/lib/instagram";
 import {
   alumniCareer,
@@ -52,6 +55,19 @@ const heroSlidesFallback = [
 export async function GET(request: NextRequest) {
   const resource = request.nextUrl.searchParams.get("resource") ?? "";
 
+  // Data guru bersifat internal (nama, jabatan, foto). Hanya akun yang sudah
+  // login yang boleh membacanya — sebelumnya endpoint ini terbuka untuk publik
+  // sehingga siapa pun bisa mengambil seluruh daftar guru.
+  if (resource === "teachers") {
+    const account = await getSessionAccount();
+    if (!account) {
+      return NextResponse.json(
+        { error: "Sesi tidak valid. Silakan masuk terlebih dahulu." },
+        { status: 401 }
+      );
+    }
+  }
+
   const fallback = () => {
     switch (resource) {
       case "news":
@@ -61,7 +77,10 @@ export async function GET(request: NextRequest) {
       case "gallery":
         return { albums: staticAlbums, photos: staticPhotos };
       case "facilities":
-        return { facilities: staticFacilities, highlights: facilityHighlights };
+        return {
+          facilities: filterPublicRooms(staticFacilities),
+          highlights: facilityHighlights,
+        };
       case "teachers":
         return staticTeachers;
       case "testimonials":
@@ -72,6 +91,8 @@ export async function GET(request: NextRequest) {
         return { steps: ppdbSteps, schedule: ppdbSchedule, fees: ppdbFees, scholarships: ppdbScholarships };
       case "ekskul":
         return ekskulList;
+      case "struktur":
+        return { units: orgUnits, members: orgMembers };
       case "events":
         return [];
       case "hero":
@@ -155,11 +176,15 @@ export async function GET(request: NextRequest) {
 
       case "achievements": {
         const rows = (await sql`
-          select id, title, description, level, category, award_type, year, cover_key, participants,
-                 student_name, created_at
-          from achievements
-          where status = 'published'
-          order by year desc, title asc
+          select a.id, a.title, a.description, a.level, a.category, a.award_type, a.year,
+                 a.cover_key, a.participants, a.student_name, a.ekskul_id, a.created_at,
+                 n.slug as news_slug, n.title as news_title
+          from achievements a
+          left join news n
+            on n.achievement_id = a.id
+           and n.status = 'published'
+          where a.status = 'published'
+          order by a.year desc, a.title asc
         `) as Row[];
         if (rows.length === 0) break;
         return NextResponse.json({
@@ -174,7 +199,10 @@ export async function GET(request: NextRequest) {
             cover: text(row.cover_key),
             participants: Array.isArray(row.participants) ? row.participants : [],
             studentName: row.student_name == null ? null : text(row.student_name),
+            ekskulId: row.ekskul_id == null ? null : text(row.ekskul_id),
             createdAt: row.created_at ? new Date(String(row.created_at)).toISOString() : null,
+            newsSlug: row.news_slug == null ? null : text(row.news_slug),
+            newsTitle: row.news_title == null ? null : text(row.news_title),
           })),
           source: "db",
         });
@@ -220,18 +248,23 @@ export async function GET(request: NextRequest) {
           ` as Promise<Row[]>,
         ]);
         if (rows.length === 0 && highlightRows.length === 0) break;
+        // Ruangan administrasi sekolah disaring di sini juga, bukan hanya di
+        // UI, supaya /api/content tidak jadi jalan bocor data internal.
+        const publicRows = filterPublicRooms(
+          rows.map((row) => ({
+            id: text(row.id),
+            name: text(row.name),
+            category: text(row.category),
+            floor: text(row.floor),
+            building: (row.building as string | null) ?? undefined,
+            capacity: row.capacity == null ? undefined : Number(row.capacity),
+            description: (row.description as string | null) ?? undefined,
+            images: Array.isArray(row.images) ? (row.images as string[]) : [],
+          }))
+        );
         return NextResponse.json({
           data: {
-            facilities: rows.map((row) => ({
-              id: text(row.id),
-              name: text(row.name),
-              category: text(row.category),
-              floor: text(row.floor),
-              building: (row.building as string | null) ?? undefined,
-              capacity: row.capacity == null ? undefined : Number(row.capacity),
-              description: (row.description as string | null) ?? undefined,
-              images: Array.isArray(row.images) ? (row.images as string[]) : [],
-            })),
+            facilities: publicRows,
             highlights:
               highlightRows.length > 0
                 ? highlightRows.map((row) => ({
@@ -248,7 +281,7 @@ export async function GET(request: NextRequest) {
 
       case "teachers": {
         const rows = (await sql`
-          select id, name, subject, position, photo_key, email from teachers order by sort asc
+          select id, name, subject, position, photo_key from teachers order by sort asc
         `) as Row[];
         if (rows.length === 0) break;
         return NextResponse.json({
@@ -258,7 +291,6 @@ export async function GET(request: NextRequest) {
             subject: text(row.subject),
             position: text(row.position),
             photo: text(row.photo_key),
-            email: (row.email as string | null) ?? undefined,
           })),
           source: "db",
         });
@@ -347,6 +379,45 @@ export async function GET(request: NextRequest) {
             schedule: text(row.schedule),
             advisor: text(row.advisor),
           })),
+          source: "db",
+        });
+      }
+
+      // Struktur organisasi sengaja tidak menyertakan NIP/kontak/tanggal lahir —
+      // kolom itu tidak ada di org_members sama sekali.
+      case "struktur": {
+        const [unitRows, memberRows] = await Promise.all([
+          sql`
+            select id, name, kind, parent_id, subject, description, sort
+            from org_units order by sort asc
+          ` as Promise<Row[]>,
+          sql`
+            select id, unit_id, name, position, alumni, photo_key, sort
+            from org_members order by sort asc
+          ` as Promise<Row[]>,
+        ]);
+        if (unitRows.length === 0) break;
+        return NextResponse.json({
+          data: {
+            units: unitRows.map((row) => ({
+              id: text(row.id),
+              name: text(row.name),
+              kind: text(row.kind),
+              parentId: (row.parent_id as string | null) ?? null,
+              subject: (row.subject as string | null) ?? undefined,
+              description: text(row.description) || undefined,
+              sort: Number(row.sort) || 0,
+            })),
+            members: memberRows.map((row) => ({
+              id: text(row.id),
+              unitId: text(row.unit_id),
+              name: text(row.name),
+              position: text(row.position),
+              alumni: text(row.alumni) || null,
+              photo: text(row.photo_key) || null,
+              sort: Number(row.sort) || 0,
+            })),
+          },
           source: "db",
         });
       }
@@ -440,7 +511,7 @@ export async function GET(request: NextRequest) {
               time: `${pad(jakarta.getUTCHours())}.${pad(jakarta.getUTCMinutes())}`,
               location: text(row.location),
               category: text(row.category),
-              color: "#16794A",
+              color: "#0A5A66",
             };
           }),
           source: "db",

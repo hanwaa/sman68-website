@@ -20,6 +20,7 @@ import {
   testimonials,
 } from "@/lib/content";
 import { ekskulList } from "@/lib/ekskul";
+import { orgMembers, orgUnits } from "@/lib/struktur-organisasi";
 import { buildAcademicSeed, buildDigitalSeed, buildScheduleSeed } from "@/lib/akademik";
 import { hashPassword } from "@/lib/auth";
 import { ADMIN_NPSN } from "@/lib/auth-constants";
@@ -58,6 +59,16 @@ export async function POST(request: NextRequest) {
 
   const sql = getDb();
   const counts: Record<string, number> = {};
+
+  /**
+   * Berita yang membahas achievement/ekskul tertentu. Dipakai supaya
+   * halaman /kehidupan/ekskul bisa menautkan prestasinya ke artikelnya.
+   */
+  const NEWS_ENTITY_LINKS: Record<string, { ekskulId?: string; achievementId?: string }> = {
+    "tim-robotika-juara-1-nasional": { ekskulId: "ivratix", achievementId: "11" },
+    "festival-seni-sman-68": { ekskulId: "mbrass", achievementId: "3" },
+    "workshop-ai-alumni-google": { ekskulId: "nest-esport" },
+  };
 
   /* ------------------------------- Sekolah ------------------------------- */
   const identitas = schoolData.identitas;
@@ -98,18 +109,22 @@ export async function POST(request: NextRequest) {
 
   /* -------------------------------- Berita -------------------------------- */
   for (const article of newsArticles) {
+    const link = NEWS_ENTITY_LINKS[article.slug] ?? {};
     await sql`
       insert into news (
-        slug, title, excerpt, content, category, author, cover_key, views, status, published_at
+        slug, title, excerpt, content, category, author, cover_key, views,
+        status, published_at, ekskul_id, achievement_id
       ) values (
         ${article.slug}, ${article.title}, ${article.excerpt}, ${article.content},
         ${article.category}, ${article.author}, ${article.cover}, ${0},
-        ${"published"}, ${article.publishedAt}
+        ${"published"}, ${article.publishedAt},
+        ${link.ekskulId ?? null}, ${link.achievementId ?? null}
       )
       on conflict (slug) do update set
         title = excluded.title, excerpt = excluded.excerpt, content = excluded.content,
         category = excluded.category, author = excluded.author, cover_key = excluded.cover_key,
-        status = excluded.status, published_at = excluded.published_at
+        status = excluded.status, published_at = excluded.published_at,
+        ekskul_id = excluded.ekskul_id, achievement_id = excluded.achievement_id
     `;
   }
   counts.news = newsArticles.length;
@@ -118,16 +133,19 @@ export async function POST(request: NextRequest) {
   for (const item of achievements) {
     await sql`
       insert into achievements (
-        id, title, description, level, category, award_type, year, cover_key, participants, status
+        id, title, description, level, category, award_type, year, cover_key,
+        participants, ekskul_id, status
       ) values (
         ${item.id}, ${item.title}, ${item.description}, ${item.level}, ${item.category},
         ${item.awardType}, ${item.year}, ${item.cover},
-        ${JSON.stringify(item.participants ?? [])}::jsonb, ${"published"}
+        ${JSON.stringify(item.participants ?? [])}::jsonb,
+        ${item.ekskulId ?? null}, ${"published"}
       )
       on conflict (id) do update set
         title = excluded.title, description = excluded.description, level = excluded.level,
         category = excluded.category, award_type = excluded.award_type, year = excluded.year,
-        cover_key = excluded.cover_key, participants = excluded.participants
+        cover_key = excluded.cover_key, participants = excluded.participants,
+        ekskul_id = excluded.ekskul_id
     `;
   }
   counts.achievements = achievements.length;
@@ -640,6 +658,36 @@ export async function POST(request: NextRequest) {
     `;
   }
   counts.extracurriculars = ekskulList.length;
+
+  /* ------------------------- Struktur Organisasi ------------------------- */
+  // Unit diurutkan dari atas ke bawah supaya parent_id selalu sudah ada
+  // (kepsek -> wakil -> guru), lalu anggota menyusul per unit.
+  for (const unit of orgUnits) {
+    await sql`
+      insert into org_units (id, name, kind, parent_id, subject, description, sort)
+      values (
+        ${unit.id}, ${unit.name}, ${unit.kind}, ${unit.parentId},
+        ${unit.subject ?? null}, ${unit.description ?? null}, ${unit.sort}
+      )
+      on conflict (id) do update set
+        name = excluded.name, kind = excluded.kind, parent_id = excluded.parent_id,
+        subject = excluded.subject, description = excluded.description, sort = excluded.sort
+    `;
+  }
+  for (const member of orgMembers) {
+    await sql`
+      insert into org_members (id, unit_id, name, position, alumni, photo_key, sort)
+      values (
+        ${member.id}, ${member.unitId}, ${member.name}, ${member.position},
+        ${member.alumni}, ${member.photo}, ${member.sort}
+      )
+      on conflict (id) do update set
+        unit_id = excluded.unit_id, name = excluded.name, position = excluded.position,
+        alumni = excluded.alumni, photo_key = excluded.photo_key, sort = excluded.sort
+    `;
+  }
+  counts.org_units = orgUnits.length;
+  counts.org_members = orgMembers.length;
   /* ------------------------------- Alumni -------------------------------- */
   for (const city of alumniCities) {
     await sql`
@@ -712,7 +760,7 @@ export async function POST(request: NextRequest) {
       "news & announcements (masih inline di BeritaList/NewsSection/NewsTicker/[slug]/admin)",
       "achievements (AchievementWall + AchievementSection)",
       "gallery (GaleriView + schoolData.fotoResmi)",
-      "teachers/staff (GuruStaf)",
+      "teachers/staff (tabel teachers, untuk kebutuhan dashboard)",
       "testimonials (PeopleSection)",
       "faqs & ppdb schedule (PPDBGuide, ppdb/faq, ppdb/biaya)",
       "seluruh file public/assets perlu diunggah ke R2 (scripts/upload-assets-r2.mjs)",
