@@ -8,7 +8,11 @@ export type WebSource = { title: string; url: string; snippet: string };
 
 export type WebSearchOptions = {
   limit?: number;
+  /** Berapa halaman hasil yang diambil (masing-masing 10 hasil). Default 3 → s/d 30 hasil. */
+  pages?: number;
   includeDomains?: string[];
+  /** Batasi ke satu domain lewat operator site: (lebih ketat dari include_domains). */
+  site?: string;
 };
 
 const SCHOOL_MENTIONS = [
@@ -139,41 +143,58 @@ export async function webSearch(
   query: string,
   options: WebSearchOptions = {}
 ): Promise<WebSource[]> {
-  const { limit = 6, includeDomains } = options;
+  const { limit = 12, pages = 3, includeDomains, site } = options;
   const key = apiKey();
   if (!key || !query.trim()) return [];
 
-  const cacheKey = `s:${query.toLowerCase()}:${includeDomains?.join("|") ?? ""}`;
+  const scopedQuery = site ? `${query} site:${site}` : query;
+  const cacheKey = `s:${scopedQuery.toLowerCase()}:${includeDomains?.join("|") ?? ""}:${pages}`;
 
   const result = await cached<WebSource[]>(cacheKey, 10 * 60_000, async () => {
-    const url = new URL(SEARCH_ENDPOINT);
-    url.searchParams.set("query", query);
-    url.searchParams.set("language", "id");
-    url.searchParams.set("location", "ID");
-    url.searchParams.set(
-      "purpose",
-      "Menjawab pertanyaan pengunjung website SMAN 68 Jakarta tentang informasi terbaru"
-    );
-    if (includeDomains?.length) {
-      url.searchParams.set("include_domains", includeDomains.join(","));
+    const collected: WebSource[] = [];
+    const seen = new Set<string>();
+
+    for (let page = 0; page < Math.min(pages, 10); page += 1) {
+      const url = new URL(SEARCH_ENDPOINT);
+      url.searchParams.set("query", scopedQuery);
+      url.searchParams.set("language", "id");
+      url.searchParams.set("location", "ID");
+      url.searchParams.set("page", String(page));
+      url.searchParams.set(
+        "purpose",
+        "Menjawab pertanyaan pengunjung website SMAN 68 Jakarta tentang informasi terbaru"
+      );
+      if (includeDomains?.length) {
+        url.searchParams.set("include_domains", includeDomains.join(","));
+      }
+
+      const response = await fetch(url, {
+        headers: { "X-API-Key": key },
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+        cache: "no-store",
+      });
+      if (!response.ok) throw new Error(`search ${response.status}`);
+
+      const data = (await response.json()) as SearchResponse;
+      const items = data.results ?? [];
+      if (items.length === 0) break;
+
+      for (const item of items) {
+        if (!item.url || !item.title) continue;
+        if (seen.has(item.url)) continue;
+        seen.add(item.url);
+        collected.push({
+          title: clean(item.title, 140),
+          url: item.url,
+          snippet: clean(item.snippet ?? ""),
+        });
+        if (collected.length >= limit) break;
+      }
+
+      if (collected.length >= limit) break;
     }
 
-    const response = await fetch(url, {
-      headers: { "X-API-Key": key },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-      cache: "no-store",
-    });
-    if (!response.ok) throw new Error(`search ${response.status}`);
-
-    const data = (await response.json()) as SearchResponse;
-    return (data.results ?? [])
-      .filter((item) => item.url && item.title)
-      .slice(0, limit)
-      .map((item) => ({
-        title: clean(item.title ?? "", 140),
-        url: item.url as string,
-        snippet: clean(item.snippet ?? ""),
-      }));
+    return collected;
   });
 
   return result ?? [];

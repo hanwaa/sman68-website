@@ -2,6 +2,7 @@ import "server-only";
 
 import { DEFAULT_CHIPS, FALLBACK_ANSWER, GREETING } from "@/lib/chat-copy";
 import { getAchievements, getEkskul, getFaqs, getNews } from "@/lib/content-server";
+import { buildFacilityAnswer } from "@/lib/school-facilities";
 import { schoolData } from "@/lib/school-data";
 import {
   extractRelevant,
@@ -25,6 +26,8 @@ export type KnowledgeItem = {
   chips?: string[];
   volatile?: boolean;
   webQuery?: string;
+  /** Data internal sekolah — jangan ditimpa info web yang bisa bertentangan. */
+  noWeb?: boolean;
 };
 
 export type ChatAnswer = {
@@ -117,6 +120,14 @@ function tokenize(text: string): string[] {
 
 function containsAny(text: string, words: string[]): boolean {
   return words.some((word) => text.includes(word));
+}
+
+function isSchoolSite(url: string): boolean {
+  try {
+    return new URL(url).hostname.toLowerCase().replace(/^www\./, "").endsWith(SCHOOL_SITE);
+  } catch {
+    return false;
+  }
 }
 
 const joinList = (values: string[]) =>
@@ -221,6 +232,7 @@ function staticItems(): KnowledgeItem[] {
       answer:
         "Hari belajar Senin sampai Jumat, pukul 07.00 sampai 15.30 WIB dengan sistem JamFlex. Rincian jadwal setiap mata pelajaran dibagikan wali kelas melalui portal sekolah.",
       link: { label: "Lihat program studi", href: "/akademik/program" },
+      noWeb: true,
     },
     {
       id: "kelas-digital",
@@ -243,6 +255,7 @@ function staticItems(): KnowledgeItem[] {
         kontak.telepon +
         " bila belum punya akun.",
       link: { label: "Masuk ke portal", href: "/login" },
+      noWeb: true,
     },
     {
       id: "kontak",
@@ -262,6 +275,7 @@ function staticItems(): KnowledgeItem[] {
       ],
       answer: `Tata usaha: ${kontak.telepon}\nEmail: ${kontak.email}\nAlamat: ${kontak.alamat}\nJam layanan: Senin sampai Jumat, 07.00 sampai 15.30 WIB.`,
       link: { label: "Lihat peta lokasi", href: kontak.mapsUrl },
+      noWeb: true,
     },
     {
       id: "alamat",
@@ -288,6 +302,7 @@ function staticItems(): KnowledgeItem[] {
       ],
       answer: `SMA Negeri 68 Jakarta dengan NPSN ${identitas.npsn}, sekolah negeri akreditasi ${identitas.akreditasi} skor ${identitas.skorAkreditasi} yang berlaku sampai ${identitas.akreditasiBerlakuSampai}. Berdiri sejak ${identitas.tahunBerdiri} dan memakai ${identitas.kurikulum}. Saat ini ada ${siswa.total} siswa dalam ${siswa.rombel} rombel dengan ${ptk.guru} guru.`,
       link: { label: "Baca profil lengkap", href: "/tentang/profil" },
+      noWeb: true,
     },
     {
       id: "fasilitas",
@@ -307,6 +322,7 @@ function staticItems(): KnowledgeItem[] {
       ],
       answer: `Fasilitas: ${sarana.ruangKelas} ruang kelas dengan ${sarana.ruangKelasLayak} persen layak, laboratorium IPA, Fisika, Kimia, Biologi, Bahasa, IPS, dan Komputer, serta perpustakaan. Internet ${sarana.internet} dengan listrik ${sarana.dayaListrikVA.toLocaleString("id-ID")} VA.`,
       link: { label: "Lihat fasilitas", href: "/tentang/fasilitas" },
+      noWeb: true,
     },
     {
       id: "guru",
@@ -315,6 +331,7 @@ function staticItems(): KnowledgeItem[] {
       keywords: ["guru", "staf", "kepsek", "kepala sekolah", "pengajar", "tenaga pendidik"],
       answer: `SMAN 68 punya ${ptk.guru} guru, dengan ${ptk.persenASN} persen berstatus ASN dan ${ptk.persenSertifikasi} persen sudah bersertifikasi. Daftar lengkap guru, staf, dan kepala sekolah ada di halaman berikut.`,
       link: { label: "Lihat guru dan staf", href: "/tentang/guru-staf" },
+      noWeb: true,
     },
     {
       id: "alumni",
@@ -410,6 +427,7 @@ async function buildDynamicItems(): Promise<KnowledgeItem[]> {
         rest > 0 ? `, dan ${rest} lainnya` : ""
       }. Groupsnya mencakup olahraga, seni, teknologi, dan literasi. Jadwal serta pembinanya ada di halaman ekskul.`,
       link: { label: "Daftar ekskul", href: "/kehidupan/ekskul" },
+      noWeb: true,
     });
   }
 
@@ -506,20 +524,51 @@ const FRESHNESS_WORDS = [
 ];
 
 const SCHOOL_NAME_PATTERN = /sman\s?68|sma negeri 68|sman68/;
-
+const SITE_OPERATOR = /(?:^|\s)-?site:[^\s]+/g;
 const OFFICIAL_TOPIC_PATTERN =
-  /ppdb|pendaftaran|spmb|zonasi|afirmasi|jalur|kuota|beasiswa|akreditasi|pendaftaran/;
+  /ppdb|pendaftaran|spmb|zonasi|afirmasi|jalur|kuota|beasiswa|akreditasi/;
 
+export const SCHOOL_SITE = "sman68-jkt.my.id";
+
+/** Tambahkan nama sekolah, tapi pertahankan operator site: yang ditulis pengguna. */
 function buildWebQuery(message: string): string {
-  return SCHOOL_NAME_PATTERN.test(message) ? message : `SMA Negeri 68 Jakarta ${message}`;
+  const operators = message.match(SITE_OPERATOR) ?? [];
+  const plain = message.replace(SITE_OPERATOR, " ").replace(/\s+/g, " ").trim();
+  const scoped = SCHOOL_NAME_PATTERN.test(plain)
+    ? plain
+    : `SMA Negeri 68 Jakarta ${plain}`.trim();
+  return [...scoped.split(" "), ...operators].join(" ").trim();
+}
+
+async function searchSchoolSite(query: string) {
+  if (SITE_OPERATOR.test(query)) {
+    SITE_OPERATOR.lastIndex = 0;
+    return [];
+  }
+  SITE_OPERATOR.lastIndex = 0;
+  const stripped = query.replace(SITE_OPERATOR, " ").replace(/\s+/g, " ").trim();
+  if (!stripped) return [];
+  return webSearch(stripped, { limit: 6, pages: 2, site: SCHOOL_SITE });
 }
 
 async function answerFromWeb(rawQuery: string, withFetch: boolean) {
   const query = buildWebQuery(rawQuery);
   const officialTopic = OFFICIAL_TOPIC_PATTERN.test(query);
-  const results = await webSearch(query, { limit: 6 });
+  const hasSiteOperator = /site:[^\s]+/.test(query);
+  const webPages = hasSiteOperator ? 3 : 2;
 
-  const relevant = results.filter((item) => isAboutSchool(item, officialTopic));
+  const [siteResults, webResults] = await Promise.all([
+    searchSchoolSite(query).catch(() => []),
+    webSearch(query, { limit: 12, pages: webPages }).catch(() => []),
+  ]);
+
+  const merged = [...siteResults, ...webResults];
+  const seen = new Set<string>();
+  const relevant = merged.filter((item) => {
+    if (seen.has(item.url)) return false;
+    seen.add(item.url);
+    return isAboutSchool(item, officialTopic);
+  });
   if (relevant.length === 0) return null;
 
   const keywords = tokenize(rawQuery).filter((word) => word.length > 3).slice(0, 4);
@@ -534,12 +583,16 @@ async function answerFromWeb(rawQuery: string, withFetch: boolean) {
       ({ item, coverage }) => coverage >= 0.34 || (officialTopic && isOfficialSource(item.url))
     )
     .sort((a, b) => {
+      // Halaman milik sekolah sendiri selalu didahulukan.
+      const aOwn = isSchoolSite(a.item.url) ? 0 : 1;
+      const bOwn = isSchoolSite(b.item.url) ? 0 : 1;
+      if (aOwn !== bOwn) return aOwn - bOwn;
       if (a.item.snippet && !b.item.snippet) return -1;
       if (!a.item.snippet && b.item.snippet) return 1;
       return b.coverage - a.coverage;
     });
 
-  let chosen = ranked[0]?.item;
+  let chosen = ranked.find(({ item }) => item.snippet)?.item ?? ranked[0]?.item;
   if (!chosen) return null;
 
   let lead = chosen.snippet;
@@ -583,6 +636,16 @@ export async function answerQuestion(rawMessage: string): Promise<ChatAnswer> {
     };
   }
 
+  // Fasilitas & ruang kelas: jawaban langsung dari data sekolah, bukan dari web.
+  const facilityAnswer = await buildFacilityAnswer(rawMessage);
+  if (facilityAnswer) {
+    return {
+      answer: facilityAnswer,
+      link: { label: "Lihat semua fasilitas", href: "/tentang/fasilitas" },
+      chips: ["Fasilitas lantai 1", "Fasilitas lantai 5", "Ekstrakurikuler", "Kontak sekolah"],      intent: "fasilitas",
+    };
+  }
+
   const match = findBest(message, await getKnowledge());
   const webEnabled = tinyfishConfigured();
   const wantsFresh = containsAny(message, FRESHNESS_WORDS);
@@ -599,7 +662,7 @@ export async function answerQuestion(rawMessage: string): Promise<ChatAnswer> {
       intent: match.item.id,
     };
 
-    const canEnrich = webEnabled && (match.item.volatile || wantsFresh);
+    const canEnrich = webEnabled && !match.item.noWeb && (match.item.volatile || wantsFresh);
     if (!canEnrich) return base;
 
     const useItemQuery = match.item.volatile && match.score >= 6;
