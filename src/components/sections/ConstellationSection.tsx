@@ -120,6 +120,7 @@ export default function ConstellationSection() {
 
   const mapRef = useRef<HTMLDivElement>(null);
   const groupRefs = useRef<(SVGGElement | null)[]>([]);
+  const offscreenRef = useRef(false);
   const [hovered, setHovered] = useState<Ekskul | null>(null);
   const router = useRouter();
   const a11yPauseRef = useRef(false);
@@ -148,6 +149,25 @@ export default function ConstellationSection() {
     router.push(`/kehidupan/ekskul?ekskul=${item.id}`);
   };
 
+  /**
+   * Hemat CPU dengan menghentikan rotasi HANYA saat konstelasi benar-benar
+   * keluar dari viewport. Berbeda dari versi lama, ini tidak pernah memakai
+   * threshold 0.05 dan tidak pernah bereaksi terhadap hover — jadi menyentuh
+   * planet tidak lagi membuat animasi berhenti.
+   */
+  useEffect(() => {
+    const el = mapRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        offscreenRef.current = !entry.isIntersecting;
+      },
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -165,9 +185,10 @@ export default function ConstellationSection() {
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
 
-      // Tidak ada jeda karena hover atau saat di luar layar: orbit harus
-      // berputar terus. Hanya preferensi reduced-motion yang menghentikannya.
-      if (a11yPauseRef.current) return;
+      // Berputar terus: tidak ada jeda karena hover atau karena kategori.
+      // Hanya berhenti saat benar-benar di luar layar, atau saat pengguna
+      // memilih kurangi gerak.
+      if (offscreenRef.current || a11yPauseRef.current) return;
 
       let index = 0;
       rings.forEach((ring, ri) => {
