@@ -22,12 +22,13 @@ import { USERS_PER_PAGE, type AdminUser } from "@/components/dashboard/parts/adm
 
 type Props = {
   userList: AdminUser[];
+  /** Daftar pengguna setelah pencarian + filter peran/status (sudah difilter di parent). */
+  users: AdminUser[];
   loaded: boolean;
   query: string;
   roleFilter: string;
   statusFilter: string;
   page: number;
-  filteredCount: number;
   onQueryChange: (value: string) => void;
   onRoleFilterChange: (value: string) => void;
   onStatusFilterChange: (value: string) => void;
@@ -40,12 +41,12 @@ type Props = {
 
 export default function AdminUsersView({
   userList,
+  users,
   loaded,
   query,
   roleFilter,
   statusFilter,
   page,
-  filteredCount,
   onQueryChange,
   onRoleFilterChange,
   onStatusFilterChange,
@@ -55,9 +56,10 @@ export default function AdminUsersView({
   onExport,
   onCreate,
 }: Props) {
+  const filteredCount = users.length;
   const totalPages = Math.max(1, Math.ceil(filteredCount / USERS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
-  const pageUsers = userList.slice(
+  const pageUsers = users.slice(
     (currentPage - 1) * USERS_PER_PAGE,
     currentPage * USERS_PER_PAGE
   );

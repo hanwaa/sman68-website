@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { Check, FileText, X } from "lucide-react";
 import { useModalA11y } from "@/lib/useModalA11y";
@@ -277,7 +277,7 @@ export default function AdminDashboard({
     }
   };
 
-  const filterUsers = () => {
+  const filteredUsers = useMemo(() => {
     const q = userQuery.trim().toLowerCase();
     return userList.filter((u) => {
       const matchQuery =
@@ -293,7 +293,7 @@ export default function AdminDashboard({
         (userStatusFilter === "Online" ? u.activeSessions > 0 : u.status === userStatusFilter);
       return matchQuery && matchRole && matchStatus;
     });
-  };
+  }, [userList, userQuery, userRoleFilter, userStatusFilter]);
 
   const handleResetPassword = async (user: AdminUser) => {
     const confirmed = window.confirm(
@@ -416,7 +416,7 @@ export default function AdminDashboard({
   };
 
   const handleExportUsers = () => {
-    const rows = filterUsers();
+    const rows = filteredUsers;
     const header = ["Nama", "Username/NISN", "Peran", "Kelas/Unit", "Status", "Sesi Aktif", "Login Terakhir"];
     const lines = rows.map((u) => [
       u.name,
@@ -518,7 +518,7 @@ export default function AdminDashboard({
         roleFilter={userRoleFilter}
         statusFilter={userStatusFilter}
         page={userPage}
-        filteredCount={filterUsers().length}
+        users={filteredUsers}
         onQueryChange={(value) => {
           setUserQuery(value);
           setUserPage(1);
