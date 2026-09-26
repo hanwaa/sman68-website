@@ -42,7 +42,11 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# Kredensial asli tidak boleh masuk repo. .env.example tetap di-commit
+# sebagai templat, jadi harus dikecualikan eksplisit dari pola .env*.
 .env*
+!.env.example
 
 # build output untuk test
 .test-build
