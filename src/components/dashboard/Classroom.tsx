@@ -1,30 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import {
-  ArrowLeft,
-  Award,
-  Check,
-  CheckCircle,
-  ClipboardList,
-  Clock,
-  Copy,
-  FileText,
-  GraduationCap,
-  Link2,
-  Megaphone,
-  Paperclip,
-  Plus,
-  RefreshCw,
-  School,
-  Send,
-  Trash2,
-  Upload,
-  UserPlus,
-  Users,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Check, Copy, Plus, School, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useModalA11y } from "@/lib/useModalA11y";
 import { uploadToR2 } from "@/lib/upload";
@@ -44,8 +21,22 @@ import {
   type ClassroomRole,
   type ClassroomStore,
 } from "@/lib/classroom";
+import ClassroomModal from "@/components/dashboard/parts/classroom/ClassroomModal";
+import ClassroomListView from "@/components/dashboard/parts/classroom/ClassroomListView";
+import ForumTab from "@/components/dashboard/parts/classroom/ForumTab";
+import AssignmentsTab from "@/components/dashboard/parts/classroom/AssignmentsTab";
+import GradesTab from "@/components/dashboard/parts/classroom/GradesTab";
+import MembersTab from "@/components/dashboard/parts/classroom/MembersTab";
+import RequestsTab from "@/components/dashboard/parts/classroom/RequestsTab";
+import CreateAssignmentModal, {
+  type AssignmentDraft,
+} from "@/components/dashboard/parts/classroom/CreateAssignmentModal";
+import AssignmentDetailModal from "@/components/dashboard/parts/classroom/AssignmentDetailModal";
+import GradeAssignmentModal from "@/components/dashboard/parts/classroom/GradeAssignmentModal";
 
 type Tab = "forum" | "tugas" | "nilai" | "orang" | "permintaan";
+
+type GradeDraft = { grade: string; feedback: string };
 
 const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 
@@ -67,81 +58,6 @@ const TABS: { id: Tab; label: string; teacherOnly?: boolean }[] = [
   { id: "orang", label: "Orang" },
   { id: "permintaan", label: "Permintaan", teacherOnly: true },
 ];
-
-function Avatar({ initials, className }: { initials: string; className?: string }) {
-  return (
-    <span
-      className={cn(
-        "flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-green/10 text-xs font-bold text-brand-green",
-        className
-      )}
-      aria-hidden="true"
-    >
-      {initials}
-    </span>
-  );
-}
-
-function StatusBadge({ status }: { status: "assigned" | "turned_in" | "graded" }) {
-  const map = {
-    assigned: { label: "Belum dikumpulkan", className: "bg-line text-muted" },
-    turned_in: { label: "Terkumpul", className: "bg-brand-green/10 text-brand-green" },
-    graded: { label: "Sudah dinilai", className: "bg-brand-pine/10 text-brand-pine" },
-  } as const;
-  const meta = map[status];
-  return <span className={cn("badge text-[10px] font-semibold", meta.className)}>{meta.label}</span>;
-}
-
-function Modal({
-  open,
-  onClose,
-  label,
-  dialogRef,
-  children,
-  wide,
-}: {
-  open: boolean;
-  onClose: () => void;
-  label: string;
-  dialogRef: React.RefObject<HTMLDivElement | null>;
-  children: React.ReactNode;
-  wide?: boolean;
-}) {
-  return (
-    <AnimatePresence>
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-brand-pine/70"
-          />
-          <motion.div
-            ref={dialogRef}
-            tabIndex={-1}
-            role="dialog"
-            aria-modal="true"
-            aria-label={label}
-            initial={{ opacity: 0, scale: 0.95, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 16 }}
-            onClick={(e) => e.stopPropagation()}
-            className={cn(
-              "relative z-10 max-h-[85vh] w-full overflow-y-auto rounded-xl bg-white p-5 text-ink shadow-card focus:outline-none sm:p-6",
-              wide ? "max-w-2xl" : "max-w-md"
-            )}
-          >
-            <button onClick={onClose} className="btn-icon absolute right-3 top-3" aria-label="Tutup">
-              <X size={18} />
-            </button>
-            {children}
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
-  );
-}
 
 interface ClassroomProps {
   role: ClassroomRole;
@@ -169,18 +85,11 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
   const [subjectFilter, setSubjectFilter] = useState("Semua");
 
   const [asgModal, setAsgModal] = useState(false);
-  const [asgForm, setAsgForm] = useState({
-    title: "",
-    topic: "",
-    instructions: "",
-    due: "",
-    points: "100",
-  });
   const [asgFile, setAsgFile] = useState<ClassAttachment | null>(null);
   const [asgLink, setAsgLink] = useState("");
 
   const [gradeTarget, setGradeTarget] = useState<ClassAssignment | null>(null);
-  const [gradeDrafts, setGradeDrafts] = useState<Record<string, { grade: string; feedback: string }>>({});
+  const [gradeDrafts, setGradeDrafts] = useState<Record<string, GradeDraft>>({});
   const [detailTarget, setDetailTarget] = useState<ClassAssignment | null>(null);
   const [driveLink, setDriveLink] = useState("");
 
@@ -495,8 +404,8 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
       attachment
         ? `Materi "${attachment.name}" dibagikan ke kelas.`
         : isTeacher
-        ? "Pengumuman dibagikan ke kelas."
-        : "Komentar kelas dikirim."
+          ? "Pengumuman dibagikan ke kelas."
+          : "Komentar kelas dikirim."
     );
   };
 
@@ -536,21 +445,20 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
     setCommentDrafts((prev) => ({ ...prev, [postId]: "" }));
   };
 
-  const handleCreateAssignment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeClass || !asgForm.title.trim()) return;
+  const handleCreateAssignment = async (draft: AssignmentDraft) => {
+    if (!activeClass || !draft.title.trim()) return;
     const attachment = asgFile ?? attachmentFromLink(asgLink, "Lampiran tugas");
     const dueTs = Date.now() + 7 * 86400000;
-    const points = Number(asgForm.points) || 100;
+    const points = Number(draft.points) || 100;
 
     const result = await apiClassroomAction({
       action: "create-assignment",
       classId: activeClass.id,
       teacherName: userName,
-      title: asgForm.title.trim(),
-      instructions: asgForm.instructions.trim(),
-      topic: asgForm.topic.trim() || "Umum",
-      due: asgForm.due.trim() || "Belum dijadwalkan",
+      title: draft.title.trim(),
+      instructions: draft.instructions.trim(),
+      topic: draft.topic.trim() || "Umum",
+      due: draft.due.trim() || "Belum dijadwalkan",
       dueTs,
       points,
       attachmentName: attachment?.name,
@@ -564,10 +472,10 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
     const assignment: ClassAssignment = {
       id: result.id,
       classId: activeClass.id,
-      title: asgForm.title.trim(),
-      instructions: asgForm.instructions.trim(),
-      topic: asgForm.topic.trim() || "Umum",
-      due: asgForm.due.trim() || "Belum dijadwalkan",
+      title: draft.title.trim(),
+      instructions: draft.instructions.trim(),
+      topic: draft.topic.trim() || "Umum",
+      due: draft.due.trim() || "Belum dijadwalkan",
       dueTs,
       points,
       attachment,
@@ -578,10 +486,8 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
       })),
     };
     setStore((prev) => ({ ...prev, assignments: [assignment, ...prev.assignments] }));
-    setAsgForm({ title: "", topic: "", instructions: "", due: "", points: "100" });
     setAsgFile(null);
     setAsgLink("");
-    setAsgModal(false);
     setTab("tugas");
     onShowToast(`Tugas "${assignment.title}" dipublikasikan.`);
   };
@@ -682,7 +588,7 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
 
   const openGrade = (assignment: ClassAssignment) => {
     setGradeTarget(assignment);
-    const drafts: Record<string, { grade: string; feedback: string }> = {};
+    const drafts: Record<string, GradeDraft> = {};
     assignment.submissions.forEach((s) => {
       drafts[s.student] = { grade: s.grade?.toString() ?? "", feedback: s.feedback ?? "" };
     });
@@ -739,191 +645,37 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
 
   if (!activeClass) {
     return (
-      <div>
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="font-display text-2xl font-extrabold text-ink md:text-3xl">
-              Kelas Digital
-            </h1>
-            <p className="text-sm text-muted">
-              {isTeacher
-                ? "Kelola kelas, materi, tugas, dan nilai siswa seperti ruang kelas online."
-                : "Ikuti materi, kumpulkan tugas, dan pantau nilai kelasmu di satu tempat."}
-            </p>
-          </div>
-          <button
-            onClick={() => setClassModal(true)}
-            className={cn("self-start sm:self-auto", isTeacher ? "btn-primary" : "btn-ghost")}
-          >
-            <Plus size={15} /> {isTeacher ? "Buat Kelas" : "Gabung Kelas"}
-          </button>
-        </div>
+      <>
+        <ClassroomListView
+          isTeacher={isTeacher}
+          myClasses={myClasses}
+          studentPendingClasses={studentPendingClasses}
+          subjectFilter={subjectFilter}
+          studentPending={studentPending}
+          teacherToGrade={teacherToGrade}
+          teacherRequests={teacherRequests}
+          studentClassLabel={studentClassLabel}
+          studentWaliName={studentWaliName}
+          assignmentCountFor={(classId) => assignmentsFor(store, classId).length}
+          doneCountFor={(cls) => {
+            const list = assignmentsFor(store, cls.id);
+            return isTeacher
+              ? list.reduce((t, a) => t + a.submissions.filter((s) => s.status !== "assigned").length, 0)
+              : list.filter((a) => submissionOf(a, userName)?.status !== "assigned").length;
+          }}
+          onSubjectFilterChange={setSubjectFilter}
+          onOpenClass={openClass}
+          onOpenClassModal={() => setClassModal(true)}
+          onReviewRequest={() => {
+            const target = myClasses.find((c) => c.requests.length > 0);
+            if (target) {
+              setActiveClassId(target.id);
+              setTab("permintaan");
+            }
+          }}
+        />
 
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div className="card p-4">
-            <div className="font-display text-2xl font-extrabold text-brand-green">
-              {myClasses.length}
-            </div>
-            <div className="mt-1 text-xs font-semibold text-ink">
-              {isTeacher ? "Kelas Diampu" : "Kelas Diikuti"}
-            </div>
-          </div>
-          <div className="card p-4">
-            <div className="font-display text-2xl font-extrabold text-brand-pine">
-              {isTeacher ? teacherToGrade : studentPending}
-            </div>
-            <div className="mt-1 text-xs font-semibold text-ink">
-              {isTeacher ? "Perlu Dinilai" : "Tugas Menunggu"}
-            </div>
-          </div>
-          <div className="card col-span-2 p-4 sm:col-span-1">
-            <div className="font-display text-2xl font-extrabold text-brand-leaf">
-              {isTeacher ? "Aktif" : studentClassLabel}
-            </div>
-            <div className="mt-1 text-xs font-semibold text-ink">
-              {isTeacher ? "Semester Gasal" : "Kelas kamu"}
-            </div>
-          </div>
-        </div>
-
-        {!isTeacher && (
-          <div className="card mb-5 flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
-            <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-brand-pine text-brand-lime">
-              <School size={22} aria-hidden="true" />
-            </span>
-            <div className="min-w-0">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-muted">
-                Kelas kamu
-              </div>
-              <div className="font-display text-xl font-extrabold text-ink">{studentClassLabel}</div>
-              <div className="text-xs text-muted">Wali Kelas: {studentWaliName}</div>
-            </div>
-            <span className="badge bg-brand-green/10 font-semibold text-brand-green sm:ml-auto">
-              {myClasses.length} mata pelajaran
-            </span>
-          </div>
-        )}
-
-        {!isTeacher && myClasses.length > 0 && (
-          <div className="mb-4 flex flex-wrap gap-2">
-            <button
-              onClick={() => setSubjectFilter("Semua")}
-              className={cn("chip", subjectFilter === "Semua" && "chip-active")}
-            >
-              Semua Mapel
-            </button>
-            {myClasses.map((cls) => (
-              <button
-                key={cls.id}
-                onClick={() => setSubjectFilter(cls.name)}
-                className={cn("chip", subjectFilter === cls.name && "chip-active")}
-              >
-                {cls.name}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {isTeacher && teacherRequests > 0 && (
-          <div className="card mb-5 flex flex-col gap-3 border-brand-lime/40 bg-brand-lime/10 p-4 sm:flex-row sm:items-center">
-            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-brand-lime/25 text-brand-pine">
-              <UserPlus size={18} aria-hidden="true" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold text-ink">
-                {teacherRequests} permintaan bergabung menunggu persetujuan
-              </div>
-              <div className="text-xs text-muted">
-                Setujui atau tolak lewat tab Permintaan di kelas masing-masing.
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                const target = myClasses.find((c) => c.requests.length > 0);
-                if (target) {
-                  setActiveClassId(target.id);
-                  setTab("permintaan");
-                }
-              }}
-              className="btn-primary self-start text-xs sm:self-auto"
-            >
-              Tinjau
-            </button>
-          </div>
-        )}
-
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {(isTeacher
-            ? myClasses
-            : subjectFilter === "Semua"
-              ? [...myClasses, ...studentPendingClasses]
-              : myClasses.filter((c) => c.name === subjectFilter)
-          ).map((cls) => {
-            const assignments = assignmentsFor(store, cls.id);
-            const done = isTeacher
-              ? assignments.reduce(
-                  (t, a) => t + a.submissions.filter((s) => s.status !== "assigned").length,
-                  0
-                )
-              : assignments.filter((a) => submissionOf(a, userName)?.status !== "assigned").length;
-            return (
-              <button
-                key={cls.id}
-                onClick={() => (isTeacher || cls.enrolled ? openClass(cls) : undefined)}
-                disabled={!isTeacher && !cls.enrolled}
-                className={cn(
-                  "card group flex flex-col overflow-hidden text-left",
-                  !isTeacher && !cls.enrolled && "cursor-default"
-                )}
-              >
-                <div className={cn("relative p-5 text-white", cls.color)}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h2 className="font-display text-base font-bold leading-snug">{cls.name}</h2>
-                      <p className="mt-0.5 text-xs text-white/70">
-                        {cls.section} · {cls.room}
-                      </p>
-                    </div>
-                    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-white/15 text-xs font-bold">
-                      {classInitials(cls.name)}
-                    </span>
-                  </div>
-                  <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-white/75">
-                    {cls.teacher}
-                  </p>
-                </div>
-                <div className="flex flex-1 flex-col p-4">
-                  <p className="line-clamp-2 text-xs leading-relaxed text-muted">
-                    {cls.description}
-                  </p>
-                  {isTeacher && cls.requests.length > 0 && (
-                    <span className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-brand-lime/25 px-2 py-0.5 text-[10px] font-bold text-brand-pine">
-                      <UserPlus size={11} aria-hidden="true" />
-                      {cls.requests.length} permintaan bergabung
-                    </span>
-                  )}
-                  {!isTeacher && !cls.enrolled && (
-                    <span className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
-                      <Clock size={11} aria-hidden="true" />
-                      Menunggu persetujuan guru
-                    </span>
-                  )}
-                  <div className="mt-4 flex items-center justify-between border-t border-line pt-3 text-[11px]">
-                    <span className="flex items-center gap-1 text-muted">
-                      <ClipboardList size={12} aria-hidden="true" />
-                      {assignments.length} tugas
-                    </span>
-                    <span className="font-semibold text-brand-green">
-                      {isTeacher ? `${done} terkumpul` : `${done} selesai`}
-                    </span>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        <Modal
+        <ClassroomModal
           open={classModal}
           onClose={() => setClassModal(false)}
           label={isTeacher ? "Buat kelas baru" : "Gabung kelas"}
@@ -1005,8 +757,8 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
               </div>
             </form>
           )}
-        </Modal>
-      </div>
+        </ClassroomModal>
+      </>
     );
   }
 
@@ -1106,793 +858,103 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
         })}
       </div>
 
-      {/* FORUM */}
       {tab === "forum" && (
-        <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_260px]">
-          <div className="space-y-4">
-            {isTeacher && (
-              <form onSubmit={handleAddPost} className="card p-4">
-                <div className="flex items-center gap-2">
-                  <Avatar initials={classInitials(userName)} />
-                  <select
-                    value={postKind}
-                    onChange={(e) => setPostKind(e.target.value as "announcement" | "material")}
-                    className="rounded-lg border border-line bg-white px-2.5 py-1.5 text-xs font-semibold text-ink focus:border-brand-green focus:outline-none"
-                  >
-                    <option value="announcement">Pengumuman</option>
-                    <option value="material">Materi</option>
-                  </select>
-                </div>
-                <textarea
-                  value={postText}
-                  onChange={(e) => setPostText(e.target.value)}
-                  rows={3}
-                  placeholder="Bagikan pengumuman atau materi ke kelas..."
-                  className="mt-3 w-full resize-none rounded-lg border border-line bg-white px-3 py-2.5 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
-                />
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <label className="btn-outline btn-sm cursor-pointer">
-                    <Upload size={13} />
-                    {postFile ? "Ganti Berkas" : "Unggah Berkas"}
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.mp4"
-                      onChange={(e) => {
-                        attachFile(e.target.files?.[0], setPostFile);
-                        e.target.value = "";
-                      }}
-                    />
-                  </label>
-                  <span className="text-[11px] text-muted">atau tempel tautan Drive:</span>
-                  <input
-                    value={postLink}
-                    onChange={(e) => setPostLink(e.target.value)}
-                    placeholder="https://drive.google.com/..."
-                    className="min-w-[180px] flex-1 rounded-lg border border-line bg-white px-3 py-2 text-xs focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
-                  />
-                </div>
-                {postFile && (
-                  <div className="mt-2 inline-flex max-w-full items-center gap-2 rounded-lg border border-line bg-cream px-3 py-2 text-xs font-semibold text-ink">
-                    <Paperclip size={13} className="flex-shrink-0 text-brand-green" />
-                    <span className="truncate">{postFile.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => setPostFile(null)}
-                      className="btn-icon h-6 w-6"
-                      aria-label="Hapus lampiran"
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                )}
-                <div className="mt-2 flex justify-end">
-                  <button type="submit" className="btn-primary btn-sm">
-                    <Send size={13} /> Bagikan
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {classPosts.length === 0 && (
-              <div className="card p-8 text-center">
-                <Megaphone size={28} className="mx-auto mb-3 text-line" aria-hidden="true" />
-                <div className="text-sm font-semibold text-ink">Belum ada postingan</div>
-                <div className="mt-1 text-xs text-muted">
-                  Pengumuman dan materi dari guru akan tampil di sini.
-                </div>
-              </div>
-            )}
-
-            {classPosts.map((post) => (
-              <article key={post.id} className="card p-4">
-                <div className="flex items-center gap-3">
-                  <Avatar initials={post.initials} />
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-semibold text-ink">{post.author}</span>
-                      <span
-                        className={cn(
-                          "badge text-[10px] font-semibold",
-                          post.kind === "announcement"
-                            ? "bg-brand-green/10 text-brand-green"
-                            : "bg-brand-pine/10 text-brand-pine"
-                        )}
-                      >
-                        {post.kind === "announcement" ? "Pengumuman" : "Materi"}
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-muted">{post.time}</span>
-                  </div>
-                </div>
-
-                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-ink/85">
-                  {post.content}
-                </p>
-
-                {post.attachment && (
-                  <a
-                    href={post.attachment.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-flex max-w-full items-center gap-2 rounded-lg border border-line bg-cream px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-brand-green/40 hover:bg-brand-mist"
-                  >
-                    {post.attachment.type === "drive" ? (
-                      <Link2 size={13} className="flex-shrink-0 text-brand-green" aria-hidden="true" />
-                    ) : (
-                      <Paperclip size={13} className="flex-shrink-0 text-brand-green" aria-hidden="true" />
-                    )}
-                    <span className="truncate">{post.attachment.name}</span>
-                  </a>
-                )}
-
-                <div className="mt-4 space-y-3 border-t border-line pt-3">
-                  {post.comments.map((comment) => (
-                    <div key={comment.id} className="flex items-start gap-2.5">
-                      <Avatar initials={comment.initials} className="h-7 w-7 text-[10px]" />
-                      <div className="min-w-0">
-                        <div className="text-xs">
-                          <span className="font-semibold text-ink">{comment.author}</span>
-                          <span className="ml-2 text-[10px] text-muted">{comment.time}</span>
-                        </div>
-                        <p className="mt-0.5 text-xs leading-relaxed text-ink/80">{comment.text}</p>
-                      </div>
-                    </div>
-                  ))}
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      value={commentDrafts[post.id] ?? ""}
-                      onChange={(e) =>
-                        setCommentDrafts((prev) => ({ ...prev, [post.id]: e.target.value }))
-                      }
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddComment(post.id);
-                        }
-                      }}
-                      placeholder="Tulis komentar kelas..."
-                      className="w-full rounded-lg border border-line bg-white px-3 py-2 text-xs focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
-                    />
-                    <button
-                      onClick={() => handleAddComment(post.id)}
-                      className="btn-icon text-brand-green hover:bg-brand-green/10 hover:text-brand-green"
-                      aria-label="Kirim komentar"
-                    >
-                      <Send size={15} />
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          <aside className="space-y-3">
-            <div className="card p-4">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Ringkasan</h2>
-              <ul className="mt-3 space-y-2.5 text-xs">
-                <li className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-muted">
-                    <ClipboardList size={13} /> Tugas
-                  </span>
-                  <span className="font-semibold text-ink">{classAssignments.length}</span>
-                </li>
-                <li className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-muted">
-                    <Megaphone size={13} /> Postingan
-                  </span>
-                  <span className="font-semibold text-ink">{classPosts.length}</span>
-                </li>
-                <li className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-muted">
-                    <Users size={13} /> {isTeacher ? "Siswa" : "Teman"}
-                  </span>
-                  <span className="font-semibold text-ink">
-                    {isTeacher
-                      ? activeClass.students.length
-                      : Math.max(activeClass.students.length - 1, 0)}
-                  </span>
-                </li>
-              </ul>
-            </div>
-            <button onClick={() => setTab("tugas")} className="btn-ghost w-full justify-between">
-              Lihat semua tugas <ArrowLeft size={14} className="rotate-180" />
-            </button>
-          </aside>
-        </div>
+        <ForumTab
+          isTeacher={isTeacher}
+          userName={userName}
+          posts={classPosts}
+          assignments={classAssignments}
+          studentCount={activeClass.students.length}
+          postKind={postKind}
+          postText={postText}
+          postLink={postLink}
+          postFile={postFile}
+          commentDrafts={commentDrafts}
+          onPostKindChange={setPostKind}
+          onPostTextChange={setPostText}
+          onPostLinkChange={setPostLink}
+          onPostFileChange={setPostFile}
+          onFilePicked={(file) => attachFile(file, setPostFile)}
+          onSubmitPost={handleAddPost}
+          onCommentDraftChange={(postId, value) =>
+            setCommentDrafts((prev) => ({ ...prev, [postId]: value }))
+          }
+          onSubmitComment={handleAddComment}
+          onGoToAssignments={() => setTab("tugas")}
+        />
       )}
 
-      {/* TUGAS */}
       {tab === "tugas" && (
-        <div className="mt-5 space-y-4">
-          {isTeacher && (
-            <div className="flex justify-end">
-              <button onClick={() => setAsgModal(true)} className="btn-primary btn-sm">
-                <Plus size={14} /> Buat Tugas
-              </button>
-            </div>
-          )}
-
-          {classAssignments.length === 0 && (
-            <div className="card p-8 text-center">
-              <ClipboardList size={28} className="mx-auto mb-3 text-line" aria-hidden="true" />
-              <div className="text-sm font-semibold text-ink">Belum ada tugas</div>
-              <div className="mt-1 text-xs text-muted">
-                {isTeacher ? "Buat tugas pertama untuk kelas ini." : "Tugas baru akan tampil di sini."}
-              </div>
-            </div>
-          )}
-
-          {classAssignments.map((assignment) => {
-            const mine = submissionOf(assignment, userName);
-            const turnedIn = assignment.submissions.filter((s) => s.status !== "assigned").length;
-            const graded = assignment.submissions.filter((s) => s.status === "graded").length;
-            return (
-              <div key={assignment.id} className="card p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex min-w-0 gap-3.5">
-                    <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-brand-green/10 text-brand-green">
-                      <FileText size={18} aria-hidden="true" />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="font-display text-sm font-bold text-ink">{assignment.title}</h2>
-                        <span className="badge bg-cream text-[10px] font-semibold text-muted">
-                          {assignment.topic}
-                        </span>
-                      </div>
-                      <p className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-muted">
-                        <span className="flex items-center gap-1">
-                          <Clock size={11} aria-hidden="true" /> Tenggat: {assignment.due}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Award size={11} aria-hidden="true" /> {assignment.points} poin
-                        </span>
-                      </p>
-                      {assignment.attachment && (
-                        <a
-                          href={assignment.attachment.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-2 inline-flex max-w-full items-center gap-1.5 text-[11px] font-semibold text-brand-green hover:underline"
-                        >
-                          {assignment.attachment.type === "drive" ? (
-                            <Link2 size={11} aria-hidden="true" />
-                          ) : (
-                            <Paperclip size={11} aria-hidden="true" />
-                          )}
-                          <span className="truncate">{assignment.attachment.name}</span>
-                        </a>
-                      )}
-                    </div>
-                  </div>
-
-                  {isTeacher ? (
-                    <div className="flex flex-shrink-0 flex-col items-start gap-2 sm:items-end">
-                      <span className="text-[11px] text-muted">
-                        {turnedIn}/{assignment.submissions.length} terkumpul · {graded} dinilai
-                      </span>
-                      <button onClick={() => openGrade(assignment)} className="btn-ghost btn-sm">
-                        <CheckCircle size={13} /> Periksa
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-shrink-0 flex-col items-start gap-2 sm:items-end">
-                      {mine && <StatusBadge status={mine.status} />}
-                      {mine?.status === "graded" && (
-                        <span className="font-display text-lg font-extrabold text-brand-green">
-                          {mine.grade}
-                          <span className="text-xs font-semibold text-muted">/{assignment.points}</span>
-                        </span>
-                      )}
-                      <button onClick={() => openDetail(assignment)} className="btn-primary btn-sm">
-                        {mine?.status === "assigned" ? (
-                          <>
-                            <Upload size={13} /> Kumpulkan
-                          </>
-                        ) : (
-                          "Lihat Pengumpulan"
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <AssignmentsTab
+          isTeacher={isTeacher}
+          userName={userName}
+          assignments={classAssignments}
+          onCreate={() => setAsgModal(true)}
+          onOpenGrade={openGrade}
+          onOpenDetail={openDetail}
+        />
       )}
 
-      {/* NILAI */}
       {tab === "nilai" && (
-        <div className="mt-5 space-y-4">
-          {!isTeacher && (
-            <div className="card flex items-center justify-between p-4">
-              <div>
-                <div className="text-xs font-semibold text-muted">Rata-rata nilai kamu</div>
-                <div className="font-display text-3xl font-extrabold text-brand-green">
-                  {average ?? "—"}
-                </div>
-              </div>
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-green/10 text-brand-green">
-                <Award size={22} aria-hidden="true" />
-              </span>
-            </div>
-          )}
-
-          <div className="card overflow-x-auto">
-            <table className="w-full min-w-[520px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-line text-[11px] uppercase tracking-wider text-muted">
-                  <th className="px-4 py-3 font-semibold">Tugas</th>
-                  <th className="px-4 py-3 font-semibold">Tenggat</th>
-                  <th className="px-4 py-3 font-semibold">Status</th>
-                  <th className="px-4 py-3 text-right font-semibold">Nilai</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {classAssignments.map((assignment) => {
-                  const mine = submissionOf(assignment, userName);
-                  return (
-                    <tr key={assignment.id} className="hover:bg-cream/60">
-                      <td className="px-4 py-3">
-                        <div className="font-semibold text-ink">{assignment.title}</div>
-                        <div className="text-[11px] text-muted">{assignment.topic}</div>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-muted">{assignment.due}</td>
-                      <td className="px-4 py-3">
-                        {isTeacher ? (
-                          <span className="text-xs text-muted">
-                            {assignment.submissions.filter((s) => s.status === "graded").length}/
-                            {assignment.submissions.length} dinilai
-                          </span>
-                        ) : mine ? (
-                          <StatusBadge status={mine.status} />
-                        ) : (
-                          <span className="text-xs text-muted">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        {isTeacher ? (
-                          <button
-                            onClick={() => openGrade(assignment)}
-                            className="text-xs font-semibold text-brand-green hover:underline"
-                          >
-                            Periksa
-                          </button>
-                        ) : (
-                          <span className="font-display font-extrabold text-ink">
-                            {mine?.grade ?? "—"}
-                            <span className="text-xs font-semibold text-muted">
-                              /{assignment.points}
-                            </span>
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <GradesTab
+          isTeacher={isTeacher}
+          userName={userName}
+          assignments={classAssignments}
+          average={average}
+          onOpenGrade={openGrade}
+        />
       )}
 
-      {/* ORANG */}
       {tab === "orang" && (
-        <div className="mt-5 grid gap-4 lg:grid-cols-2">
-          <div className="card p-5">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Guru</h2>
-            <div className="mt-3 flex items-center gap-3">
-              <Avatar initials={activeClass.teacherInitials} className="h-11 w-11 text-sm" />
-              <div>
-                <div className="text-sm font-semibold text-ink">{activeClass.teacher}</div>
-                <div className="text-xs text-muted">Guru {activeClass.subject}</div>
-              </div>
-            </div>
-          </div>
-          <div className="card p-5">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted">
-              {isTeacher ? "Siswa" : "Teman Sekelas"}
-            </h2>
-            <ul className="mt-3 space-y-3">
-              {activeClass.students.map((name) => (
-                <li key={name} className="flex items-center gap-3">
-                  <Avatar initials={classInitials(name)} />
-                  <span className="text-sm text-ink">{name}</span>
-                  {name === userName && (
-                    <span className="badge bg-brand-green/10 text-[10px] font-semibold text-brand-green">
-                      Kamu
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        <MembersTab isTeacher={isTeacher} userName={userName} activeClass={activeClass} />
       )}
 
-      {/* PERMINTAAN BERGABUNG (guru) */}
       {tab === "permintaan" && isTeacher && (
-        <div className="mt-5">
-          <div className="card p-5">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <h2 className="font-display text-base font-bold text-ink">Permintaan Bergabung</h2>
-                <p className="text-xs text-muted">
-                  Setujui siswa untuk masuk ke {activeClass.name} {activeClass.section}.
-                </p>
-              </div>
-              <button onClick={refreshStore} disabled={refreshing} className="btn-ghost text-xs">
-                <RefreshCw size={13} className={cn(refreshing && "animate-spin")} /> Muat Ulang
-              </button>
-            </div>
-
-            {activeClass.requests.length === 0 ? (
-              <div className="py-12 text-center">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-line bg-cream">
-                  <UserPlus size={20} className="text-muted" aria-hidden="true" />
-                </div>
-                <div className="text-sm font-semibold text-ink">Belum ada permintaan</div>
-                <div className="mt-1 text-xs text-muted">
-                  Permintaan muncul saat siswa memasukkan kode kelas.
-                </div>
-              </div>
-            ) : (
-              <ul className="divide-y divide-line">
-                {activeClass.requests.map((request) => (
-                  <li
-                    key={request.id}
-                    className="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar initials={request.initials} />
-                      <div>
-                        <div className="text-sm font-semibold text-ink">{request.name}</div>
-                        <div className="text-[11px] text-muted">Mengajukan {request.time}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 self-end sm:self-auto">
-                      <button
-                        onClick={() => handleRejectMember(request)}
-                        className="btn-danger text-xs"
-                      >
-                        <X size={13} /> Tolak
-                      </button>
-                      <button
-                        onClick={() => handleApproveMember(request)}
-                        className="btn-primary text-xs"
-                      >
-                        <Check size={13} /> Setujui
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
+        <RequestsTab
+          activeClass={activeClass}
+          refreshing={refreshing}
+          onRefresh={refreshStore}
+          onApprove={handleApproveMember}
+          onReject={handleRejectMember}
+        />
       )}
 
-      {/* MODAL: BUAT TUGAS */}
-      <Modal
+      <CreateAssignmentModal
         open={asgModal}
-        onClose={() => setAsgModal(false)}
-        label="Buat tugas baru"
         dialogRef={asgModalRef}
-      >
-        <form onSubmit={handleCreateAssignment} className="mt-2 space-y-3.5">
-          <h2 className="font-display text-lg font-bold text-ink">Buat Tugas</h2>
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-ink">Judul</label>
-            <input
-              value={asgForm.title}
-              onChange={(e) => setAsgForm((f) => ({ ...f, title: e.target.value }))}
-              placeholder="Contoh: Latihan Integral"
-              className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
-              required
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-ink">Topik</label>
-              <input
-                value={asgForm.topic}
-                onChange={(e) => setAsgForm((f) => ({ ...f, topic: e.target.value }))}
-                placeholder="Integral"
-                className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-ink">Poin</label>
-              <input
-                type="number"
-                min={0}
-                value={asgForm.points}
-                onChange={(e) => setAsgForm((f) => ({ ...f, points: e.target.value }))}
-                className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-ink">Tenggat</label>
-            <input
-              value={asgForm.due}
-              onChange={(e) => setAsgForm((f) => ({ ...f, due: e.target.value }))}
-              placeholder="Jumat, 23.59"
-              className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-ink">Lampiran Materi</label>
-            <div className="flex flex-wrap items-center gap-2">
-              <label className="btn-outline btn-sm cursor-pointer">
-                <Upload size={13} />
-                {asgFile ? "Ganti Berkas" : "Unggah Berkas"}
-                <input
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.mp4"
-                  onChange={(e) => {
-                    attachFile(e.target.files?.[0], setAsgFile);
-                    e.target.value = "";
-                  }}
-                />
-              </label>
-              <span className="text-[11px] text-muted">atau</span>
-              <input
-                value={asgLink}
-                onChange={(e) => setAsgLink(e.target.value)}
-                placeholder="Tautan Google Drive (opsional)"
-                className="min-w-[180px] flex-1 rounded-lg border border-line bg-white px-3 py-2.5 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
-              />
-            </div>
-            {asgFile && (
-              <div className="mt-2 inline-flex max-w-full items-center gap-2 rounded-lg border border-line bg-cream px-3 py-2 text-xs font-semibold text-ink">
-                <Paperclip size={13} className="flex-shrink-0 text-brand-green" />
-                <span className="truncate">{asgFile.name}</span>
-                <button
-                  type="button"
-                  onClick={() => setAsgFile(null)}
-                  className="btn-icon h-6 w-6"
-                  aria-label="Hapus lampiran"
-                >
-                  <X size={12} />
-                </button>
-              </div>
-            )}
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-ink">Instruksi</label>
-            <textarea
-              value={asgForm.instructions}
-              onChange={(e) => setAsgForm((f) => ({ ...f, instructions: e.target.value }))}
-              rows={3}
-              placeholder="Tulis instruksi pengerjaan..."
-              className="w-full resize-none rounded-lg border border-line bg-white px-3 py-2.5 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
-            />
-          </div>
-          <div className="flex justify-end gap-2 pt-1">
-            <button type="button" onClick={() => setAsgModal(false)} className="btn-outline">
-              Batal
-            </button>
-            <button type="submit" className="btn-primary">
-              <Send size={14} /> Publikasikan
-            </button>
-          </div>
-        </form>
-      </Modal>
+        file={asgFile}
+        link={asgLink}
+        onLinkChange={setAsgLink}
+        onFileChange={setAsgFile}
+        onFilePicked={(file) => attachFile(file, setAsgFile)}
+        onSubmit={handleCreateAssignment}
+        onClose={() => setAsgModal(false)}
+      />
 
-      {/* MODAL: DETAIL TUGAS (SISWA) */}
-      <Modal
-        open={!!detailTarget}
-        onClose={() => setDetailTarget(null)}
-        label={detailTarget?.title ?? "Detail tugas"}
+      <AssignmentDetailModal
+        assignment={detailTarget}
+        userName={userName}
         dialogRef={detailModalRef}
-      >
-        {detailTarget && (
-          <div className="mt-2">
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-green/10 text-brand-green">
-                <FileText size={18} aria-hidden="true" />
-              </span>
-              <div>
-                <h2 className="font-display text-lg font-bold text-ink">{detailTarget.title}</h2>
-                <p className="text-xs text-muted">
-                  {detailTarget.topic} · {detailTarget.points} poin
-                </p>
-              </div>
-            </div>
-            <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-ink/85">
-              {detailTarget.instructions}
-            </p>
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted">
-              <span className="flex items-center gap-1">
-                <Clock size={12} aria-hidden="true" /> Tenggat: {detailTarget.due}
-              </span>
-              {detailTarget.attachment && (
-                <a
-                  href={detailTarget.attachment.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 font-semibold text-brand-green hover:underline"
-                >
-                  {detailTarget.attachment.type === "drive" ? (
-                    <Link2 size={12} aria-hidden="true" />
-                  ) : (
-                    <Paperclip size={12} aria-hidden="true" />
-                  )}
-                  {detailTarget.attachment.name}
-                </a>
-              )}
-            </div>
+        driveLink={driveLink}
+        onDriveLinkChange={setDriveLink}
+        onSubmitLink={handleSubmitLink}
+        onCancelSubmit={handleCancelSubmit}
+        onClose={() => setDetailTarget(null)}
+      />
 
-            {(() => {
-              const mine = submissionOf(detailTarget, userName);
-              const submitted = mine && mine.status !== "assigned";
-              return (
-                <div className="mt-5 border-t border-line pt-4">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="text-xs font-semibold text-ink">Pengumpulan kamu</div>
-                    {mine ? <StatusBadge status={mine.status} /> : null}
-                  </div>
-
-                  {mine?.status === "graded" && (
-                    <div className="mt-3 rounded-lg bg-brand-green/5 px-3 py-2.5 text-xs">
-                      <div className="font-display text-lg font-extrabold text-brand-green">
-                        {mine.grade}
-                        <span className="text-xs font-semibold text-muted">
-                          /{detailTarget.points}
-                        </span>
-                      </div>
-                      {mine.feedback && <p className="mt-1 text-muted">{mine.feedback}</p>}
-                    </div>
-                  )}
-
-                  <label className="mt-3 mb-1 flex items-center gap-1.5 text-xs font-semibold text-ink">
-                    <Link2 size={13} className="text-brand-green" aria-hidden="true" />
-                    Tautan Google Drive
-                  </label>
-                  <div className="flex flex-col gap-2 sm:flex-row">
-                    <input
-                      value={driveLink}
-                      onChange={(e) => setDriveLink(e.target.value)}
-                      placeholder="https://drive.google.com/file/d/..."
-                      className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-xs focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
-                    />
-                    <button
-                      onClick={() => handleSubmitLink(detailTarget.id)}
-                      className="btn-primary btn-sm flex-shrink-0"
-                    >
-                      <Upload size={13} /> {submitted ? "Perbarui" : "Kumpulkan"}
-                    </button>
-                  </div>
-
-                  {submitted && (
-                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                      <a
-                        href={mine?.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex max-w-full items-center gap-1.5 text-[11px] font-semibold text-brand-green hover:underline"
-                      >
-                        <Link2 size={12} aria-hidden="true" />
-                        <span className="truncate">{mine?.link}</span>
-                      </a>
-                      {mine?.status !== "graded" && (
-                        <button
-                          onClick={() => handleCancelSubmit(detailTarget.id)}
-                          className="text-[11px] font-semibold text-muted underline-offset-2 hover:text-ink hover:underline"
-                        >
-                          Batalkan pengumpulan
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-          </div>
-        )}
-      </Modal>
-
-      {/* MODAL: PERIKSA NILAI (GURU) */}
-      <Modal
-        open={!!gradeTarget}
-        onClose={() => setGradeTarget(null)}
-        label={gradeTarget ? `Periksa ${gradeTarget.title}` : "Periksa tugas"}
+      <GradeAssignmentModal
+        assignment={gradeTarget}
         dialogRef={gradeModalRef}
-        wide
-      >
-        {gradeTarget && (
-          <div className="mt-2">
-            <div className="flex items-center gap-2">
-              <GraduationCap size={18} className="text-brand-green" aria-hidden="true" />
-              <h2 className="font-display text-lg font-bold text-ink">
-                Periksa: {gradeTarget.title}
-              </h2>
-            </div>
-            <p className="mt-1 text-xs text-muted">
-              Tenggat {gradeTarget.due} · {gradeTarget.points} poin ·{" "}
-              {gradeTarget.submissions.filter((s) => s.status !== "assigned").length}/
-              {gradeTarget.submissions.length} terkumpul
-            </p>
-
-            <div className="mt-4 space-y-3">
-              {gradeTarget.submissions.map((submission) => (
-                <div key={submission.student} className="rounded-xl border border-line p-3.5">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <Avatar initials={submission.initials} />
-                      <div className="min-w-0">
-                        <div className="text-sm font-semibold text-ink">{submission.student}</div>
-                        <div className="text-[11px] text-muted">
-                          {submission.status === "assigned"
-                            ? "Belum mengumpulkan"
-                            : `Dikumpulkan ${submission.submittedAt ?? "-"}`}
-                        </div>
-                        {submission.link && (
-                          <a
-                            href={submission.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-0.5 inline-flex max-w-[220px] items-center gap-1 text-[11px] font-semibold text-brand-green hover:underline"
-                          >
-                            <Link2 size={11} className="flex-shrink-0" aria-hidden="true" />
-                            <span className="truncate">Buka pekerjaan (Google Drive)</span>
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                    <StatusBadge status={submission.status} />
-                  </div>
-
-                  <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                    <input
-                      type="number"
-                      min={0}
-                      max={gradeTarget.points}
-                      placeholder="Nilai"
-                      value={gradeDrafts[submission.student]?.grade ?? ""}
-                      onChange={(e) =>
-                        setGradeDrafts((prev) => ({
-                          ...prev,
-                          [submission.student]: {
-                            grade: e.target.value,
-                            feedback: prev[submission.student]?.feedback ?? "",
-                          },
-                        }))
-                      }
-                      className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30 sm:w-24"
-                    />
-                    <input
-                      placeholder="Umpan balik singkat"
-                      value={gradeDrafts[submission.student]?.feedback ?? ""}
-                      onChange={(e) =>
-                        setGradeDrafts((prev) => ({
-                          ...prev,
-                          [submission.student]: {
-                            grade: prev[submission.student]?.grade ?? "",
-                            feedback: e.target.value,
-                          },
-                        }))
-                      }
-                      className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
-                    />
-                    <button
-                      onClick={() => saveGrade(submission.student)}
-                      className="btn-primary btn-sm flex-shrink-0"
-                    >
-                      Simpan
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </Modal>
+        gradeDrafts={gradeDrafts}
+        onGradeDraftChange={(student, patch) =>
+          setGradeDrafts((prev) => ({
+            ...prev,
+            [student]: { grade: prev[student]?.grade ?? "", feedback: prev[student]?.feedback ?? "", ...patch },
+          }))
+        }
+        onSave={saveGrade}
+        onClose={() => setGradeTarget(null)}
+      />
     </div>
   );
 }
