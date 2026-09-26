@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConfigured, getDb } from "@/lib/db";
-import { getSessionAccount } from "@/lib/auth-server";
 import { classInitials } from "@/lib/classroom";
 import { newsArticles, type NewsArticle } from "@/lib/news";
 import {
@@ -19,7 +18,6 @@ import {
   peoplePhotos,
 } from "@/lib/content";
 import { ekskulList, normalizeEkskulCategory } from "@/lib/ekskul";
-import { orgMembers, orgUnits } from "@/lib/struktur-organisasi";
 import { filterPublicRooms } from "@/lib/fasilitas-publik";
 import { getInstagramFeed } from "@/lib/instagram";
 import {
@@ -55,19 +53,6 @@ const heroSlidesFallback = [
 export async function GET(request: NextRequest) {
   const resource = request.nextUrl.searchParams.get("resource") ?? "";
 
-  // Data guru bersifat internal (nama, jabatan, foto). Hanya akun yang sudah
-  // login yang boleh membacanya — sebelumnya endpoint ini terbuka untuk publik
-  // sehingga siapa pun bisa mengambil seluruh daftar guru.
-  if (resource === "teachers") {
-    const account = await getSessionAccount();
-    if (!account) {
-      return NextResponse.json(
-        { error: "Sesi tidak valid. Silakan masuk terlebih dahulu." },
-        { status: 401 }
-      );
-    }
-  }
-
   const fallback = () => {
     switch (resource) {
       case "news":
@@ -91,8 +76,6 @@ export async function GET(request: NextRequest) {
         return { steps: ppdbSteps, schedule: ppdbSchedule, fees: ppdbFees, scholarships: ppdbScholarships };
       case "ekskul":
         return ekskulList;
-      case "struktur":
-        return { units: orgUnits, members: orgMembers };
       case "events":
         return [];
       case "hero":
@@ -379,45 +362,6 @@ export async function GET(request: NextRequest) {
             schedule: text(row.schedule),
             advisor: text(row.advisor),
           })),
-          source: "db",
-        });
-      }
-
-      // Struktur organisasi sengaja tidak menyertakan NIP/kontak/tanggal lahir —
-      // kolom itu tidak ada di org_members sama sekali.
-      case "struktur": {
-        const [unitRows, memberRows] = await Promise.all([
-          sql`
-            select id, name, kind, parent_id, subject, description, sort
-            from org_units order by sort asc
-          ` as Promise<Row[]>,
-          sql`
-            select id, unit_id, name, position, alumni, photo_key, sort
-            from org_members order by sort asc
-          ` as Promise<Row[]>,
-        ]);
-        if (unitRows.length === 0) break;
-        return NextResponse.json({
-          data: {
-            units: unitRows.map((row) => ({
-              id: text(row.id),
-              name: text(row.name),
-              kind: text(row.kind),
-              parentId: (row.parent_id as string | null) ?? null,
-              subject: (row.subject as string | null) ?? undefined,
-              description: text(row.description) || undefined,
-              sort: Number(row.sort) || 0,
-            })),
-            members: memberRows.map((row) => ({
-              id: text(row.id),
-              unitId: text(row.unit_id),
-              name: text(row.name),
-              position: text(row.position),
-              alumni: text(row.alumni) || null,
-              photo: text(row.photo_key) || null,
-              sort: Number(row.sort) || 0,
-            })),
-          },
           source: "db",
         });
       }

@@ -262,35 +262,6 @@ create table if not exists alumni (
 alter table alumni add column if not exists field text;
 alter table alumni add column if not exists university text;
 
--- ------------------------------------------------------------
--- Struktur organisasi (kepsek -> wakil -> guru, OSIS, MPK)
--- Pohon disimpan lewat org_units.parent_id. Hanya field yang aman
--- dipublikasikan yang disimpan di sini (nama, jabatan, mapel, wisuda) —
--- NIP/tanggal lahir/kontak pribadi tidak pernah masuk ke tabel ini.
--- ------------------------------------------------------------
-create table if not exists org_units (
-  id text primary key,
-  name text not null,
-  kind text not null default 'sekolah' check (kind in ('sekolah', 'osis', 'mpk')),
-  parent_id text references org_units (id) on delete set null,
-  -- Kelompok mata pelajaran untuk unit jenis 'guru', mis. 'Matematika'.
-  subject text,
-  description text,
-  sort integer not null default 0
-);
-create index if not exists idx_org_units_parent on org_units (parent_id, sort asc);
-
-create table if not exists org_members (
-  id text primary key,
-  unit_id text not null references org_units (id) on delete cascade,
-  name text not null,
-  position text not null,
-  -- Riwayat pendidikan/lulusan, mis. 'S1 Pendidikan Matematika — Universitas Indonesia (2005)'.
-  alumni text,
-  photo_key text,
-  sort integer not null default 0
-);
-create index if not exists idx_org_members_unit on org_members (unit_id, sort asc);
 
 create table if not exists alumni_paths (
   id uuid primary key default gen_random_uuid(),

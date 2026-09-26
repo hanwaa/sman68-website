@@ -20,7 +20,6 @@ import {
   testimonials,
 } from "@/lib/content";
 import { ekskulList } from "@/lib/ekskul";
-import { orgMembers, orgUnits } from "@/lib/struktur-organisasi";
 import { buildAcademicSeed, buildDigitalSeed, buildScheduleSeed } from "@/lib/akademik";
 import { hashPassword } from "@/lib/auth";
 import { ADMIN_NPSN } from "@/lib/auth-constants";
@@ -659,35 +658,6 @@ export async function POST(request: NextRequest) {
   }
   counts.extracurriculars = ekskulList.length;
 
-  /* ------------------------- Struktur Organisasi ------------------------- */
-  // Unit diurutkan dari atas ke bawah supaya parent_id selalu sudah ada
-  // (kepsek -> wakil -> guru), lalu anggota menyusul per unit.
-  for (const unit of orgUnits) {
-    await sql`
-      insert into org_units (id, name, kind, parent_id, subject, description, sort)
-      values (
-        ${unit.id}, ${unit.name}, ${unit.kind}, ${unit.parentId},
-        ${unit.subject ?? null}, ${unit.description ?? null}, ${unit.sort}
-      )
-      on conflict (id) do update set
-        name = excluded.name, kind = excluded.kind, parent_id = excluded.parent_id,
-        subject = excluded.subject, description = excluded.description, sort = excluded.sort
-    `;
-  }
-  for (const member of orgMembers) {
-    await sql`
-      insert into org_members (id, unit_id, name, position, alumni, photo_key, sort)
-      values (
-        ${member.id}, ${member.unitId}, ${member.name}, ${member.position},
-        ${member.alumni}, ${member.photo}, ${member.sort}
-      )
-      on conflict (id) do update set
-        unit_id = excluded.unit_id, name = excluded.name, position = excluded.position,
-        alumni = excluded.alumni, photo_key = excluded.photo_key, sort = excluded.sort
-    `;
-  }
-  counts.org_units = orgUnits.length;
-  counts.org_members = orgMembers.length;
   /* ------------------------------- Alumni -------------------------------- */
   for (const city of alumniCities) {
     await sql`

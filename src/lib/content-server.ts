@@ -11,12 +11,6 @@ import {
   type GalleryPhotoContent,
 } from "@/lib/content";
 import { ekskulList, type Ekskul } from "@/lib/ekskul";
-import {
-  orgMembers,
-  orgUnits,
-  type OrgMember,
-  type OrgUnit,
-} from "@/lib/struktur-organisasi";
 import type { NewsArticle } from "@/lib/news";
 
 type Row = Record<string, unknown>;
@@ -131,50 +125,6 @@ export async function getEkskul(): Promise<Ekskul[]> {
     }));
   } catch {
     return ekskulList;
-  }
-}
-
-/** Data struktur organisasi: unit + anggota, siap dipakai halaman /tentang/struktur. */
-export type OrgData = { units: OrgUnit[]; members: OrgMember[] };
-
-export async function getOrgStructure(): Promise<OrgData> {
-  const fallback: OrgData = { units: orgUnits, members: orgMembers };
-  if (!dbConfigured()) return fallback;
-  try {
-    const [unitRows, memberRows] = await Promise.all([
-      getDb()`
-        select id, name, kind, parent_id, subject, description, sort
-        from org_units order by sort asc
-      ` as Promise<Row[]>,
-      getDb()`
-        select id, unit_id, name, position, alumni, photo_key, sort
-        from org_members order by sort asc
-      ` as Promise<Row[]>,
-    ]);
-    if (unitRows.length === 0) return fallback;
-    return {
-      units: unitRows.map((row) => ({
-        id: text(row.id),
-        name: text(row.name),
-        kind: text(row.kind) as OrgUnit["kind"],
-        parentId: (row.parent_id as string | null) ?? null,
-        subject: (row.subject as string | null) ?? undefined,
-        description: text(row.description) || undefined,
-        sort: Number(row.sort) || 0,
-      })),
-      members: memberRows.map((row) => ({
-        id: text(row.id),
-        unitId: text(row.unit_id),
-        name: text(row.name),
-        position: text(row.position),
-        alumni: text(row.alumni) || null,
-        photo: text(row.photo_key) || null,
-        sort: Number(row.sort) || 0,
-      })),
-    };
-  } catch (error) {
-    console.warn("[struktur] gagal memuat:", error instanceof Error ? error.message : error);
-    return fallback;
   }
 }
 
