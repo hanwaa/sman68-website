@@ -502,11 +502,7 @@ export const alumniCareer: AlumniCareer[] = [
   },
 ];
 
-export function cityById(id: string) {
-  return alumniCities.find((c) => c.id === id);
-}
-
- export const alumniUniversities = Array.from(new Set(alumniCareer.map((a) => a.university)));
+export const alumniUniversities = Array.from(new Set(alumniCareer.map((a) => a.university)));
 
 
 export const universityShortNames: Record<string, string> = {

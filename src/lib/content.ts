@@ -30,8 +30,6 @@ export const achievements: AchievementContent[] = [
   { id: "15", title: "Medali Perak Kejurnas Atletik", description: "Sprinter SMAN 68 meraih medali perak pada Kejuaraan Nasional Atletik Pelajar.", level: "nasional", category: "olahraga", awardType: "juara2", year: 2022, cover: "/assets/foto-4.jpg" },
 ];
 
-export const homeAchievementIds: string[] = ["1", "2", "3", "4", "5", "13", "14", "15"];
-
 export type GalleryAlbumContent = { id: string; title: string; category: string; cover: string };
 
 export const galleryAlbums: GalleryAlbumContent[] = [

@@ -14,8 +14,6 @@ export const LEVEL_LABELS: Record<string, string> = {
   sekolah: "Sekolah",
 };
 
-export const VERIFIED_STATUSES = ["published", "draft", "approved"] as const;
-
 export function achievementPoints(level: string): number {
   return LEVEL_POINTS[String(level ?? "").toLowerCase()] ?? LEVEL_POINTS.sekolah;
 }

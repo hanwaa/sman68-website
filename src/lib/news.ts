@@ -111,6 +111,3 @@ export const newsArticles: NewsArticle[] = [
     publishedAt: dayAgo(3),
   },
 ];
-
-export const latestNews = (count = 3) =>
-  [...newsArticles].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)).slice(0, count);
