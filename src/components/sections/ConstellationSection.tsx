@@ -28,12 +28,16 @@ const RING_RADII = [95, 150, 205, 260, 315];
  * Radius saat detail ekskul terbuka: tiap cincin terdorong ke luar memberi
  * ruang untuk panel detail di tengah (menggantikan logo sekolah).
  */
-const RING_RADII_OPEN = [140, 190, 238, 286, 334];
+const RING_RADII_OPEN = [178, 226, 268, 310, 350];
 const RING_DURATIONS = [48, 64, 80, 96, 112];
 const RING_ANGLES = [0, 22, 48, 12, 36];
 
-/** Jari-jari panel detail di tengah, dalam satuan viewBox. */
-const DETAIL_RADIUS = 104;
+/**
+ * Jari-jari panel detail di tengah, dalam satuan viewBox. Panel dibuat
+ * sebesar ini supaya nama ekskul yang panjang tetap terbaca; cincin harus
+ * terdorong ke RING_RADII_OPEN agar tidak bertabrakan.
+ */
+const DETAIL_RADIUS = 146;
 
 function initials(name: string) {
   const words = name.split(" ");
@@ -268,7 +272,7 @@ export default function ConstellationSection() {
                   <circle cx={CX} cy={CY} r={28} />
                 </clipPath>
                 <clipPath id="orbit-detail-clip">
-                  <circle cx={0} cy={0} r={18} />
+                  <circle cx={0} cy={0} r={26} />
                 </clipPath>
               </defs>
 
@@ -415,14 +419,14 @@ export default function ConstellationSection() {
                       // terhadap pusat lingkaran; clipPath di-center di (0,0)
                       // dan tidak akan memotong gambar kalau memakai
                       // koordinat absolut SVG.
-                      <g transform={`translate(${CX} ${CY - 48})`}>
-                        <circle cx={0} cy={0} r={22} fill="#ffffff" />
+                      <g transform={`translate(${CX} ${CY - 62})`}>
+                        <circle cx={0} cy={0} r={27} fill="#ffffff" />
                         <image
                           href={selected.thumb}
-                          x={-18}
-                          y={-18}
-                          width={36}
-                          height={36}
+                          x={-21}
+                          y={-21}
+                          width={42}
+                          height={42}
                           preserveAspectRatio="xMidYMid meet"
                           clipPath="url(#orbit-detail-clip)"
                         />
@@ -430,9 +434,9 @@ export default function ConstellationSection() {
                     ) : (
                       <text
                         x={CX}
-                        y={CY - 36}
+                        y={CY - 48}
                         textAnchor="middle"
-                        fontSize={19}
+                        fontSize={24}
                         fontWeight="800"
                         fill={categoryColorFor(selected.category).color}
                         fontFamily="var(--font-serif)"
@@ -442,20 +446,20 @@ export default function ConstellationSection() {
                     )}
                     <text
                       x={CX}
-                      y={CY + 2}
+                      y={CY + 4}
                       textAnchor="middle"
-                      fontSize={15}
+                      fontSize={19}
                       fontWeight="800"
                       fill="#ffffff"
                       fontFamily="var(--font-display)"
                     >
-                      {truncate(selected.name, 22)}
+                      {truncate(selected.name, 26)}
                     </text>
                     <text
                       x={CX}
-                      y={CY + 20}
+                      y={CY + 28}
                       textAnchor="middle"
-                      fontSize={11}
+                      fontSize={13}
                       fill="white"
                       fillOpacity={0.55}
                       fontFamily="var(--font-sans)"
@@ -464,21 +468,21 @@ export default function ConstellationSection() {
                     </text>
                     <text
                       x={CX}
-                      y={CY + 44}
+                      y={CY + 54}
                       textAnchor="middle"
-                      fontSize={11}
+                      fontSize={13}
                       fill="white"
                       fillOpacity={0.75}
                       fontFamily="var(--font-sans)"
                     >
                       {selected.members} anggota · {selected.achievements} prestasi
                     </text>
-                    <rect x={CX - 44} y={CY + 56} width={88} height={22} rx={11} fill="#FFFF00" />
+                    <rect x={CX - 54} y={CY + 70} width={108} height={27} rx={13.5} fill="#FFFF00" />
                     <text
                       x={CX}
-                      y={CY + 71}
+                      y={CY + 88}
                       textAnchor="middle"
-                      fontSize={11}
+                      fontSize={13}
                       fontWeight="700"
                       fill="#062A31"
                       fontFamily="var(--font-sans)"
