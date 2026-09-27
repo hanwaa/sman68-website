@@ -252,10 +252,13 @@ Perintah build & jalankan (sebagai `<APP_USER>`):
 sudo -u <APP_USER> -H env PATH=/usr/local/apps/nodejs22/bin:/usr/bin:/bin \
   bash -c 'cd <APP_DIR> && npm ci'
 
-# Server memakai OpenVZ numproc limit (500) — hentikan app & batasi worker build,
-# kalau tidak build gagal "spawn EAGAIN / pthread_create: Resource temporarily unavailable".
+# Catatan: hentikan app & batasi worker build kalau boxnya memang punya limit
+# proses kecil (mis. numproc 500 di OpenVZ lama). Di box sekarang nproc=8 dan
+# ulimit -u=62987, jadi angka 1 tidak perlu lagi — pakai 4 supaya build tidak
+# mengambil semua core. Kalau build gagal "spawn EAGAIN / pthread_create:
+# Resource temporarily unavailable", turunkan ke 1.
 sudo -u <APP_USER> -H env PATH=/usr/local/apps/nodejs22/bin:/usr/bin:/bin \
-  bash -c 'cd <APP_DIR> && pm2 stop sman68; NEXT_BUILD_CPUS=1 npm run build; pm2 start sman68'
+  bash -c 'cd <APP_DIR> && pm2 stop sman68; NEXT_BUILD_CPUS=4 npm run build; pm2 start sman68'
 
 sudo -u <APP_USER> -H env PATH=/usr/local/apps/nodejs22/bin:/usr/bin:/bin \
   bash -c 'cd <APP_DIR> && pm2 save'
@@ -279,6 +282,9 @@ Cara yang dipakai: `deploy/deploy-webuzo.sh` — rsync + build jarak jauh, denga
 bash deploy/deploy-webuzo.sh
 ```
 
+`BUILD_CPUS` (default 4) mengatur `experimental.cpus` Next, jadi override
+per-panggilan kalau perlu: `BUILD_CPUS=1 bash deploy/deploy-webuzo.sh`.
+
 Setelan manual (kalau mau tanpa skrip):
 
 ```bash
@@ -286,12 +292,12 @@ rsync -az --delete \
   -e "ssh -p <VPS_PORT>" \
   --exclude node_modules --exclude .next --exclude logs --exclude .vercel \
   --exclude assets-origin --exclude .env.local --exclude deploy/deploy.env \
-  --exclude tsconfig.tsbuildinfo \
+  --exclude tsconfig.tsbuildinfo --exclude .turbopack-cache \
   ./ <VPS_USER>@<VPS_HOST>:<APP_DIR>/
 
 ssh -p <VPS_PORT> <VPS_USER>@<VPS_HOST> "chown -R <APP_USER>:<APP_USER> <APP_DIR> && \
   sudo -u <APP_USER> -H env PATH=/usr/local/apps/nodejs22/bin:/usr/bin:/bin \
-  bash -c 'cd <APP_DIR> && npm ci && npm run build && pm2 reload sman68 --update-env'"
+  bash -c 'cd <APP_DIR> && npm ci && NEXT_BUILD_CPUS=4 npm run build && pm2 reload sman68 --update-env'"
 ```
 
 > Ingat: `NEXT_PUBLIC_*` di-*bake* saat build — pastikan `.env.local` di server sudah benar
@@ -339,6 +345,38 @@ Rollback cepat: `git log --oneline`, `git checkout <commit>`, lalu `bash deploy/
 | Error `sharp` saat gambar | `npm rebuild sharp` lalu deploy ulang |
 | Sertifikat kedaluwarsa | `sudo certbot renew` (cron otomatis dari paket) |
 | Cek log Nginx | `sudo tail -f /var/log/nginx/error.log` |
+| Deploy lama (menit) | Lihat §8a — disk VPS ini hanya ~8 MB/s, jadi build didominasi I/O |
+
+## 8a. Kenapa deploy terasa lambat
+
+Diukur di VPS ini (OpenVZ di atas ploop/ext4, `df -T .` → `/dev/ploop*`):
+
+```
+dd if=/dev/zero of=/tmp/spd bs=1M count=200 conv=fsync   # 26,7 dtk = 7,8 MB/s
+nproc                                                        # 8
+ulimit -u                                                    # 62987
+```
+
+CPU dan RAM hampir nganggur saat deploy (2,9% / 12,7%), jadi lambatnya bukan
+karena limit proses — murni I/O. Konsekuensinya, dua operasi besar per deploy
+sangat mahal:
+
+- `cp -r .next/cache` (cache Turbopack ±186 MB) → ±24 detik
+- `rm -rf .next-old` (±213 MB) → ±25 detik
+
+Yang sudah diperbaiki: versi lama `remote-deploy.sh` menyalin cache itu sekali
+lagi ke `.turbopack-cache` (±186 MB) yang **tidak pernah dibaca**, sementara
+ `rsync --delete` juga menghapus folder tersebut tiap deploy karena tidak ada
+di `--exclude`. Jadi ada ±370 MB I/O sia-sia per deploy. Blok itu sudah dihapus
+dan `--exclude .turbopack-cache` sudah ditambahkan.
+
+`BUILD_CPUS` juga dinaikkan dari 2 ke 4 (`experimental.cpus` Next). Nilai 2
+waris dari zaman box ini masih punya limit proses OpenVZ 500; sekarang
+`ulimit -u` sudah 62.987.
+
+Sisa waktu deploy dipakai oleh `next build` itu sendiri (sekitar 2 menit untuk
+25 route, 15 di antaranya static di-generate). Kalau mau lebih cepat lagi,
+kandidat terbesar adalah mengurangi jumlah route yang di-prerender saat build.
 
 ## 9. PostgreSQL lokal di VPS (pengganti Neon)
 

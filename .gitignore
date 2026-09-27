@@ -59,5 +59,6 @@ deploy/deploy.env
 .next-new
 .next-old
 
-# cache Turbopack yang disimpan antar deploy
+# sisa cache Turbopack versi deploy lama (sekarang tidak dibuat lagi, tapi
+# masih di-exclude rsync & dibersihkan remote-deploy.sh)
 .turbopack-cache

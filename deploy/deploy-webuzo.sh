@@ -34,7 +34,11 @@ fi
 : "${LOCK_FILE:?LOCK_FILE belum diisi. Isi deploy/deploy.env atau export manual.}"
 VPS_PORT="${VPS_PORT:-22}"
 APP_PORT="${APP_PORT:-30000}"
-BUILD_CPUS="${BUILD_CPUS:-2}"
+# Worker build. Box ini punya 8 core dan ulimit -u 62987, jadi limit proses
+# OpenVZ yang dulu jadi alasan memakai 1-2 CPU sudah tidak berlaku lagi.
+# Pakai 4 supaya masih ada ruang untuk PM2, PostgreSQL, dan Apache. Override
+# per-panggilan: BUILD_CPUS=1 bash deploy/deploy-webuzo.sh
+BUILD_CPUS="${BUILD_CPUS:-4}"
 
 SSH_OPTS=(-p "$VPS_PORT" -o StrictHostKeyChecking=accept-new)
 
@@ -45,7 +49,7 @@ rsync -az --delete \
   -e "ssh ${SSH_OPTS[*]}" \
   --exclude node_modules --exclude .next --exclude logs --exclude .vercel \
   --exclude assets-origin --exclude .env.local --exclude deploy/deploy.env \
-  --exclude tsconfig.tsbuildinfo \
+  --exclude tsconfig.tsbuildinfo --exclude .turbopack-cache \
   --exclude .DS_Store \
   ./ "$VPS_USER@$VPS_HOST:$APP_DIR/"
 
