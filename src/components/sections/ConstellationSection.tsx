@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
+import { useA11y } from "@/components/providers/A11yProvider";
 import { categoryColorFor, type Ekskul } from "@/lib/ekskul";
 import { useContent } from "@/lib/use-content";
 
@@ -62,6 +63,7 @@ function truncate(text: string, max: number) {
 
 export default function ConstellationSection() {
   const ekskulList = useContent<Ekskul[]>("ekskul", []);
+  const { reduceMotion } = useA11y();
 
   const rings = useMemo<Ring[]>(() => {
     const result: Ring[] = [];
@@ -99,7 +101,11 @@ export default function ConstellationSection() {
     const to = selected ? RING_RADII_OPEN : RING_RADII;
     if (from.every((value, i) => value === to[i])) return;
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    // Kurangi gerak: cincin langsung melompat ke posisi akhir, tanpa tween.
+    if (
+      reduceMotion ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       radiiRef.current = to.slice();
       setRingRadii(to.slice());
       return;
@@ -121,7 +127,7 @@ export default function ConstellationSection() {
 
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [selected]);
+  }, [selected, reduceMotion]);
 
   const positionAt = (ri: number, ii: number) => {
     const ring = rings[ri];
@@ -135,21 +141,6 @@ export default function ConstellationSection() {
   const offscreenRef = useRef(false);
   const [hovered, setHovered] = useState<Ekskul | null>(null);
   const router = useRouter();
-  const a11yPauseRef = useRef(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("sman68_a11y_prefs");
-      if (raw && JSON.parse(raw).reduceMotion) a11yPauseRef.current = true;
-    } catch {
-      /* abaikan */
-    }
-    const handler = (e: Event) => {
-      a11yPauseRef.current = Boolean((e as CustomEvent).detail?.enabled);
-    };
-    window.addEventListener("sman68:reduced-motion", handler);
-    return () => window.removeEventListener("sman68:reduced-motion", handler);
-  }, []);
 
   /** Klik planet -> buka buletan tengah berisi logo ekskul (besar, berbentuk lingkaran). */
   const selectEkskul = (item: Ekskul) => {
@@ -202,6 +193,9 @@ export default function ConstellationSection() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // Kurangi motion: loop rAF tidak dijalankan sama sekali, bukan hanya
+    // dilewati di dalam tick — supaya tidak tetap membakar frame di layar.
+    if (reduceMotion) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const angles = rings.map(() => 0);
@@ -218,9 +212,8 @@ export default function ConstellationSection() {
       last = now;
 
       // Berputar terus: tidak ada jeda karena hover atau karena kategori.
-      // Hanya berhenti saat benar-benar di luar layar, atau saat pengguna
-      // memilih kurangi gerak.
-      if (offscreenRef.current || a11yPauseRef.current) return;
+      // Hanya berhenti saat benar-benar di luar layar.
+      if (offscreenRef.current) return;
 
       let index = 0;
       rings.forEach((ring, ri) => {
@@ -240,7 +233,7 @@ export default function ConstellationSection() {
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [rings]);
+  }, [rings, reduceMotion]);
 
   return (
     <section

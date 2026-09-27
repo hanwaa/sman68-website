@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { A11yOverlay } from "@/components/ui/A11yOverlay";
 import { Search, Filter, Users, Trophy, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EKSKUL_CATEGORIES, type Ekskul } from "@/lib/ekskul";
@@ -232,108 +233,110 @@ export default function EkskulList({
         )}
       </div>
 
-      <AnimatePresence>
-        {selected && (
-          <div
-            className="fixed inset-0 z-50 overflow-y-auto overscroll-contain p-4 sm:p-6"
-            onClick={() => setSelected(null)}
-          >
-            {/* Latar gelap + blur agar fokus ke modal */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-brand-pine/80 backdrop-blur-sm"
-            />
-
-            <div className="relative flex min-h-full items-center justify-center">
+      <A11yOverlay>
+        <AnimatePresence>
+          {selected && (
+            <div
+              className="fixed inset-0 z-50 overflow-y-auto overscroll-contain p-4 sm:p-6"
+              onClick={() => setSelected(null)}
+            >
+              {/* Latar gelap + blur agar fokus ke modal */}
               <motion.div
-                ref={modalRef}
-                tabIndex={-1}
-                role="dialog"
-                aria-modal="true"
-                aria-label={selected.name}
-                initial={{ opacity: 0, scale: 0.94, y: 24 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.94, y: 16 }}
-                transition={{ duration: 0.22, ease: "easeOut" }}
-                onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-card focus:outline-none"
-              >
-                {/* Header: logo lingkaran + nama, aman dari scroll container */}
-                <div className="relative flex items-start gap-4 border-b border-line bg-cream/60 p-5 sm:p-6">
-                  {/* Logo berbentuk lingkaran (konsisten dengan orbit homepage) */}
-                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-line bg-white shadow-xs sm:h-24 sm:w-24">
-                    {selected.logo ? (
-                      <Image
-                        src={selected.logo}
-                        alt={`Logo ${selected.name}`}
-                        fill
-                        className="object-cover"
-                        sizes="96px"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center bg-brand-pine">
-                        <span className="font-display text-xl font-extrabold text-brand-lime">
-                          {initials(selected.name)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="a11y-layer fixed inset-0 bg-brand-pine/80 backdrop-blur-sm"
+              />
 
-                  <div className="min-w-0 flex-1 pr-9">
-                    <span className="badge bg-brand-mist text-brand-green mb-1.5 text-[10px]">
-                      {selected.category}
-                    </span>
-                    <h2 className="font-display text-lg font-extrabold leading-snug text-ink sm:text-xl">
-                      {selected.name}
-                    </h2>
-                    <p className="mt-1 text-xs text-muted">
-                      Dipembina oleh {selected.advisor}
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => setSelected(null)}
-                    className="btn-icon absolute right-3 top-3 border border-line bg-white"
-                    aria-label="Tutup detail"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-
-                {/* Isi modal: satu area scroll, tidak ada scroll di dalam card */}
-                <div className="max-h-[min(60vh,520px)] overflow-y-auto overscroll-contain p-5 sm:p-6">
-                  <p className="mb-5 text-sm leading-relaxed text-muted">{selected.desc}</p>
-
-                  <div className="mb-5 grid grid-cols-2 gap-3">
-                    {[
-                      { label: "Anggota", value: `${selected.members} siswa` },
-                      { label: "Prestasi", value: `${selected.achievements} penghargaan` },
-                      { label: "Jadwal", value: selected.schedule },
-                      { label: "Pembina", value: selected.advisor },
-                    ].map((item) => (
-                      <div key={item.label} className="rounded-xl bg-cream p-3">
-                        <div className="text-[11px] text-muted">{item.label}</div>
-                        <div className="mt-0.5 text-sm font-semibold leading-snug text-ink">
-                          {item.value}
+              <div className="a11y-layer relative flex min-h-full items-center justify-center">
+                <motion.div
+                  ref={modalRef}
+                  tabIndex={-1}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={selected.name}
+                  initial={{ opacity: 0, scale: 0.94, y: 24 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.94, y: 16 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-card focus:outline-none"
+                >
+                  {/* Header: logo lingkaran + nama, aman dari scroll container */}
+                  <div className="relative flex items-start gap-4 border-b border-line bg-cream/60 p-5 sm:p-6">
+                    {/* Logo berbentuk lingkaran (konsisten dengan orbit homepage) */}
+                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-line bg-white shadow-xs sm:h-24 sm:w-24">
+                      {selected.logo ? (
+                        <Image
+                          src={selected.logo}
+                          alt={`Logo ${selected.name}`}
+                          fill
+                          className="object-cover"
+                          sizes="96px"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-brand-pine">
+                          <span className="font-display text-xl font-extrabold text-brand-lime">
+                            {initials(selected.name)}
+                          </span>
                         </div>
-                      </div>
-                    ))}
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1 pr-9">
+                      <span className="badge bg-brand-mist text-brand-green mb-1.5 text-[10px]">
+                        {selected.category}
+                      </span>
+                      <h2 className="font-display text-lg font-extrabold leading-snug text-ink sm:text-xl">
+                        {selected.name}
+                      </h2>
+                      <p className="mt-1 text-xs text-muted">
+                        Dipembina oleh {selected.advisor}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => setSelected(null)}
+                      className="btn-icon absolute right-3 top-3 border border-line bg-white"
+                      aria-label="Tutup detail"
+                    >
+                      <X size={18} />
+                    </button>
                   </div>
 
-                  <div className="border-t border-line pt-4">
-                    <EkskulAchievements
-                      ekskulId={selected.id}
-                      achievements={achievementList}
-                    />
+                  {/* Isi modal: satu area scroll, tidak ada scroll di dalam card */}
+                  <div className="max-h-[min(60vh,520px)] overflow-y-auto overscroll-contain p-5 sm:p-6">
+                    <p className="mb-5 text-sm leading-relaxed text-muted">{selected.desc}</p>
+
+                    <div className="mb-5 grid grid-cols-2 gap-3">
+                      {[
+                        { label: "Anggota", value: `${selected.members} siswa` },
+                        { label: "Prestasi", value: `${selected.achievements} penghargaan` },
+                        { label: "Jadwal", value: selected.schedule },
+                        { label: "Pembina", value: selected.advisor },
+                      ].map((item) => (
+                        <div key={item.label} className="rounded-xl bg-cream p-3">
+                          <div className="text-[11px] text-muted">{item.label}</div>
+                          <div className="mt-0.5 text-sm font-semibold leading-snug text-ink">
+                            {item.value}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="border-t border-line pt-4">
+                      <EkskulAchievements
+                        ekskulId={selected.id}
+                        achievements={achievementList}
+                      />
+                    </div>
                   </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              </div>
             </div>
-          </div>
-        )}
-      </AnimatePresence>    </div>
+          )}
+        </AnimatePresence>
+      </A11yOverlay>
+    </div>
   );
 }
-

@@ -36,7 +36,7 @@ export default function AppErrorFallback({ error, reset }: AppErrorFallbackProps
   };
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center p-4">
+    <div className="a11y-layer flex min-h-[60vh] items-center justify-center p-4">
       <div className="card w-full max-w-md p-6 text-center sm:p-8">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-danger-tint">
           <AlertCircle size={24} className="text-danger-deep" aria-hidden="true" />

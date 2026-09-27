@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { A11yOverlay } from "@/components/ui/A11yOverlay";
 import { Building2, GraduationCap, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useModalA11y } from "@/lib/useModalA11y";
@@ -410,96 +411,98 @@ export default function AlumniCareerMap() {
         )}
       </div>
 
-      <AnimatePresence>
-        {selected && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            onClick={() => setSelected(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-brand-pine/70"
-            />
-            <motion.div
-              ref={modalRef}
-              tabIndex={-1}
-              role="dialog"
-              aria-modal="true"
-              aria-label={`Profil ${selected.name}`}
-              initial={{ opacity: 0, scale: 0.92, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative bg-white rounded-2xl p-6 md:p-7 max-w-md w-full shadow-card-hover focus:outline-none max-h-[88vh] overflow-y-auto"
+      <A11yOverlay>
+        <AnimatePresence>
+          {selected && (
+            <div
+              className="a11y-layer fixed inset-0 z-50 flex items-center justify-center p-4"
+              onClick={() => setSelected(null)}
             >
-              <button
-                onClick={() => setSelected(null)}
-                className="btn-icon absolute top-4 right-4"
-                aria-label="Tutup detail"
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-brand-pine/70"
+              />
+              <motion.div
+                ref={modalRef}
+                tabIndex={-1}
+                role="dialog"
+                aria-modal="true"
+                aria-label={`Profil ${selected.name}`}
+                initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative bg-white rounded-2xl p-6 md:p-7 max-w-md w-full shadow-card-hover focus:outline-none max-h-[88vh] overflow-y-auto"
               >
-                <X size={16} />
-              </button>
-
-              <div className="flex items-center gap-3.5 mb-5">
-                <div className="relative w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 bg-line">
-                  {selected.photo ? (
-                    <Image src={selected.photo} alt={selected.name} fill className="object-cover" sizes="56px" />
-                  ) : (
-                    <span
-                      className="absolute inset-0 flex items-center justify-center bg-brand-pine font-display text-sm font-extrabold text-brand-lime"
-                      aria-hidden="true"
-                    >
-                      {initials(selected.name)}
-                    </span>
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <h2 className="font-display font-extrabold text-lg text-ink leading-tight">
-                    {selected.name}
-                  </h2>
-                  <p className="text-muted text-xs mt-0.5">
-                    Alumni SMAN 68 · Angkatan {selected.angkatan}
-                  </p>
-                  <span
-                    className={cn(
-                      "inline-flex mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold border",
-                      fieldStyle[selected.field]
-                    )}
-                  >
-                    {selected.field}
-                  </span>
-                </div>
-              </div>
-
-              <div className="bg-cream rounded-xl p-4 mb-5">
-                <div className="font-semibold text-ink text-sm">{selected.role}</div>
-                <div className="text-brand-green text-xs font-semibold mt-0.5 flex items-center gap-1.5">
-                  <Building2 size={12} aria-hidden="true" />
-                  {selected.company}
-                </div>
-                <div className="text-muted text-xs mt-2 flex items-center gap-1.5">
-                  <GraduationCap size={12} className="text-brand-green flex-shrink-0" aria-hidden="true" />
-                  {selected.university}
-                </div>
-                <p className="text-muted text-xs leading-relaxed mt-3">{selected.bio}</p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2.5">
-                <a
-                  href={selected.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-ghost flex-1"
+                <button
+                  onClick={() => setSelected(null)}
+                  className="btn-icon absolute top-4 right-4"
+                  aria-label="Tutup detail"
                 >
-                  LinkedIn
-                </a>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                  <X size={16} />
+                </button>
+
+                <div className="flex items-center gap-3.5 mb-5">
+                  <div className="relative w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 bg-line">
+                    {selected.photo ? (
+                      <Image src={selected.photo} alt={selected.name} fill className="object-cover" sizes="56px" />
+                    ) : (
+                      <span
+                        className="absolute inset-0 flex items-center justify-center bg-brand-pine font-display text-sm font-extrabold text-brand-lime"
+                        aria-hidden="true"
+                      >
+                        {initials(selected.name)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="font-display font-extrabold text-lg text-ink leading-tight">
+                      {selected.name}
+                    </h2>
+                    <p className="text-muted text-xs mt-0.5">
+                      Alumni SMAN 68 · Angkatan {selected.angkatan}
+                    </p>
+                    <span
+                      className={cn(
+                        "inline-flex mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold border",
+                        fieldStyle[selected.field]
+                      )}
+                    >
+                      {selected.field}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-cream rounded-xl p-4 mb-5">
+                  <div className="font-semibold text-ink text-sm">{selected.role}</div>
+                  <div className="text-brand-green text-xs font-semibold mt-0.5 flex items-center gap-1.5">
+                    <Building2 size={12} aria-hidden="true" />
+                    {selected.company}
+                  </div>
+                  <div className="text-muted text-xs mt-2 flex items-center gap-1.5">
+                    <GraduationCap size={12} className="text-brand-green flex-shrink-0" aria-hidden="true" />
+                    {selected.university}
+                  </div>
+                  <p className="text-muted text-xs leading-relaxed mt-3">{selected.bio}</p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2.5">
+                  <a
+                    href={selected.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-ghost flex-1"
+                  >
+                    LinkedIn
+                  </a>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </A11yOverlay>
     </section>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { A11yOverlay } from "@/components/ui/A11yOverlay";
 import { cn } from "@/lib/utils";
 import { schoolData } from "@/lib/school-data";
 import {
@@ -179,12 +180,12 @@ export default function Navbar() {
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-50 bg-brand-pine border-b border-white/10"
+        className="fixed top-0 left-0 right-0 z-50 bg-brand-pine border-b border-white/10 a11y-layer"
         role="banner"
       >
         <div
           className={cn(
-            "hidden md:block overflow-hidden border-b bg-white transition-all duration-300 ease-out",
+            "a11y-compact hidden md:block overflow-hidden border-b bg-white transition-all duration-300 ease-out",
             scrolled ? "h-0 opacity-0 border-transparent" : "h-9 opacity-100 border-line"
           )}
         >
@@ -398,176 +399,177 @@ export default function Navbar() {
         </nav>
       </header>
 
-      {mobileOpen && (
-        <div
-          className={cn(
-            "fixed inset-0 z-40 bg-brand-pine flex flex-col transition-all",
-            scrolled ? "pt-16" : "pt-24"
-          )}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menu navigasi mobile"
-        >
-          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-1">
-            {navItems.map((item) => (
-              <div key={item.label}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "block py-3 text-white font-semibold text-lg border-b border-white/10 hover:text-brand-leaf transition-colors",
-                    "highlight" in item && item.highlight && "text-brand-lime"
-                  )}
-                >
-                  {item.label}
-                </Link>
-                {item.children && (
-                  <div className="pl-4 pt-1 space-y-0.5">
-                    {item.children.map((child) =>
-                      "external" in child && child.external ? (
-                        <a
-                          key={child.href}
-                          href={child.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block py-2 text-white/60 text-sm hover:text-white transition-colors"
-                        >
-                          {child.label}
-                        </a>
-                      ) : (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          className="block py-2 text-white/60 text-sm hover:text-white transition-colors"
-                        >
-                          {child.label}
-                        </Link>
-                      )
+      {/* Menu mobile dan pencarian global dipindahkan ke portal agar tetap
+          menempel ke viewport saat mode kontras/hitam putih aktif (filter pada
+          <main> akan membuat position: fixed di dalam <main> ikut ter-scroll). */}
+      <A11yOverlay>
+        {mobileOpen && (
+          <div
+            className={cn(
+              "a11y-layer fixed inset-0 z-40 bg-brand-pine flex flex-col transition-all",
+              scrolled ? "pt-16" : "pt-24"
+            )}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu navigasi mobile"
+          >
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-1">
+              {navItems.map((item) => (
+                <div key={item.label}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "block py-3 text-white font-semibold text-lg border-b border-white/10 hover:text-brand-leaf transition-colors",
+                      "highlight" in item && item.highlight && "text-brand-lime"
                     )}
+                  >
+                    {item.label}
+                  </Link>
+                  {item.children && (
+                    <div className="pl-4 pt-1 space-y-0.5">
+                      {item.children.map((child) =>
+                        "external" in child && child.external ? (
+                          <a
+                            key={child.href}
+                            href={child.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block py-2 text-white/60 text-sm hover:text-white transition-colors"
+                          >
+                            {child.label}
+                          </a>
+                        ) : (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className="block py-2 text-white/60 text-sm hover:text-white transition-colors"
+                          >
+                            {child.label}
+                          </Link>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div className="pt-6 space-y-3">
+                <Link href="/login" className="btn-primary btn-lg w-full text-base">
+                  <LogIn size={16} />
+                  Masuk Portal
+                </Link>
+                <Link href="/ppdb" className="btn-secondary btn-lg w-full text-base">
+                  Daftar PPDB
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {searchOpen && (
+          <div
+            className="a11y-layer fixed inset-0 z-[60] flex items-start justify-center pt-20 px-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Pencarian global"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSearchOpen(false);
+            }}
+          >
+            <div className="absolute inset-0 bg-brand-pine/70" />
+            <div className="relative w-full max-w-xl bg-white rounded-xl shadow-card border border-line overflow-hidden">
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-line">
+                <Search size={18} className="text-muted flex-shrink-0" />
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="Cari berita, prestasi, ekskul, guru..."
+                  className="flex-1 text-sm text-ink placeholder-muted outline-none bg-transparent"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Input pencarian"
+                />
+                <kbd className="text-xs bg-line px-2 py-0.5 rounded font-mono text-muted">ESC</kbd>
+              </div>
+              <div className="p-4 max-h-96 overflow-y-auto">
+                {searchQuery ? (
+                  (() => {
+                    const q = searchQuery.toLowerCase();
+                    const results = [
+                      { title: "Tim Robotika SMAN 68 Raih Juara 1 Nasional", type: "Berita", href: "/berita/tim-robotika-juara-1-nasional" },
+                      { title: "PPDB Resmi Dibuka — Jadwal & Syarat", type: "Pengumuman", href: "/ppdb" },
+                      { title: "Festival Seni SMAN 68", type: "Kegiatan", href: "/berita/festival-seni-sman-68" },
+                      { title: "Drs. Ahmad Fauzi, M.Pd. — Matematika", type: "Guru", href: "/tentang/guru-staf" },
+                      { title: "Basket Putra", type: "Ekskul", href: "/kehidupan/ekskul" },
+                      { title: "Paduan Suara", type: "Ekskul", href: "/kehidupan/ekskul" },
+                      { title: "Robotika", type: "Ekskul", href: "/kehidupan/ekskul" },
+                      { title: "Laboratorium Komputer", type: "Fasilitas", href: "/tentang/fasilitas" },
+                      { title: "Perpustakaan", type: "Fasilitas", href: "/tentang/fasilitas" },
+                      { title: "Juara 1 Olimpiade Matematika Nasional", type: "Prestasi", href: "/prestasi" },
+                      { title: "Best Innovation — International Science Fair", type: "Prestasi", href: "/prestasi" },
+                    ].filter((item) => item.title.toLowerCase().includes(q) || item.type.toLowerCase().includes(q));
+
+                    return results.length > 0 ? (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted mb-2 font-medium">
+                          Ditemukan {results.length} hasil:
+                        </p>
+                        {results.map((r, i) => (
+                          <Link
+                            key={i}
+                            href={r.href}
+                            onClick={() => setSearchOpen(false)}
+                            className="flex items-center justify-between p-2.5 rounded-xl hover:bg-cream transition-colors group"
+                          >
+                            <span className="text-sm font-medium text-ink group-hover:text-brand-green transition-colors">
+                              {r.title}
+                            </span>
+                            <span className="badge bg-brand-green/10 text-brand-green text-[10px]">
+                              {r.type}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted text-center py-8">
+                        Tidak ada hasil untuk &ldquo;<strong className="text-ink">{searchQuery}</strong>&rdquo;
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <div>
+                    <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
+                      Pintasan Cepat
+                    </p>
+                    <div className="space-y-1">
+                      {[
+                        { label: "Prestasi Terbaru", href: "/prestasi", icon: Trophy },
+                        { label: "Agenda & Jadwal", href: "/dashboard", icon: Calendar },
+                        { label: "Info PPDB", href: "/ppdb", icon: BookOpen },
+                        { label: "Ekskul & Organisasi", href: "/kehidupan/ekskul", icon: Users },
+                        { label: "Guru & Staf", href: "/tentang/guru-staf", icon: Users },
+                        { label: "Fasilitas & Denah Ruang", href: "/tentang/fasilitas", icon: Map },
+                      ].map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setSearchOpen(false)}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-cream text-sm text-ink transition-colors"
+                          >
+                            <Icon size={15} className="text-brand-green" />
+                            {item.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
-            ))}
-            <div className="pt-6 space-y-3">
-              <Link
-                href="/login"
-                className="btn-primary btn-lg w-full text-base"
-              >
-                <LogIn size={16} />
-                Masuk Portal
-              </Link>
-              <Link
-                href="/ppdb"
-                className="btn-secondary btn-lg w-full text-base"
-              >
-                Daftar PPDB
-              </Link>
             </div>
           </div>
-        </div>
-      )}
-
-      {searchOpen && (
-        <div
-          className="fixed inset-0 z-[60] flex items-start justify-center pt-20 px-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Pencarian global"
-          onClick={(e) => { if (e.target === e.currentTarget) setSearchOpen(false); }}
-        >
-          <div className="absolute inset-0 bg-brand-pine/70" />
-          <div className="relative w-full max-w-xl bg-white rounded-xl shadow-card border border-line overflow-hidden">
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-line">
-              <Search size={18} className="text-muted flex-shrink-0" />
-              <input
-                autoFocus
-                type="text"
-                placeholder="Cari berita, prestasi, ekskul, guru..."
-                className="flex-1 text-sm text-ink placeholder-muted outline-none bg-transparent"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                aria-label="Input pencarian"
-              />
-              <kbd className="text-xs bg-line px-2 py-0.5 rounded font-mono text-muted">
-                ESC
-              </kbd>
-            </div>
-            <div className="p-4 max-h-96 overflow-y-auto">
-              {searchQuery ? (
-                (() => {
-                  const q = searchQuery.toLowerCase();
-                  const results = [
-                    { title: "Tim Robotika SMAN 68 Raih Juara 1 Nasional", type: "Berita", href: "/berita/tim-robotika-juara-1-nasional" },
-                    { title: "PPDB Resmi Dibuka — Jadwal & Syarat", type: "Pengumuman", href: "/ppdb" },
-                    { title: "Festival Seni SMAN 68", type: "Kegiatan", href: "/berita/festival-seni-sman-68" },
-                    { title: "Drs. Ahmad Fauzi, M.Pd. — Matematika", type: "Guru", href: "/tentang/guru-staf" },
-                    { title: "Basket Putra", type: "Ekskul", href: "/kehidupan/ekskul" },
-                    { title: "Paduan Suara", type: "Ekskul", href: "/kehidupan/ekskul" },
-                    { title: "Robotika", type: "Ekskul", href: "/kehidupan/ekskul" },
-                    { title: "Laboratorium Komputer", type: "Fasilitas", href: "/tentang/fasilitas" },
-                    { title: "Perpustakaan", type: "Fasilitas", href: "/tentang/fasilitas" },
-                    { title: "Juara 1 Olimpiade Matematika Nasional", type: "Prestasi", href: "/prestasi" },
-                    { title: "Best Innovation — International Science Fair", type: "Prestasi", href: "/prestasi" },
-                  ].filter((item) => item.title.toLowerCase().includes(q) || item.type.toLowerCase().includes(q));
-
-                  return results.length > 0 ? (
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted mb-2 font-medium">Ditemukan {results.length} hasil:</p>
-                      {results.map((r, i) => (
-                        <Link
-                          key={i}
-                          href={r.href}
-                          onClick={() => setSearchOpen(false)}
-                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-cream transition-colors group"
-                        >
-                          <span className="text-sm font-medium text-ink group-hover:text-brand-green transition-colors">
-                            {r.title}
-                          </span>
-                          <span className="badge bg-brand-green/10 text-brand-green text-[10px]">
-                            {r.type}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted text-center py-8">
-                      Tidak ada hasil untuk &ldquo;<strong className="text-ink">{searchQuery}</strong>&rdquo;
-                    </div>
-                  );
-                })()
-              ) : (
-                <div>
-                  <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
-                    Pintasan Cepat
-                  </p>
-                  <div className="space-y-1">
-                    {[
-                      { label: "Prestasi Terbaru", href: "/prestasi", icon: Trophy },
-                      { label: "Agenda & Jadwal", href: "/dashboard", icon: Calendar },
-                      { label: "Info PPDB", href: "/ppdb", icon: BookOpen },
-                      { label: "Ekskul & Organisasi", href: "/kehidupan/ekskul", icon: Users },
-                      { label: "Guru & Staf", href: "/tentang/guru-staf", icon: Users },
-                      { label: "Fasilitas & Denah Ruang", href: "/tentang/fasilitas", icon: Map },
-                    ].map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setSearchOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-cream text-sm text-ink transition-colors"
-                        >
-                          <Icon size={15} className="text-brand-green" />
-                          {item.label}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </A11yOverlay>
     </>
   );
 }

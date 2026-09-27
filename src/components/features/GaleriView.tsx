@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { A11yOverlay } from "@/components/ui/A11yOverlay";
 import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
 import type { GalleryAlbumContent, GalleryPhotoContent } from "@/lib/content";
 import { useContentResource } from "@/lib/use-content";
@@ -475,78 +476,80 @@ export default function GaleriView({
       </div>
 
       {/* Lightbox */}
-      <AnimatePresence>
-        {activePhoto && lightbox && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
-            onClick={closeLightbox}
-          >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/90"
-            />
-            <motion.div
-              ref={modalRef}
-              tabIndex={-1}
-              role="dialog"
-              aria-modal="true"
-              aria-label={activePhoto.caption || "Pratinjau foto"}
-              initial={{ opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.94 }}
-              transition={{ duration: 0.2 }}
-              onClick={(event) => event.stopPropagation()}
-              className="relative flex w-full max-w-5xl flex-col focus:outline-none"
+      <A11yOverlay>
+        <AnimatePresence>
+          {activePhoto && lightbox && (
+            <div
+              className="a11y-layer fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+              onClick={closeLightbox}
             >
-              <div className="relative h-[62vh] w-full overflow-hidden rounded-xl md:h-[72vh]">
-                <Image
-                  src={activePhoto.src}
-                  alt={activePhoto.caption}
-                  fill
-                  className="object-contain"
-                  sizes="100vw"
-                />
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/90"
+              />
+              <motion.div
+                ref={modalRef}
+                tabIndex={-1}
+                role="dialog"
+                aria-modal="true"
+                aria-label={activePhoto.caption || "Pratinjau foto"}
+                initial={{ opacity: 0, scale: 0.94 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.94 }}
+                transition={{ duration: 0.2 }}
+                onClick={(event) => event.stopPropagation()}
+                className="relative flex w-full max-w-5xl flex-col focus:outline-none"
+              >
+                <div className="relative h-[62vh] w-full overflow-hidden rounded-xl md:h-[72vh]">
+                  <Image
+                    src={activePhoto.src}
+                    alt={activePhoto.caption}
+                    fill
+                    className="object-contain"
+                    sizes="100vw"
+                  />
 
-                {lightbox.photos.length > 1 && (
-                  <>
-                    <button
-                      onClick={() => stepLightbox(-1)}
-                      aria-label="Foto sebelumnya"
-                      className="absolute left-2 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70 md:left-4"
-                    >
-                      <ChevronLeft size={20} />
-                    </button>
-                    <button
-                      onClick={() => stepLightbox(1)}
-                      aria-label="Foto berikutnya"
-                      className="absolute right-2 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70 md:right-4"
-                    >
-                      <ChevronRight size={20} />
-                    </button>
-                  </>
-                )}
+                  {lightbox.photos.length > 1 && (
+                    <>
+                      <button
+                        onClick={() => stepLightbox(-1)}
+                        aria-label="Foto sebelumnya"
+                        className="absolute left-2 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70 md:left-4"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <button
+                        onClick={() => stepLightbox(1)}
+                        aria-label="Foto berikutnya"
+                        className="absolute right-2 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70 md:right-4"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                    </>
+                  )}
 
-                <button
-                  onClick={closeLightbox}
-                  aria-label="Tutup"
-                  className="absolute right-2 top-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70"
-                >
-                  <X size={18} />
-                </button>
-              </div>
+                  <button
+                    onClick={closeLightbox}
+                    aria-label="Tutup"
+                    className="absolute right-2 top-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
 
-              <div className="mt-3 flex items-start justify-between gap-4">
-                <p className="text-sm text-white/80">{activePhoto.caption}</p>
-                <span className="shrink-0 text-xs tabular-nums text-white/50">
-                  {lightbox.index + 1} / {lightbox.photos.length}
-                </span>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                <div className="mt-3 flex items-start justify-between gap-4">
+                  <p className="text-sm text-white/80">{activePhoto.caption}</p>
+                  <span className="shrink-0 text-xs tabular-nums text-white/50">
+                    {lightbox.index + 1} / {lightbox.photos.length}
+                  </span>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </A11yOverlay>
     </div>
   );
 }

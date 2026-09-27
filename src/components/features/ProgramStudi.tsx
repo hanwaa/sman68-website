@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { A11yOverlay } from "@/components/ui/A11yOverlay";
 import { BookMarked, BookOpen, GraduationCap, Sparkles, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { studyPrograms } from "@/lib/program-studi";
@@ -165,92 +166,94 @@ export default function ProgramStudi() {
       </AnimatePresence>
 
       {/* Daftar buku bacaan per mata pelajaran */}
-      <AnimatePresence>
-        {activeBookSubject && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            onClick={() => setBookSubject(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-brand-pine/70 backdrop-blur-sm"
-            />
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-label={`Buku bacaan ${activeBookSubject.name}`}
-              initial={{ opacity: 0, scale: 0.94, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 8 }}
-              transition={{ duration: 0.2 }}
-              onClick={(event) => event.stopPropagation()}
-              className="relative flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-card focus:outline-none"
+      <A11yOverlay>
+        <AnimatePresence>
+          {activeBookSubject && (
+            <div
+              className="a11y-layer fixed inset-0 z-50 flex items-center justify-center p-4"
+              onClick={() => setBookSubject(null)}
             >
-              <div className="flex items-start gap-3 border-b border-line bg-cream p-5">
-                <span
-                  className={cn(
-                    "flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl",
-                    activeBookSubject.tone
-                  )}
-                >
-                  <activeBookSubject.icon size={20} aria-hidden="true" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <span className="badge bg-cream text-muted text-[10px]">
-                    {program.name}
-                  </span>
-                  <h3 className="font-display text-lg font-extrabold text-ink">
-                    {activeBookSubject.name}
-                  </h3>
-                  <p className="text-xs text-muted">{activeBookSubject.desc}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setBookSubject(null)}
-                  className="btn-icon flex-shrink-0"
-                  aria-label="Tutup daftar buku"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <ul className="flex-1 overflow-y-auto p-5">
-                {activeBookSubject.books.map((book) => (
-                  <li
-                    key={`${book.title}-${book.author}`}
-                    className="flex items-start gap-3 border-b border-line py-3 last:border-0 first:pt-0"
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-brand-pine/70 backdrop-blur-sm"
+              />
+              <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-label={`Buku bacaan ${activeBookSubject.name}`}
+                initial={{ opacity: 0, scale: 0.94, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 8 }}
+                transition={{ duration: 0.2 }}
+                onClick={(event) => event.stopPropagation()}
+                className="relative flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-card focus:outline-none"
+              >
+                <div className="flex items-start gap-3 border-b border-line bg-cream p-5">
+                  <span
+                    className={cn(
+                      "flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl",
+                      activeBookSubject.tone
+                    )}
                   >
-                    <span
-                      className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand-mist text-brand-leaf"
-                      aria-hidden="true"
-                    >
-                      <BookOpen size={14} />
+                    <activeBookSubject.icon size={20} aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <span className="badge bg-cream text-muted text-[10px]">
+                      {program.name}
                     </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-semibold leading-snug text-ink">
-                        {book.title}
-                      </span>
-                      <span className="mt-0.5 block text-xs text-muted">
-                        {book.author}
-                      </span>
-                      <span className="mt-1 inline-block rounded-full bg-cream px-2 py-0.5 text-[10px] font-medium text-muted">
-                        {book.publisher} · {book.year}
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                    <h3 className="font-display text-lg font-extrabold text-ink">
+                      {activeBookSubject.name}
+                    </h3>
+                    <p className="text-xs text-muted">{activeBookSubject.desc}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setBookSubject(null)}
+                    className="btn-icon flex-shrink-0"
+                    aria-label="Tutup daftar buku"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
 
-              <p className="border-t border-line bg-cream px-5 py-3 text-[11px] text-muted">
-                Daftar bacaan yang lazim dipakai di SMAN 68 — ketersediaan salinan
-                bisa ditanyakan ke perpustakaan sekolah.
-              </p>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                <ul className="flex-1 overflow-y-auto p-5">
+                  {activeBookSubject.books.map((book) => (
+                    <li
+                      key={`${book.title}-${book.author}`}
+                      className="flex items-start gap-3 border-b border-line py-3 last:border-0 first:pt-0"
+                    >
+                      <span
+                        className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand-mist text-brand-leaf"
+                        aria-hidden="true"
+                      >
+                        <BookOpen size={14} />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-semibold leading-snug text-ink">
+                          {book.title}
+                        </span>
+                        <span className="mt-0.5 block text-xs text-muted">
+                          {book.author}
+                        </span>
+                        <span className="mt-1 inline-block rounded-full bg-cream px-2 py-0.5 text-[10px] font-medium text-muted">
+                          {book.publisher} · {book.year}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                <p className="border-t border-line bg-cream px-5 py-3 text-[11px] text-muted">
+                  Daftar bacaan yang lazim dipakai di SMAN 68 — ketersediaan salinan
+                  bisa ditanyakan ke perpustakaan sekolah.
+                </p>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </A11yOverlay>
     </div>
   );
 }

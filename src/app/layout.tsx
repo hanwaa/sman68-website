@@ -2,7 +2,10 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import FabWidget from "@/components/features/FabWidget";
 import VisitorTracker from "@/components/features/VisitorTracker";
+import A11yProvider from "@/components/providers/A11yProvider";
+import { A11yOverlayHost } from "@/components/ui/A11yOverlay";
 import JsonLd from "@/components/seo/JsonLd";
+import { A11Y_BOOTSTRAP_SCRIPT } from "@/lib/a11y";
 import { schoolSchema, websiteSchema } from "@/lib/schema";
 import { DEFAULT_OG_IMAGE, SITE_NAME, absoluteUrl, siteBase } from "@/lib/seo";
 
@@ -59,13 +62,19 @@ export default function RootLayout({
   return (
     <html lang="id" className="scroll-smooth">
       <body className="antialiased font-body bg-cream text-ink">
+        {/* Dijalankan sebelum konten di bawahnya dirender supaya mode
+            disabilitas yang tersimpan tidak sempat berkedip. */}
+        <script dangerouslySetInnerHTML={{ __html: A11Y_BOOTSTRAP_SCRIPT }} />
         <a href="#main-content" className="skip-link">
           Lompat ke konten utama
         </a>
         <JsonLd data={[schoolSchema(), websiteSchema()]} />
-        {children}
-        <VisitorTracker />
-        <FabWidget />
+        <A11yProvider>
+          {children}
+          <A11yOverlayHost />
+          <VisitorTracker />
+          <FabWidget />
+        </A11yProvider>
       </body>
     </html>
   );

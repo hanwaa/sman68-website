@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { A11yOverlay } from "@/components/ui/A11yOverlay";
 import {
   Trophy,
   Globe,
@@ -510,119 +511,121 @@ export default function AchievementWall({
         )}
       </div>
 
-      <AnimatePresence>
-        {selectedAchievement && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            onClick={() => setSelectedAchievement(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-brand-pine/70"
-            />
-            <motion.div
-              ref={modalRef}
-              tabIndex={-1}
-              role="dialog"
-              aria-modal="true"
-              aria-label={selectedAchievement.title}
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-card-hover focus:outline-none"
+      <A11yOverlay>
+        <AnimatePresence>
+          {selectedAchievement && (
+            <div
+              className="a11y-layer fixed inset-0 z-50 flex items-center justify-center p-4"
+              onClick={() => setSelectedAchievement(null)}
             >
-              {(() => {
-                const a = selectedAchievement;
-                const config = LEVEL_CONFIG[a.level];
-                const Icon = config.icon;
-                const participantList = a.participants?.length
-                  ? a.participants
-                  : a.studentName
-                    ? [a.studentName]
-                    : [];
-                return (
-                  <>
-                    <button
-                      onClick={() => setSelectedAchievement(null)}
-                      className="btn-icon absolute right-3 top-3 z-10 bg-white/90 shadow-sm backdrop-blur"
-                      aria-label="Tutup"
-                    >
-                      <X size={16} />
-                    </button>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-brand-pine/70"
+              />
+              <motion.div
+                ref={modalRef}
+                tabIndex={-1}
+                role="dialog"
+                aria-modal="true"
+                aria-label={selectedAchievement.title}
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-card-hover focus:outline-none"
+              >
+                {(() => {
+                  const a = selectedAchievement;
+                  const config = LEVEL_CONFIG[a.level];
+                  const Icon = config.icon;
+                  const participantList = a.participants?.length
+                    ? a.participants
+                    : a.studentName
+                      ? [a.studentName]
+                      : [];
+                  return (
+                    <>
+                      <button
+                        onClick={() => setSelectedAchievement(null)}
+                        className="btn-icon absolute right-3 top-3 z-10 bg-white/90 shadow-sm backdrop-blur"
+                        aria-label="Tutup"
+                      >
+                        <X size={16} />
+                      </button>
 
-                    <div className="relative aspect-[16/10] overflow-hidden bg-line">
-                      <Image
-                        src={a.cover}
-                        alt=""
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 512px"
-                      />
-                      <span className="absolute inset-0 bg-gradient-to-t from-brand-pine/40 to-transparent" aria-hidden="true" />
-                      <span className={cn("badge border absolute left-4 bottom-4 shadow-sm", config.color)}>
-                        <Icon size={11} aria-hidden="true" />
-                        {config.label}
-                      </span>
-                    </div>
-
-                    <div className="p-6 md:p-7">
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-muted">
-                        <span className={cn("badge", AWARD_TYPE_COLORS[a.awardType])}>
-                          {AWARD_TYPE_LABELS[a.awardType]}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <Calendar size={12} aria-hidden="true" />
-                          <span className="tabular-nums">{formatAchievementDate(a)}</span>
+                      <div className="relative aspect-[16/10] overflow-hidden bg-line">
+                        <Image
+                          src={a.cover}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 512px"
+                        />
+                        <span className="absolute inset-0 bg-gradient-to-t from-brand-pine/40 to-transparent" aria-hidden="true" />
+                        <span className={cn("badge border absolute left-4 bottom-4 shadow-sm", config.color)}>
+                          <Icon size={11} aria-hidden="true" />
+                          {config.label}
                         </span>
                       </div>
 
-                      <h2 className="mt-3 font-display text-xl font-extrabold leading-snug text-ink md:text-2xl">
-                        {a.title}
-                      </h2>
-
-                      {a.description && (
-                        <p className="mt-3 text-sm leading-relaxed text-muted">{a.description}</p>
-                      )}
-
-                      {participantList.length > 0 && (
-                        <div className="mt-5 border-t border-line pt-4">
-                          <div className="mb-2.5 text-[10px] font-bold uppercase tracking-wider text-muted">
-                            Peserta
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {participantList.map((p) => (
-                              <span key={p} className="badge bg-brand-green/10 text-brand-green">
-                                {p}
-                              </span>
-                            ))}
-                          </div>
+                      <div className="p-6 md:p-7">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-muted">
+                          <span className={cn("badge", AWARD_TYPE_COLORS[a.awardType])}>
+                            {AWARD_TYPE_LABELS[a.awardType]}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5">
+                            <Calendar size={12} aria-hidden="true" />
+                            <span className="tabular-nums">{formatAchievementDate(a)}</span>
+                          </span>
                         </div>
-                      )}
 
-                      {a.newsSlug && (
-                        <div className="mt-5 border-t border-line pt-4">
-                          <Link
-                            href={`/berita/${a.newsSlug}`}
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-green hover:underline"
-                          >
-                            <Newspaper size={12} aria-hidden="true" />
-                            {a.newsTitle
-                              ? `Baca berita: ${a.newsTitle}`
-                              : "Baca berita terkait"}
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                );
-              })()}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                        <h2 className="mt-3 font-display text-xl font-extrabold leading-snug text-ink md:text-2xl">
+                          {a.title}
+                        </h2>
+
+                        {a.description && (
+                          <p className="mt-3 text-sm leading-relaxed text-muted">{a.description}</p>
+                        )}
+
+                        {participantList.length > 0 && (
+                          <div className="mt-5 border-t border-line pt-4">
+                            <div className="mb-2.5 text-[10px] font-bold uppercase tracking-wider text-muted">
+                              Peserta
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {participantList.map((p) => (
+                                <span key={p} className="badge bg-brand-green/10 text-brand-green">
+                                  {p}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {a.newsSlug && (
+                          <div className="mt-5 border-t border-line pt-4">
+                            <Link
+                              href={`/berita/${a.newsSlug}`}
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-green hover:underline"
+                            >
+                              <Newspaper size={12} aria-hidden="true" />
+                              {a.newsTitle
+                                ? `Baca berita: ${a.newsTitle}`
+                                : "Baca berita terkait"}
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </A11yOverlay>
     </div>
   );
 }

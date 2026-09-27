@@ -5,28 +5,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { useA11y } from "@/components/providers/A11yProvider";
 import { useContent } from "@/lib/use-content";
 
 const headline = ["Selamat", "Datang", "di", "SMA Negeri 68 Jakarta"];
 
 export default function HeroSection() {
   const heroSlides = useContent<{ id: string; src: string; alt: string; caption: string }[]>("hero", []);
+  const { reduceMotion: a11yPaused } = useA11y();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [a11yPaused, setA11yPaused] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("sman68_a11y_prefs");
-      if (raw && JSON.parse(raw).reduceMotion) setA11yPaused(true);
-    } catch {
-      /* abaikan */
-    }
-    const handler = (e: Event) =>
-      setA11yPaused(Boolean((e as CustomEvent).detail?.enabled));
-    window.addEventListener("sman68:reduced-motion", handler);
-    return () => window.removeEventListener("sman68:reduced-motion", handler);
-  }, []);
 
   const slideCount = heroSlides.length;
 
@@ -59,7 +47,7 @@ export default function HeroSection() {
 
   return (
     <section
-      className={`hero-slideshow relative min-h-screen flex items-center overflow-hidden bg-brand-pine${a11yPaused ? " a11y-paused" : ""}`}
+      className="hero-slideshow relative min-h-screen flex items-center overflow-hidden bg-brand-pine"
       aria-label="Hero — Identitas SMAN 68 Jakarta"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}

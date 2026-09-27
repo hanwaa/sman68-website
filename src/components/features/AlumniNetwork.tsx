@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { A11yOverlay } from "@/components/ui/A11yOverlay";
 import { Search, GraduationCap, X } from "lucide-react";
 import { useModalA11y } from "@/lib/useModalA11y";
 import { useContentResource } from "@/lib/use-content";
@@ -275,81 +276,83 @@ export default function AlumniNetwork() {
       </div>
 
       {/* Modal */}
-      <AnimatePresence>
-        {selected && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            onClick={() => setSelected(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-brand-pine/70"
-            />
-            <motion.div
-              ref={modalRef}
-              tabIndex={-1}
-              role="dialog"
-              aria-modal="true"
-              aria-label={selected.name}
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative bg-white rounded-2xl p-8 max-w-sm w-full shadow-card-hover focus:outline-none"
+      <A11yOverlay>
+        <AnimatePresence>
+          {selected && (
+            <div
+              className="a11y-layer fixed inset-0 z-50 flex items-center justify-center p-4"
+              onClick={() => setSelected(null)}
             >
-              <button
-                onClick={() => setSelected(null)}
-                className="btn-icon absolute top-4 right-4"
-                aria-label="Tutup detail"
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-brand-pine/70"
+              />
+              <motion.div
+                ref={modalRef}
+                tabIndex={-1}
+                role="dialog"
+                aria-modal="true"
+                aria-label={selected.name}
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative bg-white rounded-2xl p-8 max-w-sm w-full shadow-card-hover focus:outline-none"
               >
-                <X size={16} />
-              </button>
+                <button
+                  onClick={() => setSelected(null)}
+                  className="btn-icon absolute top-4 right-4"
+                  aria-label="Tutup detail"
+                >
+                  <X size={16} />
+                </button>
 
-              <div className="relative w-16 h-16 rounded-2xl overflow-hidden mb-4 bg-line">
-                {selected.photo ? (
-                  <Image src={selected.photo} alt={selected.name} fill className="object-cover" sizes="64px" />
-                ) : (
-                  <span
-                    className="absolute inset-0 flex items-center justify-center bg-brand-pine font-display text-base font-extrabold text-brand-lime"
-                    aria-hidden="true"
-                  >
-                    {initials(selected.name)}
-                  </span>
-                )}
-              </div>
-              <h2 className="font-display font-extrabold text-xl text-ink mb-1">{selected.name}</h2>
-              <div className="text-muted text-sm mb-5">Alumni SMAN 68 · Angkatan {selected.angkatan}</div>
+                <div className="relative w-16 h-16 rounded-2xl overflow-hidden mb-4 bg-line">
+                  {selected.photo ? (
+                    <Image src={selected.photo} alt={selected.name} fill className="object-cover" sizes="64px" />
+                  ) : (
+                    <span
+                      className="absolute inset-0 flex items-center justify-center bg-brand-pine font-display text-base font-extrabold text-brand-lime"
+                      aria-hidden="true"
+                    >
+                      {initials(selected.name)}
+                    </span>
+                  )}
+                </div>
+                <h2 className="font-display font-extrabold text-xl text-ink mb-1">{selected.name}</h2>
+                <div className="text-muted text-sm mb-5">Alumni SMAN 68 · Angkatan {selected.angkatan}</div>
 
-              <div className="space-y-3">
-                <div className="bg-cream rounded-xl p-3.5">
-                  <div className="text-xs text-muted mb-0.5">Jurusan</div>
-                  <div className="font-semibold text-ink text-sm">{selected.jurusan}</div>
+                <div className="space-y-3">
+                  <div className="bg-cream rounded-xl p-3.5">
+                    <div className="text-xs text-muted mb-0.5">Jurusan</div>
+                    <div className="font-semibold text-ink text-sm">{selected.jurusan}</div>
+                  </div>
+                  <div className="bg-cream rounded-xl p-3.5">
+                    <div className="text-xs text-muted mb-0.5">Fakultas</div>
+                    <div className="font-semibold text-ink text-sm">{selected.fakultas}</div>
+                  </div>
+                  <div className="bg-cream rounded-xl p-3.5">
+                    <div className="text-xs text-muted mb-0.5">Kuliah di</div>
+                    <div className="font-semibold text-ink text-sm">{selected.kuliah}</div>
+                  </div>
                 </div>
-                <div className="bg-cream rounded-xl p-3.5">
-                  <div className="text-xs text-muted mb-0.5">Fakultas</div>
-                  <div className="font-semibold text-ink text-sm">{selected.fakultas}</div>
-                </div>
-                <div className="bg-cream rounded-xl p-3.5">
-                  <div className="text-xs text-muted mb-0.5">Kuliah di</div>
-                  <div className="font-semibold text-ink text-sm">{selected.kuliah}</div>
-                </div>
-              </div>
 
-              <a
-                href={selected.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary btn-lg mt-6 w-full"
-              >
-                <LinkedinIcon size={15} />
-                Buka Profil LinkedIn
-              </a>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                <a
+                  href={selected.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary btn-lg mt-6 w-full"
+                >
+                  <LinkedinIcon size={15} />
+                  Buka Profil LinkedIn
+                </a>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </A11yOverlay>
     </div>
   );
 }

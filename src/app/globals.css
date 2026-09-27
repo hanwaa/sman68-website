@@ -388,7 +388,22 @@
   }
 }
 
-/* Mode disabilitas */
+/* ==========================================================================
+   Mode disabilitas
+   --------------------------------------------------------------------------
+   Seluruh aturan di blok ini berasal dari kelas pada elemen <html>. Kelas itu
+   dipasang oleh A11yProvider, atau lebih awal oleh script bootstrap inline
+   di layout supaya tidak ada kedipan.
+
+   Dua hal yang dijaga di sini:
+   1. Cakupan. Setiap preferensi harus menjangkau semua elemen, bukan hanya
+      <main>. Chrome di luar <main> (navbar, footer, FAB) dan overlay modal
+      menandai dirinya dengan kelas `a11y-layer` supaya tetap ikut berubah.
+   2. Responsivitas. Ukuran teks memakai rem pada <html> (bukan px per
+      komponen) dan tidak ada aturan yang memaksa lebar minimum pada baris
+      horizontal, sehingga tidak memunculkan overflow di layar sempit.
+   ========================================================================== */
+
 html.a11y-text-lg {
   font-size: 112.5%;
 }
@@ -397,12 +412,25 @@ html.a11y-text-xl {
   font-size: 125%;
 }
 
-html.a11y-contrast main {
+/* Teks jadi lebih besar, jadiiarkan kata panjang boleh membungkus agar tidak
+   mendorong lebar halaman. break-word (bukan anywhere) supaya kata tetap utuh
+   kalau memang masih muat. */
+html.a11y-text-lg body,
+html.a11y-text-xl body {
+  overflow-wrap: break-word;
+}
+
+html.a11y-contrast main,
+html.a11y-contrast .a11y-layer {
   filter: contrast(1.12) saturate(1.1);
 }
 
+/* Semua gambar di dalam <main> sudah ikut terfilter oleh <main> itu sendiri,
+   dan gambar di luar <main> ada di dalam elemen ber-a11y-layer. Jadi tidak
+   perlu aturan `img` terpisah — menambahkannya akan menimpa `brightness-*`
+   yang dipakai untuk meredupkan foto hero. */
 html.a11y-grayscale main,
-html.a11y-grayscale img {
+html.a11y-grayscale .a11y-layer {
   filter: grayscale(1);
 }
 
@@ -414,8 +442,15 @@ html.a11y-motion-off *::after {
   scroll-behavior: auto !important;
 }
 
-html.a11y-links a {
+/* Marquee yang dihentikan tidak boleh menyembunyikan isi: samakan dengan
+   perilaku bawaan prefers-reduced-motion, yaitu jadi bisa digeser manual. */
+html.a11y-motion-off .marquee {
+  overflow-x: auto;
+}
+
+html.a11y-links a[href] {
   text-decoration: underline;
+  text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
 
@@ -425,20 +460,41 @@ html.a11y-spacing body {
   line-height: 1.9;
 }
 
+/* Dikenakan juga ke elemen teks, bukan hanya body: nilai yang diwarisi selalu
+   kalah dari utility `font-display` (0,1,0) maupun style inline `fontFamily`.
+   :where() menjaga spesifisitas daftar elemen ini tetap 0. */
+html.a11y-spacing :where(p, li, dd, dt, blockquote, figcaption, address, label, legend, td, th) {
+  line-height: 1.9;
+}
+
 html.a11y-focus :focus-visible {
   outline: 3px solid #b7ec6e !important;
   outline-offset: 3px !important;
+  border-radius: 2px;
 }
 
-/* Ramah buta warna: ganti merah dengan jingga tegas (terbedakan untuk protanopia/deuteranopia) */
+/* Ramah buta warna: ganti merah dengan jingga tegas (terbedakan untuk
+   protanopia/deuteranopia). Semua varian utility ikut ditulis, bukan hanya
+   beberapa, supaya tidak ada elemen yang tetap merah. */
+html.a11y-colorblind .text-danger,
 html.a11y-colorblind .text-danger-deep {
   color: #b45309 !important;
+}
+
+html.a11y-colorblind .bg-danger {
+  background-color: #d97706 !important;
 }
 
 html.a11y-colorblind .bg-danger-tint,
 html.a11y-colorblind .bg-danger-tint\/50,
 html.a11y-colorblind .bg-danger-tint\/60 {
   background-color: #fde7cc !important;
+}
+
+html.a11y-colorblind .bg-danger-deep,
+html.a11y-colorblind .bg-danger-deep\/20,
+html.a11y-colorblind .bg-danger-deep\/40 {
+  background-color: #b45309 !important;
 }
 
 html.a11y-colorblind .border-danger,
@@ -451,36 +507,60 @@ html.a11y-colorblind .hover\:bg-danger-tint:hover {
   background-color: #d97706 !important;
 }
 
-/* Font ramah disleksia */
-html.a11y-dyslexia body {
+/* Font ramah disleksia.
+   Dikenakan pada `body *`, bukan hanya `body`, karena nilai font yang diwarisi
+   selalu kalah dari utility `font-display` maupun dari style inline
+   `fontFamily` (dipakai di judul hero). */
+html.a11y-dyslexia body,
+html.a11y-dyslexia body * {
   font-family: "Comic Sans MS", "Segoe Print", Verdana, sans-serif !important;
+}
+
+html.a11y-dyslexia body {
   letter-spacing: 0.03em;
   word-spacing: 0.1em;
-  line-height: 1.9;
 }
 
-html.a11y-dyslexia h1,
-html.a11y-dyslexia h2,
-html.a11y-dyslexia h3,
-html.a11y-dyslexia h4,
-html.a11y-dyslexia h5,
-html.a11y-dyslexia h6 {
-  font-family: "Comic Sans MS", "Segoe Print", Verdana, sans-serif !important;
+html.a11y-dyslexia :where(h1, h2, h3, h4, h5, h6) {
   letter-spacing: 0.01em;
+  line-height: 1.5;
 }
 
-/* Area sentuh lebih besar */
+/* Area sentuh lebih besar.
+   min-width sengaja hanya dipasang pada kontrol, tidak pada tautan: di baris
+   tautan horizontal (footer, topbar navbar) min-width memaksa baris melebar
+   dan memunculkan overflow horizontal di layar sempit. min-height tidak
+   berlaku pada kotak inline, jadi tautan di dalam paragraf tetap utuh. */
 html.a11y-touch button,
-html.a11y-touch a,
+html.a11y-touch [role="button"],
+html.a11y-touch [role="switch"],
+html.a11y-touch [role="tab"],
+html.a11y-touch summary,
+html.a11y-touch label,
 html.a11y-touch input,
 html.a11y-touch select,
-html.a11y-touch textarea {
+html.a11y-touch textarea,
+html.a11y-touch a[href] {
   min-height: 44px;
+}
+
+html.a11y-touch button,
+html.a11y-touch [role="button"],
+html.a11y-touch [role="switch"],
+html.a11y-touch [role="tab"],
+html.a11y-touch summary,
+html.a11y-touch input[type="checkbox"],
+html.a11y-touch input[type="radio"] {
   min-width: 44px;
 }
 
-.hero-slideshow.a11y-paused .hero-progress {
-  animation-play-state: paused;
+/* Baris yang memang sengaja dibuat rapat (topbar informasi di navbar) tetap
+   rapat supaya tidak meluber keluar dari barisnya. */
+html.a11y-touch .a11y-compact a,
+html.a11y-touch .a11y-compact button,
+html.a11y-touch .a11y-compact [role="button"] {
+  min-height: 0;
+  min-width: 0;
 }
 
 .skip-link {
