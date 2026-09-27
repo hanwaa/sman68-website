@@ -235,6 +235,13 @@
     @apply h-11 px-6;
   }
 
+  /* Varian khusus CTA hero. Dibuat sebagai kelas tersendiri, bukan menimpa
+     btn-lg dari atas, karena urutan kelas di atribut HTML tidak menentukan
+     menang tidaknya dua utility yang sama properti (mis. h-11 vs h-12). */
+  .btn-hero {
+    @apply h-12 px-7 text-base md:h-14 md:px-9 md:text-lg gap-2.5;
+  }
+
   .btn-icon {
     @apply inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg
            text-muted transition-colors duration-150

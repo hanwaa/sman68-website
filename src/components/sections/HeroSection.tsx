@@ -7,7 +7,7 @@ import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } fr
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useContent } from "@/lib/use-content";
 
-const headline = ["Tempat", "Anak", "Anda", "Bertumbuh,", "Berprestasi,", "dan", "Dikenang."];
+const headline = ["Selamat", "Datang", "di", "SMA Negeri 68 Jakarta"];
 
 export default function HeroSection() {
   const heroSlides = useContent<{ id: string; src: string; alt: string; caption: string }[]>("hero", []);
@@ -95,19 +95,19 @@ export default function HeroSection() {
         </motion.div>
       </div>
 
-      <div className="container-custom relative z-10 pt-28 md:pt-32 pb-28 md:pb-36 translate-y-12 md:translate-y-16">
+      <div className="container-custom relative z-10 pt-24 md:pt-28 pb-24 md:pb-32 translate-y-8 md:translate-y-12">
         <motion.div
           style={reduceMotion ? undefined : { y: contentY }}
-          className="max-w-3xl mx-auto text-center"
+          className="max-w-4xl mx-auto text-center"
         >
           <h1
-            className="font-display font-extrabold text-white mb-7 text-balance drop-shadow-[0_2px_12px_rgba(11,46,32,0.65)]"
+            className="font-display font-extrabold text-white mb-8 text-balance drop-shadow-[0_2px_12px_rgba(11,46,32,0.65)]"
             style={{
               fontFamily: "var(--font-hero)",
               fontWeight: 700,
-              fontSize: "clamp(1.9rem, 4vw, 3.3rem)",
-              lineHeight: 1.05,
-              letterSpacing: "-0.02em",
+              fontSize: "clamp(2.25rem, 6.2vw, 5.25rem)",
+              lineHeight: 1.04,
+              letterSpacing: "-0.025em",
             }}
           >
             {headline.map((word, i) => (
@@ -125,9 +125,9 @@ export default function HeroSection() {
             ))}
           </h1>
 
-          <p className="text-white/90 text-base md:text-lg max-w-xl mx-auto mb-9 leading-relaxed text-pretty drop-shadow-[0_1px_8px_rgba(11,46,32,0.7)]">
-            Di SMAN 68 Jakarta, setiap anak ditemukan potensinya, dibimbing gurunya,
-            dan dirayakan prestasinya — bersama orang tua dan komunitas sekolah.
+          <p className="text-white/90 text-lg md:text-xl lg:text-2xl max-w-2xl mx-auto mb-10 md:mb-12 leading-relaxed text-pretty drop-shadow-[0_1px_8px_rgba(11,46,32,0.7)]">
+            Jelajahi lebih dekat cerita, prestasi,
+            dan semangat yang menjadikan SMAN 68 Jakarta terus bertumbuh.
           </p>
 
           <motion.div
@@ -135,14 +135,14 @@ export default function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
           >
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex flex-wrap justify-center gap-4">
               <Link
                 href="/ppdb"
-                className="btn-accent btn-lg group"
+                className="btn-accent btn-hero group"
               >
-                Daftarkan Anak Anda
+                Jadilah Bagian Dari 68
                 <ArrowRight
-                  size={16}
+                  size={19}
                   className="group-hover:translate-x-0.5 transition-transform"
                   aria-hidden="true"
                 />
