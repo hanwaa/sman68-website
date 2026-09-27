@@ -125,7 +125,7 @@ export default function HeroSection() {
             ))}
           </h1>
 
-          <p className="text-white/90 text-lg md:text-xl lg:text-2xl max-w-2xl mx-auto mb-10 md:mb-12 leading-relaxed text-pretty drop-shadow-[0_1px_8px_rgba(11,46,32,0.7)]">
+          <p className="text-white/90 text-3xl md:text-4xl lg:text-5xl max-w-3xl mx-auto mb-10 md:mb-12 leading-tight text-pretty drop-shadow-[0_1px_8px_rgba(11,46,32,0.7)]">
             Jelajahi lebih dekat cerita, prestasi,
             dan semangat yang menjadikan SMAN 68 Jakarta terus bertumbuh.
           </p>
