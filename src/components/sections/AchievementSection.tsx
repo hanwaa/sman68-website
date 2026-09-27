@@ -33,8 +33,16 @@ function chunk<T>(items: T[], size: number): T[][] {
   }, []);
 }
 
-export default function AchievementSection() {
-  const { data: achievements, loading } = useContentResource<AchievementContent[]>("achievements", []);
+export default function AchievementSection({
+  initialAchievements,
+}: {
+  initialAchievements?: AchievementContent[];
+}) {
+  const { data: achievements, loading } = useContentResource<AchievementContent[]>(
+    "achievements",
+    [],
+    initialAchievements
+  );
   const highlights = achievements.slice(0, 8);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [page, setPage] = useState(0);

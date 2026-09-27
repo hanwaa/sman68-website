@@ -12,6 +12,7 @@ import CommunityBand from "@/components/sections/CommunityBand";
 import PeopleSection from "@/components/sections/PeopleSection";
 import ContactSection from "@/components/sections/ContactSection";
 import type { Metadata } from "next";
+import { getAchievements } from "@/lib/content-server";
 import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,10 @@ export const metadata: Metadata = buildMetadata({
   absoluteTitle: true,
 });
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Prestasi diambil di server supaya section-nya benar-benar ter-render SSR,
+  // bukan skeleton yang digantikan setelah hydration.
+  const achievements = await getAchievements();
   return (
     <>
       <Navbar />
@@ -32,7 +36,7 @@ export default function HomePage() {
         <HeroSection />
         <NewsTicker />
         <PPDBBanner />
-        <AchievementSection />
+        <AchievementSection initialAchievements={achievements} />
         <AboutSection />
         <FacilitiesHighlight />
         <ConstellationSection />

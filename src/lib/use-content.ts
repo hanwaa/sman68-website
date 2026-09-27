@@ -46,8 +46,23 @@ export function useContentResource<T>(
     }
     return fallback;
   });
-  const [loading, setLoading] = useState(() =>
-    isBrowser ? !cache.has(resource) && initialData === undefined : false
+  // Nilai awal `loading` WAJIB sama di server dan client, karena render
+  // pertama client adalah hydration dari HTML server. Kalau berbeda, React
+  // membuang HTML itu dan regenerate di client — gejalanya "Hydration failed"
+  // plus flash skeleton.
+  //
+  // Server juga bernilai `initialData === undefined` (bukan selalu false):
+  // saat hydration, context JS client masih kosong sehingga cache modul pasti
+  // kosong dan `initialData` undefined. Server yang mengembalikan `false`
+  // sementara client `true`-lah yang memicu mismatch. Menyamakan keduanya ke
+  // `initialData === undefined` membuat keduanya `true` pada kasus itu.
+  //
+  // Cache modul di server tidak pernah terisi (loadResource hanya jalan di
+  // useEffect, yaitu client), jadi `cache.has` selalu false di server dan
+  // tidak risiko bocor antar-request. Pemakaian cache tetap berguna saat
+  // navigasi client, yang bukan hydration.
+  const [loading, setLoading] = useState(
+    () => initialData === undefined && !cache.has(resource)
   );
 
   useEffect(() => {
