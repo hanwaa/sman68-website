@@ -78,7 +78,6 @@ const navItems = [
     children: [
       { label: "Profil Sekolah", href: "/tentang/profil", icon: BookOpen },
       { label: "Visi & Misi", href: "/tentang/visi-misi", icon: Star },
-      { label: "Kepala Sekolah", href: "/tentang/kepala-sekolah", icon: Users },
       { label: "Guru & Staf", href: "/tentang/guru-staf", icon: Users },
       { label: "Fasilitas", href: "/tentang/fasilitas", icon: Map },
     ],

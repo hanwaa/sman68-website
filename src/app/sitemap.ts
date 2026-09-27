@@ -37,7 +37,6 @@ const staticRoutes: string[] = [
   "/komunitas/alumni",
   "/tentang/profil",
   "/tentang/visi-misi",
-  "/tentang/kepala-sekolah",
   "/tentang/guru-staf",
   "/tentang/fasilitas",
   "/kebijakan-privasi",

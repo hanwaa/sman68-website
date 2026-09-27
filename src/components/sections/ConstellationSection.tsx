@@ -39,6 +39,12 @@ const RING_ANGLES = [0, 22, 48, 12, 36];
  */
 const DETAIL_RADIUS = 146;
 
+/**
+ * Jari-jari logo ekskul besar di buletan tengah. Logo dipotong presisi
+ * menjadi lingkaran lewat clipPath `orbit-detail-logo-circle`.
+ */
+const LOGO_RADIUS = 96;
+
 function initials(name: string) {
   const words = name.split(" ");
   if (words.length === 1) return name.slice(0, 2).toUpperCase();
@@ -77,6 +83,8 @@ export default function ConstellationSection() {
   const TOTAL = ekskulList.length;
 
   const [selected, setSelected] = useState<Ekskul | null>(null);
+  /** True ketika kursor/fokus berada di buletan tengah -> info muncul di depan logo. */
+  const [centerHovered, setCenterHovered] = useState(false);
 
   /**
    * Cincin melebar saat detail terbuka. `radiiRef` dipakai rAF untuk
@@ -143,14 +151,34 @@ export default function ConstellationSection() {
     return () => window.removeEventListener("sman68:reduced-motion", handler);
   }, []);
 
-  /** Klik planet -> buka pop up lingkaran. Klik pop up -> langsung ke halaman ekskul. */
+  /** Klik planet -> buka buletan tengah berisi logo ekskul (besar, berbentuk lingkaran). */
   const selectEkskul = (item: Ekskul) => {
+    setCenterHovered(false);
     setSelected((current) => (current?.id === item.id ? null : item));
   };
 
   const openEkskul = (item: Ekskul) => {
     setSelected(null);
+    setCenterHovered(false);
     router.push(`/kehidupan/ekskul?ekskul=${item.id}`);
+  };
+
+  /**
+   * Di desktop: klik langsung membuka halaman profil.
+   * Di layar sentuh (hover: none): sentuhan pertama memunculkan info di depan
+   * logo, sentuhan berikutnya (atau tombol "Buka Profil") yang membuka halaman.
+   */
+  const handleCenterClick = (e: React.MouseEvent) => {
+    if (!selected) return;
+    const touchOnly =
+      typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
+    if (touchOnly && !centerHovered) {
+      e.preventDefault();
+      e.stopPropagation();
+      setCenterHovered(true);
+      return;
+    }
+    openEkskul(selected);
   };
 
   /**
@@ -271,8 +299,24 @@ export default function ConstellationSection() {
                   <circle cx={CX} cy={CY} r={28} />
                 </clipPath>
                 <clipPath id="orbit-detail-clip">
-                  <circle cx={0} cy={0} r={26} />
+                  <circle cx="0" cy="0" r={26} />
                 </clipPath>
+                {/* Bulatan tengah tempat logo ekskul ditampilkan besar. */}
+                <clipPath id="orbit-detail-panel-clip">
+                  <circle cx={CX} cy={CY} r={DETAIL_RADIUS - 2} />
+                </clipPath>
+                {/* Logo dipotong tepat menjadi lingkaran. */}
+                <clipPath id="orbit-detail-logo-circle">
+                  <circle cx={CX} cy={CY} r={LOGO_RADIUS} />
+                </clipPath>
+                <radialGradient id="orbit-detail-scrim" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="#062A31" stopOpacity="0.82" />
+                  <stop offset="60%" stopColor="#062A31" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="#062A31" stopOpacity="0.62" />
+                </radialGradient>
+                <filter id="orbit-text-shadow" x="-25%" y="-25%" width="150%" height="150%">
+                  <feDropShadow dx="0" dy="1.5" stdDeviation="2.5" floodColor="#000000" floodOpacity="0.95" />
+                </filter>
               </defs>
 
               {rings.map((ring, ri) => (
@@ -373,8 +417,8 @@ export default function ConstellationSection() {
                   })}
                 </g>
               ))}
-              {/* Panel detail di tengah, menggantikan logo sekolah.
-                  Diklik -> langsung ke halaman ekskul. */}
+              {/* Buletan tengah: logo ekskul besar & berbentuk lingkaran.
+                  Klik planet -> logo muncul. Hover buletan -> info di depan logo. */}
               <AnimatePresence>
                 {selected && (
                   <motion.g
@@ -384,7 +428,11 @@ export default function ConstellationSection() {
                     exit={{ opacity: 0, scale: 0.7 }}
                     transition={{ duration: 0.26, ease: "easeOut" }}
                     style={{ transformOrigin: `${CX}px ${CY}px` }}
-                    onClick={() => openEkskul(selected)}
+                    onClick={handleCenterClick}
+                    onMouseEnter={() => setCenterHovered(true)}
+                    onMouseLeave={() => setCenterHovered(false)}
+                    onFocus={() => setCenterHovered(true)}
+                    onBlur={() => setCenterHovered(false)}
                     role="link"
                     tabIndex={0}
                     aria-label={`Buka halaman ${selected.name}`}
@@ -396,98 +444,166 @@ export default function ConstellationSection() {
                     }}
                     className="cursor-pointer focus:outline-none"
                   >
+                    {/* Cincin luar + cincin putus-putus */}
                     <circle
                       cx={CX}
                       cy={CY}
                       r={DETAIL_RADIUS}
                       fill="#062A31"
                       stroke={categoryColorFor(selected.category).color}
-                      strokeWidth={2}
+                      strokeWidth={2.5}
                     />
                     <circle
                       cx={CX}
                       cy={CY}
-                      r={DETAIL_RADIUS - 8}
+                      r={DETAIL_RADIUS - 6}
                       fill="none"
                       stroke="white"
-                      strokeOpacity={0.16}
+                      strokeOpacity={0.15}
                       strokeDasharray="5 7"
                     />
-                    {selected.thumb ? (
-                      // Dibungkus <g transform> supaya koordinatnya lokal
-                      // terhadap pusat lingkaran; clipPath di-center di (0,0)
-                      // dan tidak akan memotong gambar kalau memakai
-                      // koordinat absolut SVG.
-                      <g transform={`translate(${CX} ${CY - 62})`}>
-                        <circle cx={0} cy={0} r={27} fill="#ffffff" />
+
+                    {/* ===== LOGO BESAR BERBENTUK LINGKARAN ===== */}
+                    {selected.logo || selected.thumb ? (
+                      <g>
+                        {/* Alasan: plat putih supaya logo transparan & foto rapi */}
+                        <circle
+                          cx={CX}
+                          cy={CY}
+                          r={LOGO_RADIUS}
+                          fill="#ffffff"
+                          style={{
+                            opacity: centerHovered ? 0.18 : 1,
+                            transition: "opacity 0.28s ease",
+                          }}
+                        />
                         <image
-                          href={selected.thumb}
-                          x={-21}
-                          y={-21}
-                          width={42}
-                          height={42}
-                          preserveAspectRatio="xMidYMid meet"
-                          clipPath="url(#orbit-detail-clip)"
+                          href={selected.logo ?? selected.thumb ?? ""}
+                          x={CX - LOGO_RADIUS}
+                          y={CY - LOGO_RADIUS}
+                          width={LOGO_RADIUS * 2}
+                          height={LOGO_RADIUS * 2}
+                          preserveAspectRatio="xMidYMid slice"
+                          clipPath="url(#orbit-detail-logo-circle)"
+                          style={{
+                            opacity: centerHovered ? 0.34 : 1,
+                            transition: "opacity 0.28s ease",
+                          }}
+                        />
+                        {/* Bingkai lingkaran warna kategori */}
+                        <circle
+                          cx={CX}
+                          cy={CY}
+                          r={LOGO_RADIUS}
+                          fill="none"
+                          stroke={categoryColorFor(selected.category).color}
+                          strokeWidth={2.5}
+                          strokeOpacity={centerHovered ? 0.4 : 0.85}
+                          style={{ transition: "stroke-opacity 0.28s ease" }}
                         />
                       </g>
                     ) : (
-                      <text
-                        x={CX}
-                        y={CY - 48}
-                        textAnchor="middle"
-                        fontSize={24}
-                        fontWeight="800"
-                        fill={categoryColorFor(selected.category).color}
-                        fontFamily="var(--font-serif)"
-                      >
-                        {initials(selected.name)}
-                      </text>
+                      <g>
+                        <circle cx={CX} cy={CY} r={LOGO_RADIUS} fill="#04424C" />
+                        <text
+                          x={CX}
+                          y={CY + 32}
+                          textAnchor="middle"
+                          fontSize={88}
+                          fontWeight="900"
+                          fill={categoryColorFor(selected.category).color}
+                          style={{
+                            opacity: centerHovered ? 0.2 : 0.9,
+                            transition: "opacity 0.28s ease",
+                          }}
+                          fontFamily="var(--font-serif)"
+                        >
+                          {initials(selected.name)}
+                        </text>
+                      </g>
                     )}
-                    <text
-                      x={CX}
-                      y={CY + 4}
-                      textAnchor="middle"
-                      fontSize={19}
-                      fontWeight="800"
-                      fill="#ffffff"
-                      fontFamily="var(--font-display)"
+
+                    {/* ===== INFO DI DEPAN LOGO (muncul saat hover) ===== */}
+                    <g
+                      style={{
+                        opacity: centerHovered ? 1 : 0,
+                        transition: "opacity 0.28s ease",
+                        pointerEvents: "none",
+                      }}
                     >
-                      {truncate(selected.name, 26)}
-                    </text>
-                    <text
-                      x={CX}
-                      y={CY + 28}
-                      textAnchor="middle"
-                      fontSize={13}
-                      fill="white"
-                      fillOpacity={0.55}
-                      fontFamily="var(--font-sans)"
-                    >
-                      {selected.category}
-                    </text>
-                    <text
-                      x={CX}
-                      y={CY + 54}
-                      textAnchor="middle"
-                      fontSize={13}
-                      fill="white"
-                      fillOpacity={0.75}
-                      fontFamily="var(--font-sans)"
-                    >
-                      {selected.members} anggota · {selected.achievements} prestasi
-                    </text>
-                    <rect x={CX - 54} y={CY + 70} width={108} height={27} rx={13.5} fill="#FFFF00" />
-                    <text
-                      x={CX}
-                      y={CY + 88}
-                      textAnchor="middle"
-                      fontSize={13}
-                      fontWeight="700"
-                      fill="#062A31"
-                      fontFamily="var(--font-sans)"
-                    >
-                      Lihat profil
-                    </text>
+                      <circle cx={CX} cy={CY} r={DETAIL_RADIUS} fill="url(#orbit-detail-scrim)" />
+
+                      <g filter="url(#orbit-text-shadow)">
+                        {/* Badge kategori */}
+                        <g transform={`translate(${CX} ${CY - 56})`}>
+                          <rect
+                            x={-58}
+                            y={-11}
+                            width={116}
+                            height={22}
+                            rx={11}
+                            fill="#062A31"
+                            fillOpacity={0.92}
+                            stroke={categoryColorFor(selected.category).color}
+                            strokeWidth={1.2}
+                          />
+                          <text
+                            x={0}
+                            y={4}
+                            textAnchor="middle"
+                            fontSize={10.5}
+                            fontWeight="800"
+                            fill={categoryColorFor(selected.category).color}
+                            fontFamily="var(--font-sans)"
+                            letterSpacing="0.08em"
+                          >
+                            {selected.category.toUpperCase()}
+                          </text>
+                        </g>
+
+                        {/* Nama ekskul */}
+                        <text
+                          x={CX}
+                          y={CY - 8}
+                          textAnchor="middle"
+                          fontSize={21}
+                          fontWeight="800"
+                          fill="#ffffff"
+                          fontFamily="var(--font-display)"
+                        >
+                          {truncate(selected.name, 22)}
+                        </text>
+
+                        {/* Statistik */}
+                        <text
+                          x={CX}
+                          y={CY + 16}
+                          textAnchor="middle"
+                          fontSize={12}
+                          fill="#E4F7FA"
+                          fillOpacity={0.92}
+                          fontFamily="var(--font-sans)"
+                        >
+                          {selected.members} anggota · {selected.achievements} prestasi
+                        </text>
+
+                        {/* Tombol aksi */}
+                        <g transform={`translate(${CX} ${CY + 50})`}>
+                          <rect x={-62} y={-14} width={124} height={28} rx={14} fill="#FFFF00" />
+                          <text
+                            x={0}
+                            y={4.5}
+                            textAnchor="middle"
+                            fontSize={11.5}
+                            fontWeight="800"
+                            fill="#062A31"
+                            fontFamily="var(--font-sans)"
+                          >
+                            Buka Profil
+                          </text>
+                        </g>
+                      </g>
+                    </g>
                   </motion.g>
                 )}
               </AnimatePresence>
@@ -502,7 +618,10 @@ export default function ConstellationSection() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  onClick={() => setSelected(null)}
+                  onClick={() => {
+                    setSelected(null);
+                    setCenterHovered(false);
+                  }}
                   aria-label="Tutup ringkasan ekskul"
                   className="absolute right-1 top-1 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/70 ring-1 ring-inset ring-white/20 backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-lime sm:right-3 sm:top-6"
                 >
