@@ -4,16 +4,33 @@
 # lalu pasang ke path sertifikat yang dipakai vhost Webuzo.
 #
 # Jalankan di VPS:
-#   sudo bash deploy/webuzo-ssl-dns.sh domain.com <CLOUDFLARE_API_TOKEN> [ZONE_ID]
+#   sudo CF_Token=... CF_Zone_ID=... bash deploy/webuzo-ssl-dns.sh domain.com
+#
+# Token TIDAK boleh lewat argumen baris perintah — argv terlihat oleh
+# `ps -ef` milik user lain dan tersimpan di riwayat shell. Beri lewat
+# environment di atas, atau biarkan kosong lalu tempel saat diminta
+# (input disembunyikan, tidak masuk riwayat).
 #
 # Token Cloudflare cukup permission: Zone → DNS → Edit (untuk zone domain tsb).
-# ZONE_ID opsional — isi bila token dibatasi 1 zone agar acme.sh tak perlu cari zone.
+# CF_Zone_ID opsional — isi bila token dibatasi 1 zone agar acme.sh tak perlu cari zone.
 # ============================================================
 set -euo pipefail
 
-DOMAIN="${1:?Pakai: sudo bash deploy/webuzo-ssl-dns.sh domain.com <CF_TOKEN> [ZONE_ID]}"
-CF_TOKEN="${2:?Token Cloudflare (Zone.DNS Edit) belum diisi}"
-ZONE_ID="${3:-}"
+DOMAIN="${1:?Pakai: sudo CF_Token=... bash deploy/webuzo-ssl-dns.sh domain.com}"
+ZONE_ID="${CF_Zone_ID:-}"
+
+# Token dari environment, atau prompt interaktif (read -s, tidak di-echo).
+CF_TOKEN="${CF_Token:-}"
+if [ -z "$CF_TOKEN" ]; then
+  if [ ! -t 0 ]; then
+    echo "!! CF_Token belum diisi dan stdin bukan terminal." >&2
+    echo "   Jalankan: sudo CF_Token=<token> bash $0 $DOMAIN" >&2
+    exit 1
+  fi
+  read -r -s -p "Token Cloudflare (Zone.DNS Edit): " CF_TOKEN
+  echo
+  [ -n "$CF_TOKEN" ] || { echo "!! Token kosong, dibatalkan." >&2; exit 1; }
+fi
 
 ACME="$(find /root /usr/local /opt -maxdepth 6 -name acme.sh -type f 2>/dev/null | head -1 || true)"
 if [ -z "$ACME" ]; then
@@ -26,7 +43,7 @@ echo "==> acme.sh: $ACME"
 export CF_Token="$CF_TOKEN"
 if [ -n "$ZONE_ID" ]; then
   export CF_Zone_ID="$ZONE_ID"
-  echo "==> Memakai CF_Zone_ID: $CF_Zone_ID"
+  echo "==> Memakai CF_Zone_ID: $ZONE_ID"
 fi
 
 echo "==> Menerbitkan sertifikat $DOMAIN via DNS Cloudflare (CA: Let's Encrypt)"

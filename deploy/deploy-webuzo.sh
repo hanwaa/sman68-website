@@ -4,20 +4,39 @@
 # Jalankan dari komputer lokal (root repo):
 #   bash deploy/deploy-webuzo.sh
 #
-# Prasyarat: SSH key sudah dipasang (atau askpass untuk password).
-# Override lewat env bila perlu:
-#   VPS_HOST=101.50.1.15 VPS_PORT=50065 VPS_USER=root bash deploy/deploy-webuzo.sh
-#   BUILD_CPUS=1 bash deploy/deploy-webuzo.sh   # bila ingin lebih hemat numproc
+# Prasyarat: SSH key sudah dipasang untuk $VPS_USER@$VPS_HOST.
+#
+# Konfigurasi server (IP, port, user, path) TIDAK disimpan di repo.
+# Salin templat lalu isi:
+#   cp deploy/deploy.env.example deploy/deploy.env
+#
+# Override per-pemanggilan tetap bisa:
+#   BUILD_CPUS=1 bash deploy/deploy-webuzo.sh
 # ============================================================
 set -euo pipefail
 
-VPS_HOST="${VPS_HOST:-101.50.1.15}"
-VPS_PORT="${VPS_PORT:-50065}"
-VPS_USER="${VPS_USER:-root}"
-APP_DIR="${APP_DIR:-/home/nazihan/sman68-app}"
-SSH_OPTS=(-p "$VPS_PORT" -o StrictHostKeyChecking=accept-new)
-
 cd "$(dirname "$0")/.."
+
+# Muat deploy/deploy.env bila ada (tidak di-commit).
+if [ -f deploy/deploy.env ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . deploy/deploy.env
+  set +a
+fi
+
+# Semua nilai wajib dari environment — tidak ada default yang membocorkan
+# host/user/path server ke dalam repo.
+: "${VPS_HOST:?VPS_HOST belum diisi. Isi deploy/deploy.env atau export manual.}"
+: "${VPS_USER:?VPS_USER belum diisi. Isi deploy/deploy.env atau export manual.}"
+: "${APP_DIR:?APP_DIR belum diisi. Isi deploy/deploy.env atau export manual.}"
+: "${APP_USER:?APP_USER belum diisi. Isi deploy/deploy.env atau export manual.}"
+: "${LOCK_FILE:?LOCK_FILE belum diisi. Isi deploy/deploy.env atau export manual.}"
+VPS_PORT="${VPS_PORT:-22}"
+APP_PORT="${APP_PORT:-30000}"
+BUILD_CPUS="${BUILD_CPUS:-2}"
+
+SSH_OPTS=(-p "$VPS_PORT" -o StrictHostKeyChecking=accept-new)
 
 LOCK_HASH="$(md5sum package-lock.json | cut -d' ' -f1)"
 
@@ -25,13 +44,15 @@ echo "==> Sinkron kode ke $VPS_USER@$VPS_HOST:$APP_DIR"
 rsync -az --delete \
   -e "ssh ${SSH_OPTS[*]}" \
   --exclude node_modules --exclude .next --exclude logs --exclude .vercel \
-  --exclude assets-origin --exclude .env.local --exclude tsconfig.tsbuildinfo \
+  --exclude assets-origin --exclude .env.local --exclude deploy/deploy.env \
+  --exclude tsconfig.tsbuildinfo \
   --exclude .DS_Store \
   ./ "$VPS_USER@$VPS_HOST:$APP_DIR/"
 
 echo "==> Build & reload di VPS (lock=$LOCK_HASH)"
 ssh "${SSH_OPTS[@]}" "$VPS_USER@$VPS_HOST" \
-  "APP_DIR='$APP_DIR' BUILD_CPUS='${BUILD_CPUS:-2}' bash '$APP_DIR/deploy/remote-deploy.sh' '$LOCK_HASH'"
+  "APP_DIR='$APP_DIR' APP_USER='$APP_USER' LOCK_FILE='$LOCK_FILE' APP_PORT='$APP_PORT' BUILD_CPUS='$BUILD_CPUS' \
+   bash '$APP_DIR/deploy/remote-deploy.sh' '$LOCK_HASH'"
 
 echo
-echo "==> Selesai. Cek: https://sman68-jkt.my.id"
+echo "==> Selesai."

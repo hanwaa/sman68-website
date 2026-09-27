@@ -198,7 +198,12 @@ Dua skrip bantu (jalankan di VPS dari root repo):
 sudo bash deploy/webuzo-ssl-diagnose.sh domain.com
 
 # 2) Rekomendasi: terbitkan via DNS Cloudflare (tembus walau proxy ON, tanpa sentuh vhost)
-sudo bash deploy/webuzo-ssl-dns.sh domain.com <CLOUDFLARE_API_TOKEN>
+#    Token lewat environment, JANGAN lewat argumen — argv terlihat di `ps -ef`
+#    dan tersimpan di riwayat shell.
+sudo env CF_Token=<CLOUDFLARE_API_TOKEN> CF_Zone_ID=<ZONE_ID> \
+  bash deploy/webuzo-ssl-dns.sh domain.com
+#    Kalau env tidak bisa diisi, jalankan tanpa CF_Token lalu tempel saat diminta
+#    (inputnya disembunyikan dan tidak masuk riwayat).
 ```
 
 Jika ingin tetap HTTP-01: tambahkan blok berikut pada **Custom VirtualHost Config** domain di
@@ -218,55 +223,75 @@ tidak ada.
 
 ## 5c. Deploy aplikasi di Webuzo (Apache + PM2)
 
-Setup yang dipakai di server `server.sman68-jkt.my.id` (101.50.1.15):
+> Nilai server (IP, port SSH, nama user, path) sengaja tidak ditulis di dokumen ini.
+> Simpan di `deploy/deploy.env` (sudah di-ignore git):
+
+```bash
+cp deploy/deploy.env.example deploy/deploy.env
+$EDITOR deploy/deploy.env   # isi VPS_HOST, VPS_PORT, VPS_USER, APP_USER, APP_DIR, LOCK_FILE
+```
+
+Seluruh perintah di bawah memakai `<APP_USER>`, `<APP_DIR>`, `<VPS_HOST>`,
+`<VPS_PORT>`, dan `<VPS_USER>` sebagai placeholder.
 
 | Item | Nilai |
 |---|---|
 | Node/npm | `/usr/local/apps/nodejs22/bin` (bawaan Webuzo 22) |
 | PM2 | dipasang global di prefix Node di atas |
-| Direktori app | `/home/nazihan/sman68-app` (user `nazihan`) |
-| Port app | `30000` (PM2 fork, `deploy/ecosystem.config.cjs`, env `APP_PORT`) |
-| Reverse proxy | Dikelola **Webuzo Application Manager**: vhost generated otomatis `ProxyPass` ke port app (30000). Tidak perlu file custom. |
+| Direktori app | `<APP_DIR>` (user `<APP_USER>`) |
+| Port app | `APP_PORT` (PM2 fork, `deploy/ecosystem.config.cjs`) |
+| Reverse proxy | Dikelola **Webuzo Application Manager**: vhost generated otomatis `ProxyPass` ke port app. Tidak perlu file custom. |
 | Graceful Apache | `/usr/local/apps/apache2/bin/httpd -k graceful` (unit `httpd.service` tidak mendukung `reload`) |
 
 > Jika vhost Webuzo di-generate ulang oleh panel, proxy ke port app ikut ditulis ulang —
 > karena itu app harus listen di port yang sama dengan `port` pada entry Application Manager.
 
-Perintah build & jalankan (sebagai user `nazihan`):
+Perintah build & jalankan (sebagai `<APP_USER>`):
 
 ```bash
-sudo -u nazihan -H env PATH=/usr/local/apps/nodejs22/bin:/usr/bin:/bin \
-  bash -c 'cd /home/nazihan/sman68-app && npm ci'
+sudo -u <APP_USER> -H env PATH=/usr/local/apps/nodejs22/bin:/usr/bin:/bin \
+  bash -c 'cd <APP_DIR> && npm ci'
 
 # Server memakai OpenVZ numproc limit (500) — hentikan app & batasi worker build,
 # kalau tidak build gagal "spawn EAGAIN / pthread_create: Resource temporarily unavailable".
-sudo -u nazihan -H env PATH=/usr/local/apps/nodejs22/bin:/usr/bin:/bin \
-  bash -c 'cd /home/nazihan/sman68-app && pm2 stop sman68; NEXT_BUILD_CPUS=1 npm run build; pm2 start sman68'
+sudo -u <APP_USER> -H env PATH=/usr/local/apps/nodejs22/bin:/usr/bin:/bin \
+  bash -c 'cd <APP_DIR> && pm2 stop sman68; NEXT_BUILD_CPUS=1 npm run build; pm2 start sman68'
 
-sudo -u nazihan -H env PATH=/usr/local/apps/nodejs22/bin:/usr/bin:/bin \
-  bash -c 'cd /home/nazihan/sman68-app && pm2 save'
+sudo -u <APP_USER> -H env PATH=/usr/local/apps/nodejs22/bin:/usr/bin:/bin \
+  bash -c 'cd <APP_DIR> && pm2 save'
 ```
 
 Auto-start saat boot:
 
 ```bash
-env PATH=/usr/local/apps/nodejs22/bin:/usr/bin:/bin pm2 startup systemd -u nazihan --hp /home/nazihan
+env PATH=/usr/local/apps/nodejs22/bin:/usr/bin:/bin pm2 startup systemd -u <APP_USER> --hp <HOME_DIR>
 # jalankan perintah yang dicetak, lalu simpan ulang:
-sudo -u nazihan -H env PATH=... pm2 save
+sudo -u <APP_USER> -H env PATH=... pm2 save
 ```
 
 ### Update berikutnya (dari komputer lokal)
 
+Cara yang dipakai: `deploy/deploy-webuzo.sh` — rsync + build jarak jauh, dengan
+`.next-new` swap supaya downtime ±1–2 detik. Semua host/user/path dibaca dari
+`deploy/deploy.env`:
+
+```bash
+bash deploy/deploy-webuzo.sh
+```
+
+Setelan manual (kalau mau tanpa skrip):
+
 ```bash
 rsync -az --delete \
-  -e "ssh -p 50065" \
+  -e "ssh -p <VPS_PORT>" \
   --exclude node_modules --exclude .next --exclude logs --exclude .vercel \
-  --exclude assets-origin --exclude .env.local --exclude tsconfig.tsbuildinfo \
-  ./ root@101.50.1.15:/home/nazihan/sman68-app/
+  --exclude assets-origin --exclude .env.local --exclude deploy/deploy.env \
+  --exclude tsconfig.tsbuildinfo \
+  ./ <VPS_USER>@<VPS_HOST>:<APP_DIR>/
 
-ssh -p 50065 root@101.50.1.15 "chown -R nazihan:nazihan /home/nazihan/sman68-app && \
-  sudo -u nazihan -H env PATH=/usr/local/apps/nodejs22/bin:/usr/bin:/bin \
-  bash -c 'cd /home/nazihan/sman68-app && npm ci && npm run build && pm2 reload sman68 --update-env'"
+ssh -p <VPS_PORT> <VPS_USER>@<VPS_HOST> "chown -R <APP_USER>:<APP_USER> <APP_DIR> && \
+  sudo -u <APP_USER> -H env PATH=/usr/local/apps/nodejs22/bin:/usr/bin:/bin \
+  bash -c 'cd <APP_DIR> && npm ci && npm run build && pm2 reload sman68 --update-env'"
 ```
 
 > Ingat: `NEXT_PUBLIC_*` di-*bake* saat build — pastikan `.env.local` di server sudah benar
@@ -341,7 +366,7 @@ sudo -u postgres createdb -O sman68 sman68
 Migrasi data (Neon ber-PG 18 → perlu client 18 dari repo PGDG; server lokal 16):
 
 ```bash
-set -a; . /home/nazihan/.env.neon.bak; set +a
+set -a; . <APP_USER_HOME>/.env.neon.bak; set +a
 /usr/lib/postgresql/18/bin/pg_dump "$DATABASE_URL" --no-owner --no-privileges -Fc -f /root/sman68-neon.dump
 PGPASSWORD=$(cat /root/.sman68-db-pass) /usr/lib/postgresql/18/bin/pg_restore \
   --no-owner --no-privileges -d "postgresql://sman68@127.0.0.1:5432/sman68" /root/sman68-neon.dump
@@ -349,7 +374,7 @@ PGPASSWORD=$(cat /root/.sman68-db-pass) /usr/lib/postgresql/18/bin/pg_restore \
 
 - Error `unrecognized configuration parameter "transaction_timeout"` saat restore ke PG16 aman diabaikan.
 - Switch: `.env.local` → `DATABASE_URL=postgresql://sman68:...@127.0.0.1:5432/sman68`, lalu `pm2 restart sman68`.
-- Rollback: `cp /home/nazihan/.env.neon.bak /home/nazihan/sman68-app/.env.local` → restart (kembali ke Neon).
+- Rollback: `cp <APP_USER_HOME>/.env.neon.bak <APP_DIR>/.env.local` → restart (kembali ke Neon).
 
 Backup harian: `/usr/local/bin/sman68-db-backup.sh` via cron `/etc/cron.d/sman68-db-backup`
 (02:30, retensi 7 hari) → `/var/backups/sman68/*.dump` + `latest.dump`.
@@ -461,8 +486,8 @@ Lewat Cloudflare (dari luar):
 
 ## 12. Ketahanan operasional (hari lomba)
 
-- **Autostart reboot**: `pm2-nazihan` (systemd) `enabled` → `pm2 resurrect` memulai app dari
-  dump saat boot. Diuji `pm2 kill` + `systemctl start pm2-nazihan`: downtime **±1,7 dtk**.
+- **Autostart reboot**: unit systemd `pm2-<APP_USER>` `enabled` → `pm2 resurrect` memulai app dari
+  dump saat boot. Diuji `pm2 kill` + `systemctl start pm2-<APP_USER>`: downtime **±1,7 dtk**.
   Jalankan `pm2 save` setiap kali mengubah konfigurasi proses.
 - cloudflared (`Restart=always`), PostgreSQL, Webuzo, Apache semuanya aktif saat boot.
 - Swap: OpenVZ hanya menyediakan vswap (`/dev/null`) — **tidak ada swap nyata**, hindari build
@@ -480,15 +505,15 @@ Lewat Cloudflare (dari luar):
   - Apache hanya listen loopback: `Listen 127.0.0.1:80` & `Listen 127.0.0.1:443`
     di `conf.d/webuzo.conf` (backup `webuzo.conf.bak-listen-*`).
   - Apex dipindah dari A→IP origin menjadi **CNAME ke Cloudflare Tunnel**
-    (`5d21b635-...cfargotunnel.com`), ditambah ingress `sman68-jkt.my.id → localhost:80`.
-  - Verifikasi: `http(s)://101.50.1.15` timeout dari luar; domain tetap 200 lewat tunnel.
+    (`<TUNNEL_ID>.cfargotunnel.com`), ditambah ingress `sman68-jkt.my.id → localhost:80`.
+  - Verifikasi: `http(s)://<VPS_HOST>` timeout dari luar; domain tetap 200 lewat tunnel.
   - **Catatan**: aksi panel Webuzo bisa menulis ulang `webuzo.conf`/DNS; jika itu terjadi,
     ulangi langkah di atas. Saat transisi, edge CF sempat menyajikan `525` dari cache —
     sembuh ≤10 menit (TTL) atau purge via dashboard.
 - **`iptables` tidak difilter di container OpenVZ ini** — rule terpasang tapi trafik luar
   tetap tembus. Jangan andalkan firewall lokal; proteksi port lewat bind service/provider.
 - **Kebocoran IP via MX `_dc-mx...` SELESAI**: setelah apex dipindah ke CNAME tunnel,
-  `_dc-mx.5d7e67743b92` ikut mengarah ke tunnel (bukan lagi `101.50.1.15`). Sapuan semua nama
+  `_dc-mx.<suffix>` ikut mengarah ke tunnel (bukan lagi `<VPS_HOST>`). Sapuan semua nama
   (apex, www, ftp, mail, server, panel, panel-user, `_dc-mx`, ns1, ns2, subdomain acak)
   tidak ada yang menunjuk IP origin; port 53 publik VPS tidak menyajikan zona BIND internal.
   Implikasi: MX kini mengarah ke Cloudflare, jadi email `@sman68-jkt.my.id` tidak lagi masuk

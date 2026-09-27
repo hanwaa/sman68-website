@@ -8,21 +8,36 @@
 #   3. pm2 reload, lalu tukar .next ↔ .next-new
 #   4. Kalau health check gagal, kembalikan .next-old
 set -euo pipefail
-APP_DIR="${APP_DIR:-/home/nazihan/sman68-app}"
+
+# Konfigurasi server tidak hardcoded. Dua sumber, berurutan:
+#   1. deploy/deploy.env di server (kalau ada)
+#   2. environment yang diteruskan deploy-webuzo.sh
+# APP_DIR wajib ada lebih dulu supaya file .env bisa dicari.
+APP_DIR="${APP_DIR:-}"
+if [ -n "$APP_DIR" ] && [ -f "$APP_DIR/deploy/deploy.env" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . "$APP_DIR/deploy/deploy.env"
+  set +a
+fi
+
+: "${APP_DIR:?APP_DIR belum diisi. Jalankan lewat deploy/deploy-webuzo.sh atau export manual.}"
+: "${APP_USER:?APP_USER belum diisi. Isi deploy/deploy.env di server atau export manual.}"
 NODE_BIN="${NODE_BIN:-/usr/local/apps/nodejs22/bin}"
 LOCK_HASH="${1:-none}"
 BUILD_CPUS="${BUILD_CPUS:-2}"
-LOCK_FILE="/home/nazihan/.sman68-lock-hash"
-HEALTH_URL="http://127.0.0.1:30000/api/health"
+: "${LOCK_FILE:?LOCK_FILE belum diisi. Isi deploy/deploy.env di server atau export manual.}"
+APP_PORT="${APP_PORT:-30000}"
+HEALTH_URL="http://127.0.0.1:${APP_PORT}/api/health"
 APP="sman68"
 
-chown -R nazihan:nazihan "$APP_DIR"
+chown -R "$APP_USER":"$APP_USER" "$APP_DIR"
 if [ ! -f "$APP_DIR/.env.local" ]; then
   echo "!! .env.local belum ada di server." >&2
   exit 1
 fi
 
-sudo -u nazihan -H env PATH="$NODE_BIN:/usr/bin:/bin" \
+sudo -u "$APP_USER" -H env PATH="$NODE_BIN:/usr/bin:/bin" \
   APP_DIR="$APP_DIR" LOCK_HASH="$LOCK_HASH" BUILD_CPUS="$BUILD_CPUS" \
   LOCK_FILE="$LOCK_FILE" HEALTH_URL="$HEALTH_URL" APP="$APP" \
 bash -c '
