@@ -105,7 +105,7 @@ export default function HeroSection() {
             style={{
               fontFamily: "var(--font-hero)",
               fontWeight: 700,
-              fontSize: "clamp(2.25rem, 6.2vw, 5.25rem)",
+              fontSize: "clamp(1.875rem, 5.4vw, 4.5rem)",
               lineHeight: 1.04,
               letterSpacing: "-0.025em",
             }}
@@ -142,7 +142,7 @@ export default function HeroSection() {
               >
                 Jadilah Bagian Dari 68
                 <ArrowRight
-                  size={19}
+                  size={17}
                   className="group-hover:translate-x-0.5 transition-transform"
                   aria-hidden="true"
                 />
