@@ -115,7 +115,7 @@ export default function SchoolAgenda() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setSelectedDate(isSelected ? null : dateStr)}
                       className={cn(
-                        "relative min-h-[52px] rounded-xl p-1.5 text-left transition-all",
+                        "relative min-h-[52px] rounded-xl p-1.5 text-left transition-colors duration-200 ease-out",
                         isSelected ? "bg-brand-pine" : isToday ? "bg-brand-green/10 border border-brand-green" : "hover:bg-cream"
                       )}
                     >

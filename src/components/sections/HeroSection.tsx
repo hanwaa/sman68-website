@@ -47,8 +47,8 @@ export default function HeroSection() {
 
   return (
     <section
-      className="hero-slideshow relative min-h-screen flex items-center overflow-hidden bg-brand-pine"
-      aria-label="Hero — Identitas SMAN 68 Jakarta"
+      className="hero-slideshow relative min-h-[100dvh] flex items-center overflow-hidden bg-brand-pine"
+      aria-label="Hero: Identitas SMAN 68 Jakarta"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -61,10 +61,10 @@ export default function HeroSection() {
             {slideCount > 0 && (
               <motion.div
                 key={currentSlide}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 1.1, ease: "easeInOut" }}
+                initial={{ opacity: 0, filter: "blur(2px)", transform: "scale(1.02)" }}
+                animate={{ opacity: 1, filter: "blur(0px)", transform: "scale(1)" }}
+                exit={{ opacity: 0, filter: "blur(2px)" }}
+                transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                 className="absolute inset-0"
               >
                 <Image
@@ -104,7 +104,7 @@ export default function HeroSection() {
                 <motion.span
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.45, delay: 0.08 + i * 0.08 }}
+                  transition={{ duration: 0.45, delay: 0.08 + i * 0.08, ease: [0.23, 1, 0.32, 1] }}
                   className={`inline-block ${i === headline.length - 1 ? "text-brand-lime" : ""}`}
                 >
                   {word}
@@ -121,7 +121,7 @@ export default function HeroSection() {
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
+            transition={{ duration: 0.4, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
           >
             <div className="flex flex-wrap justify-center gap-4">
               <Link
@@ -134,6 +134,12 @@ export default function HeroSection() {
                   className="group-hover:translate-x-0.5 transition-transform"
                   aria-hidden="true"
                 />
+              </Link>
+              <Link
+                href="/tentang/profil"
+                className="btn-secondary btn-hero"
+              >
+                Kenali Sekolah
               </Link>
             </div>
           </motion.div>

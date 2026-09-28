@@ -70,7 +70,7 @@ export default function DashboardSidebar({
                   key={item.id}
                   onClick={() => onNavigate(item.id)}
                   className={cn(
-                    "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all",
+                    "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors duration-200 ease-out",
                     isCurrent
                       ? "bg-brand-pine text-white"
                       : "text-ink/70 hover:bg-cream hover:text-ink"
@@ -90,14 +90,14 @@ export default function DashboardSidebar({
           <div className="p-3 border-t border-line space-y-1 bg-cream/40">
             <button
               onClick={onOpenSettings}
-              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-muted hover:bg-white hover:text-ink transition-all"
+              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-muted hover:bg-white hover:text-ink transition-colors duration-200 ease-out"
             >
               <Settings size={15} />
               Pengaturan Akun
             </button>
             <button
               onClick={onLogout}
-              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-muted hover:bg-cream hover:text-ink transition-all text-left"
+              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-muted hover:bg-cream hover:text-ink transition-colors duration-200 ease-out text-left"
             >
               <LogOut size={15} />
               Keluar Akun

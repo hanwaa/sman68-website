@@ -62,7 +62,7 @@ export default function FacilitiesHighlight() {
                 src={item.src}
                 alt={item.label}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                className="object-cover transition-transform duration-200 ease-out group-hover:scale-105"
                 sizes="(max-width: 640px) 50vw, 25vw"
               />
               <span className="absolute inset-0 bg-gradient-to-t from-brand-pine/85 via-brand-pine/20 to-transparent" />

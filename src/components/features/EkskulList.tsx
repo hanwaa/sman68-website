@@ -188,11 +188,10 @@ export default function EkskulList({
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ delay: i * 0.03 }}
-                whileHover={{ y: -4 }}
+                transition={{ delay: Math.min(i * 0.05, 0.3), ease: [0.23, 1, 0.32, 1] }}
                 onClick={() => setSelected(ekskul)}
                 className={cn(
-                  "card p-4 cursor-pointer group transition-all",
+                  "card p-4 cursor-pointer group hover:-translate-y-1",
                   highlightedId === ekskul.id &&
                     "ring-2 ring-brand-lime border-brand-lime bg-brand-lime/5"
                 )}

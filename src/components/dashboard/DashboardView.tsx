@@ -278,7 +278,7 @@ export default function DashboardView({ account }: { account: SessionAccount }) 
         {/* Content Area */}
         <main
           id="main-content"
-          className="flex-1 min-w-0 overflow-x-hidden transition-all duration-200 min-h-[calc(100vh-4rem)]"
+          className="flex-1 min-w-0 overflow-x-hidden transition-colors duration-200 ease-out min-h-[calc(100vh-4rem)]"
           style={{ marginLeft: !isMobile && sidebarOpen ? 240 : 0 }}
         >
           <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">

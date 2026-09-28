@@ -21,6 +21,10 @@
   --cream: #f6f8f5;
   --line: #e3e9e4;
   --muted: #5c6b62;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @layer base {
@@ -34,6 +38,7 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-optical-sizing: auto;
   }
 
   body {
@@ -41,13 +46,22 @@
     background-color: var(--cream);
     color: var(--ink);
     line-height: 1.6;
+    font-optical-sizing: auto;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1, h2, h3 {
     font-family: var(--font-serif), Georgia, serif;
     font-weight: 700;
     line-height: 1.2;
-    letter-spacing: -0.005em;
+    letter-spacing: -0.01em;
+    color: inherit;
+  }
+
+  h4, h5, h6 {
+    font-family: var(--font-serif), Georgia, serif;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: 0;
     color: inherit;
   }
 
@@ -110,7 +124,7 @@
   }
 
   .animate-kenburns {
-    animation: kenburns 12s ease-out forwards;
+    animation: kenburns 12s cubic-bezier(0.23, 1, 0.32, 1) forwards;
   }
 
   .animate-breathe {
@@ -155,6 +169,15 @@
     animation-play-state: paused;
   }
 
+  @media (hover: none) {
+    .group:hover .group-hover\:scale-105,
+    .group:hover .group-hover\:scale-\[1\.04\],
+    .group:hover .group-hover\:scale-\[1\.03\],
+    .group:hover .group-hover\:scale-\[1\.02\] {
+      transform: none;
+    }
+  }
+
   .container-custom {
     max-width: 1280px;
     margin-left: auto;
@@ -182,49 +205,49 @@
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5
            bg-brand-green text-white font-semibold text-sm tracking-[-0.01em]
-           hover:bg-brand-green-deep active:translate-y-px
+           hover:bg-brand-green-deep active:scale-[0.97]
            disabled:pointer-events-none disabled:opacity-50
-           transition-colors duration-150;
+           transition-[transform,background-color] duration-150;
   }
 
   .btn-accent {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5
            bg-brand-lime text-brand-pine font-semibold text-sm tracking-[-0.01em]
-           hover:bg-white active:translate-y-px
+           hover:bg-white active:scale-[0.97]
            disabled:pointer-events-none disabled:opacity-50
-           transition-colors duration-150;
+           transition-[transform,background-color] duration-150;
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5
            border border-white/20 bg-white/5 text-white font-semibold text-sm tracking-[-0.01em]
-           hover:border-white/30 hover:bg-white/10 active:translate-y-px
+           hover:border-white/30 hover:bg-white/10 active:scale-[0.97]
            disabled:pointer-events-none disabled:opacity-50
-           transition-colors duration-150;
+           transition-[transform,background-color] duration-150;
   }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5
            border border-brand-green/20 text-brand-green font-semibold text-sm tracking-[-0.01em]
-           hover:border-brand-green/40 hover:bg-brand-green/5 active:translate-y-px
+           hover:border-brand-green/40 hover:bg-brand-green/5 active:scale-[0.97]
            disabled:pointer-events-none disabled:opacity-50
-           transition-colors duration-150;
+           transition-[transform,background-color] duration-150;
   }
 
   .btn-outline {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5
            border border-ink/15 bg-white text-ink font-semibold text-sm tracking-[-0.01em]
-           hover:border-ink/30 hover:bg-ink/[0.03] active:translate-y-px
+           hover:border-ink/30 hover:bg-ink/[0.03] active:scale-[0.97]
            disabled:pointer-events-none disabled:opacity-50
-           transition-colors duration-150;
+           transition-[transform,background-color] duration-150;
   }
 
   .btn-danger {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5
            bg-danger-deep text-white font-semibold text-sm tracking-[-0.01em]
-           hover:bg-danger-deep active:translate-y-px
+           hover:bg-danger-deep active:scale-[0.97]
            disabled:pointer-events-none disabled:opacity-50
-           transition-colors duration-150;
+           transition-[transform,background-color] duration-150;
   }
 
   .btn-sm {
@@ -270,7 +293,8 @@
   .card {
     @apply bg-white rounded-2xl border border-line shadow-card
            hover:shadow-card-hover hover:border-brand-leaf/30
-           transition-all duration-200 overflow-hidden;
+           overflow-hidden;
+    transition: transform 200ms var(--ease-out), box-shadow 200ms ease-out, border-color 200ms ease-out;
   }
 
   .badge {
@@ -361,12 +385,33 @@
   .animate-drift,
   .animate-drift-slow,
   .animate-shimmer,
+  .animate-kenburns,
+  .hero-progress,
   .marquee-track {
     animation: none;
   }
 
   .marquee {
     overflow-x: auto;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  header[role="banner"],
+  .backdrop-blur,
+  .backdrop-blur-sm,
+  .backdrop-blur-xl {
+    backdrop-filter: none !important;
+  }
+  header[role="banner"] {
+    background-color: var(--brand-pine) !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .card,
+  .chip {
+    border-width: 2px;
   }
 }
 

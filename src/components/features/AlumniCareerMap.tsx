@@ -255,7 +255,7 @@ export default function AlumniCareerMap() {
                     aria-pressed={active}
                     aria-label={`${campus.name} — ${campus.count} alumni`}
                     className={cn(
-                      "group relative flex h-20 items-center justify-center overflow-hidden rounded-xl border bg-white transition-all duration-200",
+                      "group relative flex h-20 items-center justify-center overflow-hidden rounded-xl border bg-white transition-colors duration-200 ease-out",
                       active
                         ? "border-brand-pine ring-2 ring-brand-pine/20"
                         : "border-line hover:-translate-y-0.5 hover:border-brand-leaf/40 hover:shadow-card-hover"
@@ -353,7 +353,7 @@ export default function AlumniCareerMap() {
                         src={a.photo}
                         alt={a.name}
                         fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="object-cover transition-transform duration-200 ease-out group-hover:scale-105"
                         sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
                       />
                     ) : (

@@ -173,7 +173,7 @@ export default function AttendanceView({
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Cek foto absensi"
-                      className="flex-shrink-0 rounded-xl ring-brand-green/30 transition-all hover:ring-2"
+                      className="flex-shrink-0 rounded-xl ring-brand-green/30 transition-colors duration-200 ease-out hover:ring-2"
                     >
                       <AttendancePhoto url={rec.selfieUrl} name={student.name} />
                     </a>

@@ -265,7 +265,7 @@ export default function FasilitasMap() {
                                 alt={room.name}
                                 fill
                                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                className="object-cover transition-transform duration-200 ease-out group-hover:scale-105"
                               />
                             ) : (
                               <span className="flex h-full w-full items-center justify-center">
@@ -402,7 +402,7 @@ export default function FasilitasMap() {
                               onClick={() => setPhotoIndex(index)}
                               aria-label={`Tampilkan foto ${index + 1}`}
                               className={cn(
-                                "relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all duration-150",
+                                "relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-colors duration-150 ease-out",
                                 photoIndex === index
                                   ? "border-brand-green opacity-100"
                                   : "border-transparent opacity-60 hover:opacity-100"

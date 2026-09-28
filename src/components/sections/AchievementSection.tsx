@@ -87,7 +87,7 @@ export default function AchievementSection({
   };
 
   return (
-    <section className="section-padding bg-cream" aria-label="Prestasi — Bukti Nyata">
+    <section className="section-padding bg-cream" aria-label="Prestasi: Bukti Nyata">
       <div className="container-custom">
         <SectionHeader
           align="center"
@@ -96,7 +96,7 @@ export default function AchievementSection({
               Kami Tidak Hanya <span className="text-brand-leaf">Bercita-cita</span>
             </>
           }
-          lead="Setiap tahun, siswa SMAN 68 membuktikan diri di berbagai kompetisi — dari tingkat kota hingga panggung internasional."
+          lead="Setiap tahun, siswa SMAN 68 membuktikan diri di berbagai kompetisi, dari tingkat kota hingga panggung internasional."
         />
 
         <div className="relative mt-12">
@@ -132,7 +132,7 @@ export default function AchievementSection({
                           src={achievement.cover}
                           alt=""
                           fill
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          className="object-cover transition-transform duration-200 ease-out group-hover:scale-105"
                           sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
                         />
                         <span className={cn("badge absolute top-3 left-3", config.color)}>
@@ -153,7 +153,7 @@ export default function AchievementSection({
                         <p className="text-muted text-sm leading-relaxed mt-0 line-clamp-3">
                           {achievement.description}
                         </p>
-                        <span className="mt-auto pt-4 inline-flex items-center gap-1 text-xs font-semibold text-brand-green opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="mt-auto pt-4 inline-flex items-center gap-1 text-xs font-semibold text-brand-green opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 max-md:opacity-100 transition-opacity">
                           Lihat Detail
                           <ArrowRight size={12} aria-hidden="true" />
                         </span>
@@ -191,7 +191,7 @@ export default function AchievementSection({
                 const el = scrollerRef.current;
                 if (el) el.scrollTo({ left: i * el.clientWidth, behavior: "smooth" });
               }}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
+              className={`h-1.5 rounded-full transition-[width,background-color] duration-200 ease-out ${
                 i === page ? "w-6 bg-brand-green" : "w-1.5 bg-line hover:bg-muted"
               }`}
               aria-label={`Halaman prestasi ${i + 1}`}

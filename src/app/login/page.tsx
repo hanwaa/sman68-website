@@ -197,7 +197,7 @@ function LoginForm() {
             Siswa masuk dengan <strong className="text-ink">NISN</strong>, guru dengan{" "}
             <strong className="text-ink">NIP</strong>, admin dengan{" "}
             <strong className="text-ink">NPSN</strong> sekolah. Password awal sama dengan nomor
-            induk — segera hubungi Tata Usaha bila lupa atau butuh bantuan.
+            induk. Segera hubungi Tata Usaha bila lupa atau butuh bantuan.
           </p>
         </motion.div>
       </main>

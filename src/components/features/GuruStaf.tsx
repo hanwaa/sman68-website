@@ -94,7 +94,7 @@ function FlatPersonCard({
   desc?: string;
 }) {
   return (
-    <div className="group relative aspect-[3/4] overflow-hidden rounded-xl border border-line bg-brand-pine shadow-xs transition-all duration-200 hover:border-brand-leaf/60 hover:shadow-card">
+    <div className="group relative aspect-[3/4] overflow-hidden rounded-xl border border-line bg-brand-pine shadow-xs transition-colors duration-200 ease-out hover:border-brand-leaf/60 hover:shadow-card">
       <Image
         src={photo}
         alt={name}

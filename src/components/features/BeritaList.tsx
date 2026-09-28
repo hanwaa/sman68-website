@@ -139,7 +139,7 @@ export default function BeritaList({ initialArticles }: { initialArticles: NewsA
                 >
                   <Link href={`/berita/${featured.slug}`} className="grid md:grid-cols-2">
                     <div className="relative aspect-video md:aspect-auto min-h-[220px] overflow-hidden">
-                      <Image src={featured.cover} alt={featured.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width:768px) 100vw, 50vw" />
+                      <Image src={featured.cover} alt={featured.title} fill className="object-cover transition-transform duration-200 ease-out group-hover:scale-105" sizes="(max-width:768px) 100vw, 50vw" />
                       <div className="absolute inset-0 bg-gradient-to-t from-brand-pine/50 to-transparent" />
                       <span className={`absolute top-4 left-4 badge ${catColors[featured.category]}`}>
                         <Tag size={10} />{featured.category}
@@ -156,7 +156,7 @@ export default function BeritaList({ initialArticles }: { initialArticles: NewsA
                           <span className="flex items-center gap-1"><Clock size={11} />{formatDate(featured.publishedAt)}</span>
                           <span className="flex items-center gap-1"><Eye size={11} />{featured.views.toLocaleString("id-ID")}</span>
                         </div>
-                        <span className="text-brand-green font-semibold group-hover:gap-2 flex items-center gap-1 transition-all">Baca <ChevronRight size={13} /></span>
+                        <span className="text-brand-green font-semibold group-hover:gap-2 flex items-center gap-1 transition-colors duration-200 ease-out">Baca <ChevronRight size={13} /></span>
                       </div>
                     </div>
                   </Link>
@@ -172,7 +172,7 @@ export default function BeritaList({ initialArticles }: { initialArticles: NewsA
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    transition={{ delay: i * 0.06 }}
+                    transition={{ delay: Math.min(i * 0.05, 0.3) }}
                     whileHover={{ y: -4 }}
                     className={cn(
                       "group relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer bg-brand-pine",
@@ -185,7 +185,7 @@ export default function BeritaList({ initialArticles }: { initialArticles: NewsA
                         src={article.cover}
                         alt={article.title}
                         fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="object-cover transition-transform duration-200 ease-out group-hover:scale-105"
                         sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
                       />
                       <span className="absolute inset-0 bg-gradient-to-t from-brand-pine/95 via-brand-pine/45 to-brand-pine/10" />

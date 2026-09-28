@@ -89,7 +89,7 @@ export default function StudentHome({
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
-              className="card group flex items-center gap-3 p-3.5 text-left transition-all hover:border-brand-leaf/40 hover:shadow-card-hover"
+              className="card group flex items-center gap-3 p-3.5 text-left transition-colors duration-200 ease-out hover:border-brand-leaf/40 hover:shadow-card-hover"
             >
               <span className="w-9 h-9 rounded-xl bg-brand-green/10 text-brand-green flex items-center justify-center flex-shrink-0">
                 <Icon size={16} aria-hidden="true" />
@@ -125,7 +125,7 @@ export default function StudentHome({
               key={ann.id}
               onClick={() => onMarkRead(ann.id)}
               className={cn(
-                "p-3 rounded-xl text-sm cursor-pointer hover:shadow-sm transition-all border",
+                "p-3 rounded-xl text-sm cursor-pointer hover:shadow-sm transition-colors duration-200 ease-out border",
                 ann.isUrgent ? "bg-danger-tint/50 border-danger/40" : "bg-cream border-line"
               )}
             >

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { A11yOverlay } from "@/components/ui/A11yOverlay";
 import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
 import type { GalleryAlbumContent, GalleryPhotoContent } from "@/lib/content";
@@ -81,6 +81,7 @@ export default function GaleriView({
   const [activeAlbum, setActiveAlbum] = useState<string | null>(null);
   const [spotlightId, setSpotlightId] = useState<string | null>(null);
   const [slide, setSlide] = useState(0);
+  const reduceMotion = useReducedMotion();
   const [perView, setPerView] = useState(3);
   const [lightbox, setLightbox] = useState<LightboxState | null>(null);
 
@@ -200,7 +201,7 @@ export default function GaleriView({
                     alt={spotlight.caption}
                     fill
                     sizes="(max-width: 1024px) 100vw, 1200px"
-                    className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
+                    className="object-cover object-center transition-transform duration-200 ease-out group-hover:scale-[1.02]"
                   />
                   <span className="absolute inset-0 bg-gradient-to-t from-brand-pine/85 via-brand-pine/10 to-transparent" />
                   <span className="absolute inset-x-0 bottom-0 p-5 md:p-8">
@@ -226,7 +227,7 @@ export default function GaleriView({
                       onClick={() => setSpotlightId(photo.id)}
                       aria-label={`Tampilkan ${photo.caption}`}
                       className={cn(
-                        "relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all duration-150",
+                        "relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-colors duration-150 ease-out",
                         spotlight.id === photo.id
                           ? "border-brand-green opacity-100"
                           : "border-transparent opacity-60 hover:opacity-100"
@@ -282,7 +283,7 @@ export default function GaleriView({
                       height={0}
                       sizes="(max-width: 640px) 60vw, 33vw"
                       style={{ height: "100%", width: "auto" }}
-                      className="transition-transform duration-500 group-hover:scale-[1.04]"
+                      className="transition-transform duration-200 ease-out group-hover:scale-[1.04]"
                     />
                     <span className="absolute inset-0 bg-gradient-to-t from-brand-pine/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                     <span className="absolute inset-x-0 bottom-0 p-3 text-left text-xs font-medium text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
@@ -330,8 +331,8 @@ export default function GaleriView({
               <div className="overflow-hidden">
                 <motion.div
                   className="flex"
-                  animate={{ x: `${-slide * 100}%` }}
-                  transition={{ type: "spring", stiffness: 260, damping: 32 }}
+                  animate={{ transform: `translateX(${-slide * 100}%)` }}
+                  transition={{ duration: reduceMotion ? 0.01 : 0.3, ease: [0.32, 0.72, 0, 1] }}
                 >
                   {slides.map((group, groupIndex) => (
                     <div key={groupIndex} className="w-full flex-shrink-0 pr-3 last:pr-0">
@@ -356,7 +357,7 @@ export default function GaleriView({
                                 src={photo.src}
                                 alt={photo.caption}
                                 fill
-                                className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+                                className="object-contain transition-transform duration-200 ease-out group-hover:scale-[1.03]"
                                 sizes="(max-width: 640px) 100vw, 33vw"
                               />
                               <span className="absolute inset-0 bg-gradient-to-t from-brand-pine/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -381,7 +382,7 @@ export default function GaleriView({
                       onClick={() => setSlide(index)}
                       aria-label={`Ke kelompok ${index + 1}`}
                       className={cn(
-                        "h-1.5 rounded-full transition-all duration-200",
+                        "h-1.5 rounded-full transition-colors duration-200 ease-out",
                         index === slide ? "w-6 bg-brand-green" : "w-1.5 bg-ink/15 hover:bg-ink/30"
                       )}
                     />
@@ -453,7 +454,7 @@ export default function GaleriView({
                           width={0}
                           height={0}
                           sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                          className="block transition-transform duration-500 group-hover:scale-[1.04]"
+                          className="block transition-transform duration-200 ease-out group-hover:scale-[1.04]"
                           style={{ width: "100%", height: "auto" }}
                         />
                         <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brand-pine/85 via-brand-pine/10 to-transparent opacity-100 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100" />

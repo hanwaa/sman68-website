@@ -55,7 +55,7 @@ export default async function NewsSection() {
                 src={article.coverImage ?? "/assets/hero-1.png"}
                 alt={article.title}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                className="object-cover transition-transform duration-200 ease-out group-hover:scale-105"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
               <span className="absolute inset-0 bg-gradient-to-t from-brand-pine/95 via-brand-pine/45 to-brand-pine/10" />

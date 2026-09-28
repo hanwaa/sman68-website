@@ -203,7 +203,7 @@ export default function AlumniNetwork() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ delay: i * 0.03 }}
+                transition={{ delay: Math.min(i * 0.05, 0.3) }}
                 whileHover={{ y: -3 }}
               >
                 <button
@@ -216,7 +216,7 @@ export default function AlumniNetwork() {
                       src={a.photo}
                       alt={a.name}
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="object-cover transition-transform duration-200 ease-out group-hover:scale-105"
                       sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
                     />
                   ) : (

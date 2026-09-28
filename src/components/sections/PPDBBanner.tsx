@@ -53,7 +53,7 @@ const steps = [
   {
     icon: FileCheck,
     title: "Kumpulkan Berkas, Santai Saja",
-    desc: "Daftar centang dokumen sudah kami siapkan — tidak ada yang terlewat.",
+    desc: "Daftar centang dokumen sudah kami siapkan. Tidak ada yang terlewat.",
   },
   {
     icon: ExternalLink,
@@ -89,7 +89,7 @@ export default function PPDBBanner() {
               Cara Mudah Menjadi Bagian dari <span className="text-brand-lime">SMAN 68</span>
             </h2>
             <p className="mt-4 text-white/65 text-base md:text-lg leading-relaxed max-w-xl">
-              Empat jalur resmi — Zonasi, Afirmasi, Perpindahan Tugas, dan Prestasi.
+              Empat jalur resmi: Zonasi, Afirmasi, Perpindahan Tugas, dan Prestasi.
               Prosesnya transparan dan didampingi panitia sampai kamu resmi menjadi siswa.
             </p>
 

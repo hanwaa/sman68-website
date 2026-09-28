@@ -71,7 +71,7 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-xs">
-              SMA Negeri 68 Jakarta — Unggul dalam Prestasi, Teguh dalam Karakter.
+              SMA Negeri 68 Jakarta. Unggul dalam Prestasi, Teguh dalam Karakter.
             </p>
             <div className="space-y-2 text-sm text-white/60">
               <div className="flex items-start gap-2">
@@ -99,7 +99,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white/60 hover:bg-brand-lime hover:text-brand-pine transition-all"
+                  className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white/60 hover:bg-brand-lime hover:text-brand-pine transition-colors duration-200 ease-out"
                 >
                   <Icon size={16} />
                 </a>

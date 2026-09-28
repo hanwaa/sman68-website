@@ -108,7 +108,7 @@ export default function StudentAnnouncements({
             <article
               key={ann.id}
               className={cn(
-                "card relative overflow-hidden p-5 transition-all",
+                "card relative overflow-hidden p-5 transition-colors duration-200 ease-out",
                 !ann.read && "border-brand-leaf/40 bg-gradient-to-r from-brand-green/[0.05] via-white to-white"
               )}
             >

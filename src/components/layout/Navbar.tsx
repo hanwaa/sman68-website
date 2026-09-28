@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { A11yOverlay } from "@/components/ui/A11yOverlay";
 import { cn } from "@/lib/utils";
 import { schoolData } from "@/lib/school-data";
@@ -119,12 +120,8 @@ export default function Navbar() {
   const pathname = usePathname();
   const dropdownTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 24);
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const { scrollY } = useScroll();
+  useMotionValueEvent(scrollY, "change", (v) => setScrolled(v > 24));
 
   useEffect(() => {
     setMobileOpen(false);
@@ -180,12 +177,12 @@ export default function Navbar() {
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-50 bg-brand-pine border-b border-white/10 a11y-layer"
+        className={cn("fixed top-0 left-0 right-0 z-50 bg-brand-pine/85 backdrop-blur-xl backdrop-saturate-150 border-b border-white/10 a11y-layer transition-shadow duration-500", scrolled && "shadow-[0_8px_30px_rgba(6,42,49,0.35)]")}
         role="banner"
       >
         <div
           className={cn(
-            "a11y-compact hidden md:block overflow-hidden border-b bg-white transition-all duration-300 ease-out",
+            "a11y-compact hidden md:block overflow-hidden border-b bg-white transition-[height,opacity] duration-300 ease-out",
             scrolled ? "h-0 opacity-0 border-transparent" : "h-9 opacity-100 border-line"
           )}
         >
@@ -266,7 +263,7 @@ export default function Navbar() {
         <nav className="container-custom" aria-label="Navigasi utama">
           <div
             className={cn(
-              "relative flex items-center justify-between transition-all duration-300 ease-out",
+              "relative flex items-center justify-between transition-[height] duration-500 ease-[var(--ease-out)]",
               scrolled ? "h-16" : "h-24"
             )}
           >
@@ -277,8 +274,8 @@ export default function Navbar() {
             >
               <div
                 className={cn(
-                  "relative flex-shrink-0 group-hover:scale-105 transition-all duration-300 ease-out",
-                  scrolled ? "w-10 h-10" : "w-14 h-14"
+                  "relative flex-shrink-0 w-14 h-14 origin-left transition-transform duration-500 ease-[var(--ease-out)]",
+                  scrolled ? "scale-[0.72]" : "scale-100 group-hover:scale-105"
                 )}
               >
                 <Image
@@ -304,8 +301,8 @@ export default function Navbar() {
                     >
                       <button
                         className={cn(
-                          "nav-link flex items-center gap-1 px-3 py-2 transition-all duration-300 ease-out",
-                          scrolled ? "text-sm" : "text-base",
+                          "nav-link flex items-center gap-1 px-3 py-2 transition-colors duration-200 ease-out",
+                          "text-sm",
                           "highlight" in item && item.highlight && "text-brand-lime font-semibold",
                           pathname.startsWith(item.href) && "text-white"
                         )}
@@ -322,11 +319,17 @@ export default function Navbar() {
                         />
                       </button>
 
-                      {activeDropdown === item.label && (
-                        <div
-                          className="absolute top-full left-0 mt-2 w-60 bg-white rounded-xl shadow-card py-2 border border-line"
-                          role="menu"
-                        >
+                      <AnimatePresence>
+                        {activeDropdown === item.label && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.97, y: -4 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.97, y: -4 }}
+                            transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+                            style={{ transformOrigin: "top left" }}
+                            className="absolute top-full left-0 mt-2 w-60 bg-white rounded-xl shadow-card py-2 border border-line"
+                            role="menu"
+                          >
                           {item.children.map((child) => {
                             const Icon = child.icon;
                             const isExternal = "external" in child && child.external;
@@ -356,15 +359,16 @@ export default function Navbar() {
                               </Link>
                             );
                           })}
-                        </div>
-                      )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   ) : (
                     <Link
                       href={item.href}
                       className={cn(
-                        "nav-link px-3 py-2 transition-all duration-300 ease-out",
-                        scrolled ? "text-sm" : "text-base",
+                        "nav-link px-3 py-2 transition-colors duration-200 ease-out",
+                        "text-sm",
                         pathname === item.href && "text-white"
                       )}
                     >
@@ -403,12 +407,17 @@ export default function Navbar() {
           menempel ke viewport saat mode kontras/hitam putih aktif (filter pada
           <main> akan membuat position: fixed di dalam <main> ikut ter-scroll). */}
       <A11yOverlay>
-        {mobileOpen && (
-          <div
-            className={cn(
-              "a11y-layer fixed inset-0 z-40 bg-brand-pine flex flex-col transition-all",
-              scrolled ? "pt-16" : "pt-24"
-            )}
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+              className={cn(
+                "a11y-layer fixed inset-0 z-40 bg-brand-pine flex flex-col",
+                scrolled ? "pt-16" : "pt-24"
+              )}
             role="dialog"
             aria-modal="true"
             aria-label="Menu navigasi mobile"
@@ -462,12 +471,18 @@ export default function Navbar() {
                 </Link>
               </div>
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {searchOpen && (
-          <div
-            className="a11y-layer fixed inset-0 z-[60] flex items-start justify-center pt-20 px-4"
+        <AnimatePresence>
+          {searchOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+              className="a11y-layer fixed inset-0 z-[60] flex items-start justify-center pt-20 px-4"
             role="dialog"
             aria-modal="true"
             aria-label="Pencarian global"
@@ -476,7 +491,13 @@ export default function Navbar() {
             }}
           >
             <div className="absolute inset-0 bg-brand-pine/70" />
-            <div className="relative w-full max-w-xl bg-white rounded-xl shadow-card border border-line overflow-hidden">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+              className="relative w-full max-w-xl bg-white rounded-xl shadow-card border border-line overflow-hidden"
+            >
               <div className="flex items-center gap-3 px-4 py-3 border-b border-line">
                 <Search size={18} className="text-muted flex-shrink-0" />
                 <input
@@ -566,9 +587,10 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-        )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </A11yOverlay>
     </>
   );

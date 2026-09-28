@@ -29,7 +29,7 @@ const contacts = [
   {
     icon: Clock,
     label: "Jam Layanan",
-    value: "Senin–Jumat, 07.00–15.30 WIB",
+    value: "Senin-Jumat, 07.00-15.30 WIB",
   },
 ];
 
@@ -47,7 +47,7 @@ export default function ContactSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
           className="max-w-2xl"
         >
           <h2 className="font-display display-heading text-white">
@@ -81,14 +81,14 @@ export default function ContactSection() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.07 }}
+                transition={{ duration: 0.4, delay: Math.min(i * 0.05, 0.2), ease: [0.23, 1, 0.32, 1] }}
               >
                 {item.href ? (
                   <a
                     href={item.href}
                     target={item.external ? "_blank" : undefined}
                     rel={item.external ? "noopener noreferrer" : undefined}
-                    className="group flex flex-col h-full rounded-2xl border border-edge-1 bg-surface-1 p-4 sm:p-6 hover:bg-surface-2 hover:border-edge-2 transition-colors"
+                    className="group flex flex-col h-full rounded-2xl border border-edge-1 bg-surface-1 p-4 sm:p-6 hover:bg-surface-2 hover:border-edge-2 hover:-translate-y-0.5 transition-[transform,background-color,border-color] duration-200 ease-out"
                   >
                     {content}
                   </a>
@@ -106,7 +106,7 @@ export default function ContactSection() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
+          transition={{ duration: 0.4, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
           className="mt-10 flex flex-wrap gap-3"
         >
           <a

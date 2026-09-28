@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -86,8 +86,6 @@ export default function AchievementWall({
   );
   const [targetId, setTargetId] = useState<string | null>(null);
   const [slide, setSlide] = useState(0);
-  const dragStart = useRef<{ x: number; y: number } | null>(null);
-  const suppressClick = useRef(false);
 
   useEffect(() => {
     const id = new URLSearchParams(window.location.search).get("prestasi");
@@ -185,23 +183,6 @@ export default function AchievementWall({
         <section aria-label="Sorotan prestasi" className="relative select-none">
           <div
             className="relative h-[320px] overflow-hidden sm:h-[400px] lg:h-[480px]"
-            onPointerDown={(e) => {
-              dragStart.current = { x: e.clientX, y: e.clientY };
-            }}
-            onPointerUp={(e) => {
-              if (!dragStart.current) return;
-              const dx = e.clientX - dragStart.current.x;
-              const dy = e.clientY - dragStart.current.y;
-              dragStart.current = null;
-              if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy)) {
-                suppressClick.current = true;
-                setSlide(
-                  dx < 0
-                    ? (safeSlide + 1) % highlightItems.length
-                    : (safeSlide - 1 + highlightItems.length) % highlightItems.length
-                );
-              }
-            }}
           >
             <AnimatePresence mode="wait" initial={false}>
               <motion.button
@@ -212,10 +193,6 @@ export default function AchievementWall({
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
                 onClick={() => {
-                  if (suppressClick.current) {
-                    suppressClick.current = false;
-                    return;
-                  }
                   setSelectedAchievement(highlight);
                 }}
                 className="absolute inset-0 block h-full w-full text-left"
@@ -287,7 +264,7 @@ export default function AchievementWall({
                         setSlide(index);
                       }}
                       className={cn(
-                        "h-1.5 rounded-full transition-all",
+                        "h-1.5 rounded-full transition-colors duration-200 ease-out",
                         index === safeSlide ? "w-5 bg-brand-lime" : "w-1.5 bg-white/50 hover:bg-white"
                       )}
                     />
@@ -455,11 +432,11 @@ export default function AchievementWall({
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.25, delay: i * 0.04 }}
+                  transition={{ duration: 0.25, delay: Math.min(i * 0.05, 0.3) }}
                   whileHover={{ y: -4 }}
                   onClick={() => setSelectedAchievement(achievement)}
                   className={cn(
-                    "card cursor-pointer group flex flex-col transition-all",
+                    "card cursor-pointer group flex flex-col transition-colors duration-200 ease-out",
                     highlightedId === achievement.id &&
                       "ring-2 ring-brand-lime border-brand-lime bg-brand-lime/5"
                   )}
@@ -469,7 +446,7 @@ export default function AchievementWall({
                       src={achievement.cover}
                       alt=""
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="object-cover transition-transform duration-200 ease-out group-hover:scale-105"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
                   </div>

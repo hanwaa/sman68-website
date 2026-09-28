@@ -240,7 +240,7 @@ export default function FabWidget() {
           if (panel) setPanel(null);
           setMenuOpen((o) => !o);
         }}
-        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-brand-pine text-white shadow-card-hover border border-white/10 flex items-center justify-center hover:bg-brand-green active:translate-y-px transition-all"
+        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-brand-pine text-white shadow-card-hover border border-white/10 flex items-center justify-center hover:bg-brand-green active:scale-[0.97] transition-[transform,background-color] duration-150"
         aria-expanded={menuOpen}
         aria-label={menuOpen ? "Tutup menu bantuan" : "Buka menu bantuan"}
       >

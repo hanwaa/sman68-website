@@ -37,7 +37,7 @@ export default function PeopleSection() {
   const active = testimonials[activeIndex] ?? null;
 
   return (
-    <section id="testimoni" className="section-padding bg-cream scroll-mt-20" aria-label="Komunitas — Orang-orang SMAN 68">
+    <section id="testimoni" className="section-padding bg-cream scroll-mt-20" aria-label="Komunitas: Orang-orang SMAN 68">
       <div className="container-custom">
         <SectionHeader
           title={
@@ -46,7 +46,7 @@ export default function PeopleSection() {
               <span className="text-brand-leaf">SMAN 68 Hidup</span>
             </>
           }
-          lead="Siswa, guru, orang tua, dan alumni — komunitas yang saling mendukung dan menginspirasi."
+          lead="Siswa, guru, orang tua, dan alumni. Komunitas yang saling mendukung dan menginspirasi."
           action={
             <Link href="/komunitas/alumni" className="btn-ghost inline-flex">
               Jelajahi Alumni
@@ -61,7 +61,7 @@ export default function PeopleSection() {
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
             className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-4 auto-rows-[130px] sm:auto-rows-[150px] gap-3"
           >
             {loading && photoGrid.length === 0 &&
@@ -77,7 +77,7 @@ export default function PeopleSection() {
                   src={photo.src}
                   alt={photo.label}
                   fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="object-cover transition-transform duration-200 ease-out group-hover:scale-105"
                   sizes="(max-width: 640px) 50vw, 25vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-pine/70 via-transparent to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
@@ -92,10 +92,10 @@ export default function PeopleSection() {
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            transition={{ duration: 0.5, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
             className="lg:col-span-5 lg:sticky lg:top-24"
           >
-            <Quote size={36} className="text-brand-lime" aria-hidden="true" />
+            <Quote size={36} className="text-brand-leaf" aria-hidden="true" />
 
             {loading && !active ? (
               <div className="mt-5 space-y-3" aria-hidden="true">
@@ -112,7 +112,7 @@ export default function PeopleSection() {
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -12 }}
-                    transition={{ duration: 0.25 }}
+                    transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
                     className="mt-5 font-display text-xl md:text-2xl leading-snug text-ink min-h-[9.5rem]"
                   >
                     &ldquo;{active.content}&rdquo;
@@ -138,7 +138,7 @@ export default function PeopleSection() {
                   aria-pressed={i === activeIndex}
                   aria-label={`Testimoni ${t.name}`}
                   className={cn(
-                    "w-11 h-11 rounded-full font-display font-bold text-xs flex items-center justify-center transition-all",
+                    "w-11 h-11 rounded-full font-display font-bold text-xs flex items-center justify-center transition-colors duration-200 ease-out",
                     i === activeIndex
                       ? "bg-brand-pine text-white ring-2 ring-brand-lime ring-offset-2 ring-offset-cream"
                       : "bg-white border border-line text-muted hover:text-ink hover:border-muted"

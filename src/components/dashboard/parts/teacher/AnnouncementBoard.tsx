@@ -105,7 +105,7 @@ export default function AnnouncementBoard({
             <article
               key={ann.id}
               className={cn(
-                "card relative overflow-hidden p-5 transition-all",
+                "card relative overflow-hidden p-5 transition-colors duration-200 ease-out",
                 ann.urgent && "border-danger bg-gradient-to-r from-red-50/60 via-white to-white"
               )}
             >

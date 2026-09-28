@@ -248,7 +248,7 @@ export default function ConstellationSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
           className="max-w-2xl mx-auto text-center mb-2 shrink-0"
         >
           <h2 className="font-display font-extrabold uppercase text-white text-balance text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] tracking-[0.08em] sm:tracking-[0.12em] md:tracking-[0.16em]">
@@ -267,7 +267,7 @@ export default function ConstellationSection() {
           initial={{ opacity: 0, scale: 0.97 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
           className="flex-1 min-h-0 flex items-center justify-center"
         >
           <div
@@ -373,7 +373,7 @@ export default function ConstellationSection() {
                           }
                         }}
                       >
-                        <title>{`${item.name} — ${item.category}`}</title>
+                        <title>{`${item.name}, ${item.category}`}</title>
                         <circle className="planet-glow" r={24} fill={color} opacity={0.16} />
                         <circle r={16} fill="#ffffff" />
                         {item.thumb ? (
@@ -416,10 +416,10 @@ export default function ConstellationSection() {
                 {selected && (
                   <motion.g
                     key={selected.id}
-                    initial={{ opacity: 0, scale: 0.7 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.7 }}
-                    transition={{ duration: 0.26, ease: "easeOut" }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
                     style={{ transformOrigin: `${CX}px ${CY}px` }}
                     onClick={handleCenterClick}
                     onMouseEnter={() => setCenterHovered(true)}

@@ -120,7 +120,7 @@ export default function AttendanceHistory({
             </div>
             <div className="mt-2.5 h-1.5 rounded-full bg-line overflow-hidden">
               <span
-                className="block h-full rounded-full bg-brand-green transition-all"
+                className="block h-full rounded-full bg-brand-green transition-colors duration-200 ease-out"
                 style={{ width: `${persentase}%` }}
               />
             </div>

@@ -158,7 +158,7 @@ export default function AdminHomeView({
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06 }}
-              className="card p-4 hover:shadow-card transition-all"
+              className="card p-4 hover:shadow-card transition-colors duration-200 ease-out"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className={`w-9 h-9 rounded-xl ${stat.tone} flex items-center justify-center`}>
@@ -302,7 +302,7 @@ export default function AdminHomeView({
                 <button
                   key={i}
                   onClick={action.onClick}
-                  className="flex flex-col items-center justify-center p-3.5 bg-cream hover:bg-brand-pine hover:text-white rounded-xl text-center group transition-all"
+                  className="flex flex-col items-center justify-center p-3.5 bg-cream hover:bg-brand-pine hover:text-white rounded-xl text-center group transition-colors duration-200 ease-out"
                 >
                   <Icon
                     size={20}
