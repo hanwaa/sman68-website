@@ -290,6 +290,7 @@ gambar, dan penanganan URL gambar remote.
 
 | Dokumen | Isi |
 |---|---|
+| [docs/ARSITEKTUR-DATA.md](docs/ARSITEKTUR-DATA.md) | Peta basis data PostgreSQL: kelompok tabel, relasi kunci, indeks, dan aturan migrasi |
 | [DEPLOY-VPS.md](DEPLOY-VPS.md) | Panduan migrasi Vercel → VPS, DNS, SSL, PM2, troubleshooting |
 | [PRESENTASI.md](PRESENTASI.md) | Materi pitch lomba: fitur, angka bukti, slide deck |
 | [docs/](docs/) | Peta situs dalam HTML dan PDF |
