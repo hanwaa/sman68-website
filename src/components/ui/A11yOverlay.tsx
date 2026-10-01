@@ -12,7 +12,7 @@ const OVERLAY_HOST_ID = "sman68-a11y-overlay";
  * pada <main> dan pada elemen ber-kelas `a11y-layer`. Properti `filter` membuat
  * elemen tersebut menjadi containing block bagi keturunannya yang
  * `position: fixed`, sehingga modal ikut terukur mengikuti <main> dan ikut
- * ter-scroll bersama halaman — posisinya rusak. Dengan memindahkan overlay ke
+ * ter-scroll bersama halaman, posisinya rusak. Dengan memindahkan overlay ke
  * sibling <main>, posisi fixed-nya kembali relatif ke viewport, sementara
  * warnanya tetap ikut berubah karena overlay itu sendiri memakai `a11y-layer`.
  *

@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { useModalA11y } from "@/lib/useModalA11y";
 import { absensiSelfieUrl, getAbsensiRecords, saveAbsensiRecord } from "@/lib/absensi";
 import { apiFetchAttendance, apiPushAttendance, todayIsoDate } from "@/lib/attendance-api";
-import { dataUrlToFile, uploadToR2 } from "@/lib/upload";
+import { uploadDataUrlResilient } from "@/lib/upload";
 import StudentHome from "@/components/dashboard/parts/student/StudentHome";
 import AttendanceHistory from "@/components/dashboard/parts/student/AttendanceHistory";
 import StudentAnnouncements from "@/components/dashboard/parts/student/StudentAnnouncements";
@@ -15,6 +15,7 @@ import AddAchievementModal, {
   type AchievementDraft,
 } from "@/components/dashboard/parts/student/AddAchievementModal";
 import CheckinModal from "@/components/dashboard/parts/student/CheckinModal";
+import LegalisirView from "@/components/dashboard/parts/student/LegalisirView";
 import type {
   StudentAchievement,
   StudentAnnouncement,
@@ -69,7 +70,7 @@ export default function StudentDashboard({
   const [showModal, setShowModal] = useState(false);
   const modalRef = useModalA11y<HTMLDivElement>(showModal, () => setShowModal(false));
 
-  // Sinkronkan pengumuman dari Neon
+  // Sinkronkan pengumuman dari database
   useEffect(() => {
     let cancelled = false;
     fetch("/api/announcements?audience=student", { cache: "no-store" })
@@ -106,14 +107,14 @@ export default function StudentDashboard({
         }
       )
       .catch(() => {
-        /* API tidak tersedia — biarkan kosong, tanpa data demo */
+        /* API tidak tersedia, biarkan kosong, tanpa data demo */
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // Sinkronkan status kehadiran dari Neon (fallback: localStorage)
+  // Sinkronkan status kehadiran dari database (fallback: localStorage)
   useEffect(() => {
     if (!studentId) {
       setAttendanceLoaded(true);
@@ -159,7 +160,7 @@ export default function StudentDashboard({
     };
   }, [studentId]);
 
-  // Sinkronkan prestasi pribadi siswa dari Neon
+  // Sinkronkan prestasi pribadi siswa dari database
   useEffect(() => {
     let cancelled = false;
     fetch(`/api/achievements?student=${encodeURIComponent(userName)}`, { cache: "no-store" })
@@ -193,7 +194,7 @@ export default function StudentDashboard({
         }
       )
       .catch(() => {
-        /* API tidak tersedia — biarkan kosong, tanpa prestasi demo */
+        /* API tidak tersedia, biarkan kosong, tanpa prestasi demo */
       });
     return () => {
       cancelled = true;
@@ -265,7 +266,7 @@ export default function StudentDashboard({
       }
       onShowToast(`Prestasi "${newItem.title}" berhasil diajukan untuk verifikasi!`);
     } catch {
-      onShowToast(`Prestasi "${newItem.title}" tersimpan lokal — server tidak terjangkau.`);
+      onShowToast(`Prestasi "${newItem.title}" tersimpan lokal, server tidak terjangkau.`);
     }
   };
 
@@ -370,7 +371,7 @@ export default function StudentDashboard({
     });
     setCheckinTime(`${timeStr} · ${dateStr}`);
 
-    // Simpan lokal sebagai fallback, lalu sinkronkan ke Neon + R2
+    // Simpan lokal sebagai fallback, lalu sinkronkan ke database + R2
     const activeStudentId = studentId ?? "";
     saveAbsensiRecord({
       studentId: activeStudentId,
@@ -385,17 +386,18 @@ export default function StudentDashboard({
     (async () => {
       if (!activeStudentId) return;
       try {
-        const file = dataUrlToFile(selfiePreview, `${activeStudentId}.jpg`);
-        const { key } = await uploadToR2(file, "absensi");
+        const { key } = await uploadDataUrlResilient(selfiePreview, `${activeStudentId}.jpg`, "absensi");
         await apiPushAttendance({
           studentId: activeStudentId,
           date: todayIsoDate(),
           selfieKey: key,
           checkInTime: timeStr,
         });
-      } catch {
+      } catch (error) {
         onShowToast(
-          "Foto gagal diunggah ke penyimpanan, tetapi absensi tetap tercatat. Coba lagi bila perlu."
+          error instanceof Error
+            ? `Foto gagal disimpan: ${error.message}`
+            : "Foto gagal disimpan. Coba lagi."
         );
       }
     })();
@@ -414,7 +416,7 @@ export default function StudentDashboard({
       `Kategori: ${ach.category}`,
       "",
       "Dokumen ini adalah contoh unduhan demo.",
-      "SMA Negeri 68 Jakarta — Jl. Salemba Raya No.18, Jakarta Pusat",
+      "SMA Negeri 68 Jakarta, Jl. Salemba Raya No.18, Jakarta Pusat",
     ].join("\n");
 
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
@@ -475,6 +477,8 @@ export default function StudentDashboard({
         onDownloadCertificate={handleDownloadCertificate}
       />
     );
+  } else if (activePage === "legalisir") {
+    content = <LegalisirView className={className} onShowToast={onShowToast} />;
   } else {
     content = (
       <StudentHome

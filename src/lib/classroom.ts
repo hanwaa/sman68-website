@@ -99,7 +99,7 @@ export type ClassroomActionResult = {
   error?: string;
 };
 
-/** Muat seluruh store kelas dari Neon (identitas dari sesi, tanpa data seed). */
+/** Muat seluruh store kelas dari database (identitas dari sesi, tanpa data seed). */
 export async function apiFetchClassroomStore(
   role: ClassroomRole,
   userName: string
@@ -116,7 +116,7 @@ export async function apiFetchClassroomStore(
   }
 }
 
-/** Kirim mutasi kelas ke Neon. */
+/** Kirim mutasi kelas ke database. */
 export async function apiClassroomAction(
   payload: Record<string, unknown>
 ): Promise<ClassroomActionResult> {

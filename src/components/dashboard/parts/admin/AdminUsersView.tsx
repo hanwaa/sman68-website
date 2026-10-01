@@ -75,7 +75,7 @@ export default function AdminUsersView({
             Manajemen Pengguna
           </h1>
           <p className="text-muted text-sm">
-            Data lengkap akun siswa, guru, dan admin — peran, kelas, aktivitas login, dan status.
+            Data lengkap akun siswa, guru, dan admin, peran, kelas, aktivitas login, dan status.
           </p>
         </div>
         <div className="flex gap-2 self-start sm:self-auto">
@@ -201,7 +201,7 @@ export default function AdminUsersView({
                       {u.className ?? u.homeroomName ?? u.detail}
                     </div>
                     <div className="text-[10px] text-muted">
-                      {u.nisn ? `NISN ${u.nisn}` : u.nig ? `NIP ${u.nig}` : u.subject ?? "—"}
+                      {u.nisn ? `NISN ${u.nisn}` : u.nig ? `NIP ${u.nig}` : u.subject ?? "-"}
                     </div>
                   </td>
                   <td className="px-4 py-3">

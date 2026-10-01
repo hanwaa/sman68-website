@@ -309,7 +309,7 @@ export default function FasilitasMap() {
               )}
 
               <p className="text-xs text-muted mt-4">
-                Denah bersifat skematik — tata letak ruang menyesuaikan kondisi gedung.
+                Denah bersifat skematik, tata letak ruang menyesuaikan kondisi gedung.
               </p>
             </div>
           </div>
@@ -347,7 +347,7 @@ export default function FasilitasMap() {
                       <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-line">
                         <Image
                           src={currentPhoto}
-                          alt={`${selected.name} — foto ${photoIndex + 1}`}
+                          alt={`${selected.name}, foto ${photoIndex + 1}`}
                           fill
                           sizes="(max-width: 1024px) 100vw, 420px"
                           className="object-cover"
@@ -402,7 +402,7 @@ export default function FasilitasMap() {
                               onClick={() => setPhotoIndex(index)}
                               aria-label={`Tampilkan foto ${index + 1}`}
                               className={cn(
-                                "relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-colors duration-150 ease-out",
+                                "relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-[border-color,opacity] duration-150 ease-out",
                                 photoIndex === index
                                   ? "border-brand-green opacity-100"
                                   : "border-transparent opacity-60 hover:opacity-100"
@@ -519,7 +519,7 @@ export default function FasilitasMap() {
                 <div className="relative h-[62vh] w-full overflow-hidden rounded-xl md:h-[72vh]">
                   <Image
                     src={currentPhoto}
-                    alt={`${selected.name} — foto ${photoIndex + 1}`}
+                    alt={`${selected.name}, foto ${photoIndex + 1}`}
                     fill
                     className="object-contain"
                     sizes="100vw"
@@ -556,7 +556,7 @@ export default function FasilitasMap() {
                 <div className="mt-3 flex items-start justify-between gap-4">
                   <p className="text-sm text-white/80">
                     {selected.name}
-                    {photos.length > 1 ? ` — foto ${photoIndex + 1} dari ${photos.length}` : ""}
+                    {photos.length > 1 ? `, foto ${photoIndex + 1} dari ${photos.length}` : ""}
                   </p>
                   <span className="shrink-0 text-xs tabular-nums text-white/50">
                     {selected.floor}

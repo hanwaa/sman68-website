@@ -54,7 +54,7 @@ export default function TeacherDashboard({
   const [dayRecords, setDayRecords] = useState<AttendanceApiRecord[]>([]);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
 
-  // Daftar siswa wali kelas dari Neon
+  // Daftar siswa wali kelas dari database
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -80,7 +80,7 @@ export default function TeacherDashboard({
     };
   }, [className]);
 
-  // Rekap absensi per tanggal dari Neon — ganti tanggal = ganti data
+  // Rekap absensi per tanggal dari database, ganti tanggal = ganti data
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -97,7 +97,7 @@ export default function TeacherDashboard({
     };
   }, [attendanceDate]);
 
-  // Sinkronkan pengumuman guru dari Neon
+  // Sinkronkan pengumuman guru dari database
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -107,7 +107,7 @@ export default function TeacherDashboard({
         const payload = (await res.json()) as { data?: TeacherAnnouncement[] };
         if (!cancelled && payload.data) setAnnouncements(payload.data);
       } catch {
-        /* API tidak tersedia — biarkan kosong, tanpa pengumuman demo */
+        /* API tidak tersedia, biarkan kosong, tanpa pengumuman demo */
       }
     };
     void load();
@@ -149,7 +149,7 @@ export default function TeacherDashboard({
         onShowToast(`Pengumuman "${draft.title}" berhasil diterbitkan untuk ${draft.target}!`);
       }
     } catch {
-      onShowToast("Pengumuman tersimpan lokal — server tidak terjangkau.");
+      onShowToast("Pengumuman tersimpan lokal, server tidak terjangkau.");
     }
 
     setShowModal(false);

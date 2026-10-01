@@ -5,16 +5,25 @@ export type CmsFieldType =
   | "textarea"
   | "number"
   | "select"
+  | "checkbox"
   | "datetime"
   | "image"
   | "images"
   | "list";
+
+/** Sumber opsi select dinamis (diambil live dari database + fallback). */
+export type CmsDynamicSource =
+  | "ekskul"
+  | "achievement"
+  | "album";
 
 export type CmsField = {
   name: string;
   label: string;
   type: CmsFieldType;
   options?: string[];
+  /** Ambil opsi select dari data live (dengan fallback statis bila API gagal). */
+  optionsFrom?: CmsDynamicSource;
   required?: boolean;
   placeholder?: string;
 };
@@ -54,15 +63,15 @@ export const CMS_RESOURCES: CmsResource[] = [
       { name: "views", label: "Dilihat", type: "number" },
       {
         name: "ekskul_id",
-        label: "Ekskul terkait (ID, opsional)",
-        type: "text",
-        placeholder: "mis. ivratix — untuk berita prestasi ekskul",
+        label: "Ekskul terkait (opsional)",
+        type: "select",
+        optionsFrom: "ekskul",
       },
       {
         name: "achievement_id",
-        label: "Prestasi terkait (ID, opsional)",
-        type: "text",
-        placeholder: "ID dari tabel achievements",
+        label: "Prestasi terkait (opsional)",
+        type: "select",
+        optionsFrom: "achievement",
       },
       { name: "status", label: "Status", type: "select", options: ["draft", "pending", "published", "archived"] },
       { name: "published_at", label: "Tanggal Terbit", type: "datetime" },
@@ -85,7 +94,7 @@ export const CMS_RESOURCES: CmsResource[] = [
       { name: "title", label: "Judul", type: "text", required: true },
       { name: "description", label: "Deskripsi", type: "textarea", required: true },
       { name: "level", label: "Tingkat", type: "select", options: ["internasional", "nasional", "provinsi", "kota", "sekolah"] },
-      { name: "category", label: "Bidang", type: "text" },
+      { name: "category", label: "Bidang", type: "select", options: ["akademik", "olahraga", "sains", "seni", "sosial", "teknologi"] },
       { name: "award_type", label: "Jenis Penghargaan", type: "select", options: ["juara1", "juara2", "juara3", "semifinal", "partisipasi", "penghargaan"] },
       { name: "year", label: "Tahun", type: "number" },
       { name: "cover_key", label: "Cover (upload/URL)", type: "image" },
@@ -93,9 +102,9 @@ export const CMS_RESOURCES: CmsResource[] = [
       { name: "student_name", label: "Nama Siswa (opsional)", type: "text" },
       {
         name: "ekskul_id",
-        label: "Ekskul (ID, opsional)",
-        type: "text",
-        placeholder: "mis. kir, ivratix, mbrass — kosongkan untuk prestasi sekolah",
+        label: "Ekskul (opsional)",
+        type: "select",
+        optionsFrom: "ekskul",
       },
       {
         name: "participants",
@@ -132,28 +141,6 @@ export const CMS_RESOURCES: CmsResource[] = [
     ],
   },
   {
-    id: "teachers",
-    table: "teachers",
-    label: "Guru & Staf",
-    primaryKey: "id",
-    orderBy: "sort asc",
-    listColumns: [
-      { name: "id", label: "ID" },
-      { name: "name", label: "Nama" },
-      { name: "subject", label: "Mapel" },
-      { name: "position", label: "Jabatan" },
-    ],
-    fields: [
-      { name: "id", label: "ID (slug)", type: "text", required: true },
-      { name: "name", label: "Nama", type: "text", required: true },
-      { name: "subject", label: "Mata Pelajaran", type: "text" },
-      { name: "position", label: "Jabatan", type: "text" },
-      { name: "photo_key", label: "Foto (upload/URL)", type: "image" },
-      { name: "email", label: "Email", type: "text" },
-      { name: "sort", label: "Urutan", type: "number" },
-    ],
-  },
-  {
     id: "facilities",
     table: "facilities",
     label: "Fasilitas",
@@ -168,8 +155,8 @@ export const CMS_RESOURCES: CmsResource[] = [
     fields: [
       { name: "id", label: "ID (slug)", type: "text", required: true },
       { name: "name", label: "Nama", type: "text", required: true },
-      { name: "category", label: "Kategori", type: "text" },
-      { name: "floor", label: "Lantai", type: "text" },
+      { name: "category", label: "Kategori", type: "select", options: ["administrasi", "akademik", "ibadah", "kesehatan", "layanan", "olahraga", "umum"] },
+      { name: "floor", label: "Lantai", type: "select", options: ["Area Outdoor", "Lantai 1", "Lantai 2", "Lantai 3", "Lantai 4", "Lantai 5"] },
       { name: "building", label: "Gedung", type: "text" },
       { name: "capacity", label: "Kapasitas", type: "number" },
       { name: "description", label: "Deskripsi", type: "textarea" },
@@ -254,8 +241,8 @@ export const CMS_RESOURCES: CmsResource[] = [
       { name: "title", label: "Judul", type: "text", required: true },
       { name: "body", label: "Isi", type: "textarea" },
       { name: "audience", label: "Audiens", type: "select", options: ["all", "student", "teacher"] },
-      { name: "urgent", label: "Mendesak (true/false)", type: "select", options: ["false", "true"] },
-      { name: "pinned", label: "Sematkan (true/false)", type: "select", options: ["false", "true"] },
+      { name: "urgent", label: "Mendesak", type: "checkbox" },
+      { name: "pinned", label: "Sematkan di atas", type: "checkbox" },
       { name: "author", label: "Penulis", type: "text" },
       { name: "status", label: "Status", type: "select", options: ["draft", "pending", "published", "archived"] },
       { name: "published_at", label: "Tanggal Terbit", type: "datetime" },
@@ -287,25 +274,6 @@ export const CMS_RESOURCES: CmsResource[] = [
       { name: "linkedin_url", label: "LinkedIn", type: "text" },
       { name: "story", label: "Cerita/Bio", type: "textarea" },
       { name: "sort", label: "Urutan", type: "number" },
-    ],
-  },
-  {
-    id: "cities",
-    table: "cities",
-    label: "Kota Alumni",
-    primaryKey: "id",
-    orderBy: "name asc",
-    listColumns: [
-      { name: "id", label: "ID" },
-      { name: "name", label: "Kota" },
-      { name: "province", label: "Provinsi" },
-    ],
-    fields: [
-      { name: "id", label: "ID (slug)", type: "text", required: true },
-      { name: "name", label: "Nama Kota", type: "text", required: true },
-      { name: "province", label: "Provinsi/Negara", type: "text" },
-      { name: "lat", label: "Latitude", type: "number" },
-      { name: "lng", label: "Longitude", type: "number" },
     ],
   },
   {
@@ -342,7 +310,7 @@ export const CMS_RESOURCES: CmsResource[] = [
     fields: [
       { name: "id", label: "ID (slug)", type: "text", required: true },
       { name: "title", label: "Judul Album", type: "text", required: true },
-      { name: "category", label: "Kategori", type: "text" },
+      { name: "category", label: "Kategori", type: "select", options: ["dokumentasi", "foto-resmi", "kegiatan", "prestasi-acara"] },
       { name: "cover_key", label: "Cover (upload/URL)", type: "image" },
       { name: "taken_at", label: "Tanggal", type: "datetime" },
       { name: "sort", label: "Urutan", type: "number" },
@@ -360,7 +328,7 @@ export const CMS_RESOURCES: CmsResource[] = [
       { name: "album_id", label: "Album" },
     ],
     fields: [
-      { name: "album_id", label: "ID Album", type: "text" },
+      { name: "album_id", label: "Album", type: "select", optionsFrom: "album" },
       { name: "image_key", label: "Foto (upload/URL)", type: "image", required: true },
       { name: "caption", label: "Keterangan", type: "text" },
       { name: "sort", label: "Urutan", type: "number" },
@@ -441,66 +409,6 @@ export const CMS_RESOURCES: CmsResource[] = [
       { name: "schedule", label: "Jadwal (JSON)", type: "textarea" },
       { name: "fees", label: "Biaya (JSON)", type: "textarea" },
       { name: "scholarships", label: "Beasiswa (JSON)", type: "textarea" },
-    ],
-  },
-  {
-    id: "class_schedules",
-    table: "class_schedules",
-    label: "Jadwal Pelajaran",
-    primaryKey: "id",
-    orderBy: "day asc, start_time asc",
-    listColumns: [
-      { name: "day", label: "Hari" },
-      { name: "start_time", label: "Mulai" },
-      { name: "end_time", label: "Selesai" },
-      { name: "subject", label: "Mapel" },
-      { name: "class_name", label: "Kelas" },
-    ],
-    fields: [
-      { name: "id", label: "ID (slug)", type: "text", required: true },
-      { name: "day", label: "Hari", type: "select", options: ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"] },
-      { name: "start_time", label: "Jam Mulai (07.00)", type: "text", required: true },
-      { name: "end_time", label: "Jam Selesai (08.30)", type: "text", required: true },
-      { name: "subject", label: "Mata Pelajaran", type: "text", required: true },
-      { name: "class_name", label: "Kelas", type: "text" },
-      { name: "room", label: "Ruang", type: "text" },
-      { name: "teacher", label: "Guru", type: "text" },
-      {
-        name: "audience",
-        label: "Jenis",
-        type: "select",
-        options: ["student", "teacher"],
-      },
-      { name: "sort", label: "Urutan", type: "number" },
-    ],
-  },
-  {
-    id: "school_profile",
-    table: "school_profile",
-    label: "Profil Sekolah",
-    primaryKey: "id",
-    orderBy: "id asc",
-    singleton: true,
-    listColumns: [
-      { name: "id", label: "ID" },
-      { name: "nama", label: "Nama" },
-      { name: "alamat", label: "Alamat" },
-      { name: "updated_at", label: "Diperbarui" },
-    ],
-    fields: [
-      { name: "id", label: "ID", type: "text", required: true, placeholder: "default" },
-      { name: "nama", label: "Nama Sekolah", type: "text" },
-      { name: "npsn", label: "NPSN", type: "text" },
-      { name: "akreditasi", label: "Akreditasi", type: "text" },
-      { name: "skor_akreditasi", label: "Skor Akreditasi", type: "text" },
-      { name: "tahun_berdiri", label: "Tahun Berdiri", type: "number" },
-      { name: "alamat", label: "Alamat", type: "textarea" },
-      { name: "telepon", label: "Telepon", type: "text" },
-      { name: "email", label: "Email", type: "text" },
-      { name: "maps_url", label: "URL Maps", type: "text" },
-      { name: "jam_layanan", label: "Jam Layanan", type: "text" },
-      { name: "visi", label: "Visi", type: "textarea" },
-      { name: "misi", label: "Misi (JSON array)", type: "textarea" },
     ],
   },
 ];

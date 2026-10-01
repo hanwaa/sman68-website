@@ -7,11 +7,11 @@ import { getAchievements, getEkskul } from "@/lib/content-server";
 import { breadcrumbSchema } from "@/lib/schema";
 import { buildMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = buildMetadata({
   title: "Ekskul & Organisasi",
-  description: "26 ekskul dan organisasi aktif di SMAN 68 Jakarta — olahraga, seni, sains, dan kepemimpinan siswa.",
+  description: "26 ekskul dan organisasi aktif di SMAN 68 Jakarta, olahraga, seni, sains, dan kepemimpinan siswa.",
   path: "/kehidupan/ekskul",
 });
 

@@ -5,7 +5,7 @@ import {
   timingSafeEqual,
 } from "node:crypto";
 
-export { SESSION_COOKIE } from "@/lib/auth-constants";
+export { SESSION_COOKIE, LEGACY_SESSION_COOKIE } from "@/lib/auth-constants";
 
 export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 export const REMEMBER_TTL_SECONDS = 60 * 60 * 24 * 30;
@@ -67,6 +67,15 @@ export async function verifyPassword(password: string, stored: string): Promise<
 /** Hash lama (sha256) perlu di-upgrade ke scrypt setelah login sukses. */
 export function passwordNeedsRehash(stored: string): boolean {
   return !stored.startsWith("scrypt$");
+}
+
+/**
+ * Verifikasi dummy dengan biaya setara scrypt, dipakai saat akun tidak
+ * ditemukan/nonaktif agar timing respons login seragam (anti-enumerasi).
+ * Salt tetap agar tidak ada jalan pintas timing.
+ */
+export async function verifyDummyPassword(): Promise<void> {
+  await scryptAsync("dummy-password-for-timing", "0".repeat(32));
 }
 
 function safeEqualHex(a: string, b: string): boolean {

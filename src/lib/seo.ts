@@ -83,7 +83,7 @@ export function buildMetadata({
 }: BuildMetadataInput): Metadata {
   // WhatsApp/Telegram menolak preview bila og:image:width/height tidak sesuai
   // ukuran file asli. Gambar selain OG default (mis. cover berita 1024x283)
-  // tidak boleh diklaim 1200x630 — dimensi hanya dideklarasi jika diketahui.
+  // tidak boleh diklaim 1200x630, dimensi hanya dideklarasi jika diketahui.
   const isCard = image.startsWith(OG_CARD_PATH);
   const isDefaultImage = image === DEFAULT_OG_IMAGE;
   const known = isDefaultImage || isCard;

@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "SMA Negeri 68 Jakarta",
     short_name: "SMAN 68",
     description:
-      "Situs resmi SMA Negeri 68 Jakarta — berita, prestasi, PPDB, dan informasi sekolah.",
+      "Situs resmi SMA Negeri 68 Jakarta, berita, prestasi, PPDB, dan informasi sekolah.",
     start_url: "/",
     display: "standalone",
     background_color: "#F4FAFB",

@@ -198,7 +198,7 @@ export default function AchievementPortfolio({
                 )}
                 {ach.status === "rejected" && (
                   <p className="mt-3 text-[11px] text-muted">
-                    Verifikasi gagal — periksa kembali data/bukti prestasi lalu ajukan ulang.
+                    Verifikasi gagal, periksa kembali data/bukti prestasi lalu ajukan ulang.
                   </p>
                 )}
               </div>

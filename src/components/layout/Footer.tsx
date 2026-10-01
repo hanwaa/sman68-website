@@ -17,7 +17,9 @@ const footerLinks = {
     links: [
       { label: "Profil Sekolah", href: "/tentang/profil" },
       { label: "Visi & Misi", href: "/tentang/visi-misi" },
-      { label: "Guru & Staf", href: "/tentang/guru-staf" },
+      { label: "Struktur Organisasi", href: "/tentang/struktur-organisasi" },
+      { label: "Struktur Tata Usaha", href: "/tentang/struktur-tu" },
+      { label: "PPID", href: "/tentang/ppid" },
       { label: "Fasilitas", href: "/tentang/fasilitas" },
     ],
   },
@@ -38,6 +40,8 @@ const footerLinks = {
       { label: "Ekskul", href: "/kehidupan/ekskul" },
       { label: "Prestasi", href: "/prestasi" },
       { label: "Alumni", href: "/komunitas/alumni" },
+      { label: "PTN Favorit", href: "/komunitas/ptnfavorit" },
+      { label: "Info Mutasi", href: "/layanan/mutasi" },
     ],
   },
 };

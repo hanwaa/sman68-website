@@ -13,6 +13,7 @@ import {
   CAREER_FIELDS,
   fieldStyle,
   universityLogos,
+  universityLocations,
   type CareerField,
 } from "@/lib/alumni-career";
 
@@ -27,6 +28,20 @@ const AlumniCampusMap = dynamic(() => import("@/components/features/AlumniCampus
 
 const ALL = "Semua";
 const VISIBLE_LIMIT = 6;
+
+/** Filter jenis kampus: PTN (dalam negeri) / PTLN (luar negeri). */
+type Tingkat = typeof ALL | "PTN" | "PTLN";
+const TINGKAT_OPTIONS: Tingkat[] = [ALL, "PTN", "PTLN"];
+
+/** Kampus dalam negeri bila koordinatnya di wilayah Indonesia. */
+const isPtnUniversity = (name: string) => {
+  const loc = universityLocations[name];
+  if (!loc) return true;
+  return loc.lat >= -11.5 && loc.lat <= 7 && loc.lng >= 94 && loc.lng <= 141.5;
+};
+
+const matchesTingkat = (name: string, tingkat: Tingkat) =>
+  tingkat === ALL || (tingkat === "PTN" ? isPtnUniversity(name) : !isPtnUniversity(name));
 
 /** Inisial nama untuk avatar cadangan saat alumni belum punya foto. */
 const initials = (name: string) =>
@@ -71,7 +86,7 @@ type AlumniDisplay = {
 const toDisplay = (a: AlumniRow): AlumniDisplay => ({
   id: a.id,
   name: a.name,
-  angkatan: a.graduationYear == null ? "—" : String(a.graduationYear),
+  angkatan: a.graduationYear == null ? "-" : String(a.graduationYear),
   university: a.universityName ?? "",
   role: a.jobTitle,
   company: a.company,
@@ -91,6 +106,7 @@ export default function AlumniCareerMap() {
   );
 
   const [field, setField] = useState<CareerField | typeof ALL>(ALL);
+  const [tingkat, setTingkat] = useState<Tingkat>(ALL);
   const [university, setUniversity] = useState<string | null>(null);
   const [selected, setSelected] = useState<AlumniDisplay | null>(null);
   const modalRef = useModalA11y<HTMLDivElement>(!!selected, () => setSelected(null));
@@ -98,29 +114,44 @@ export default function AlumniCareerMap() {
   const filtered = useMemo(
     () =>
       alumniCareer.filter(
-        (a) => (field === ALL || a.field === field) && (!university || a.university === university)
+        (a) =>
+          (field === ALL || a.field === field) &&
+          (!university || a.university === university) &&
+          matchesTingkat(a.university, tingkat)
       ),
-    [alumniCareer, field, university]
+    [alumniCareer, field, university, tingkat]
   );
 
   const visibleAlumni = useMemo(() => filtered.slice(0, VISIBLE_LIMIT), [filtered]);
 
   const campusCount = (name: string) =>
-    alumniCareer.filter((a) => a.university === name && (field === ALL || a.field === field)).length;
+    alumniCareer.filter(
+      (a) =>
+        a.university === name &&
+        (field === ALL || a.field === field) &&
+        matchesTingkat(a.university, tingkat)
+    ).length;
 
   const campuses = useMemo(
     () =>
       alumniUniversities
+        .filter((name) => matchesTingkat(name, tingkat))
         .map((name) => ({ name, count: campusCount(name) }))
         .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "id")),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [alumniCareer, alumniUniversities, field]
+    [alumniCareer, alumniUniversities, field, tingkat]
   );
 
   const counts = useMemo(
     () => Object.fromEntries(alumniUniversities.map((name) => [name, campusCount(name)])),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [alumniCareer, alumniUniversities, field]
+    [alumniCareer, alumniUniversities, field, tingkat]
+  );
+
+  /** Nama kampus yang tampil di peta (null = semua). */
+  const visibleMapNames = useMemo(
+    () => (tingkat === ALL ? null : campuses.map((campus) => campus.name)),
+    [tingkat, campuses]
   );
 
   /** Logo kampus: pakai dari data alumni (R2/DB), fallback ke aset statis. */
@@ -146,8 +177,14 @@ export default function AlumniCareerMap() {
   const toggleCampus = (name: string) =>
     setUniversity((prev) => (prev === name ? null : name));
 
+  const applyTingkat = (next: Tingkat) => {
+    setTingkat(next);
+    if (university && !matchesTingkat(university, next)) setUniversity(null);
+  };
+
   const resetFilters = () => {
     setField(ALL);
+    setTingkat(ALL);
     setUniversity(null);
   };
 
@@ -167,7 +204,7 @@ export default function AlumniCareerMap() {
             Dari Kampus ke <span className="text-brand-leaf">Karier</span>
           </h2>
           <p className="text-muted text-sm md:text-base mt-2 leading-relaxed">
-            Klik kampus untuk melihat alumninya — dari kampus di Indonesia sampai Belanda dan
+            Klik kampus untuk melihat alumninya, dari kampus di Indonesia sampai Belanda dan
             Australia.
           </p>
         </div>
@@ -213,6 +250,7 @@ export default function AlumniCareerMap() {
                   counts={counts}
                   selectedName={university}
                   onSelect={toggleCampus}
+                  visibleNames={visibleMapNames}
                 />
               </div>
               <div className="absolute top-3 left-3 z-[1000] pointer-events-none hidden sm:flex items-center gap-2 rounded-full bg-white/95 backdrop-blur border border-line px-3 py-1.5 text-[10px] text-muted shadow-card">
@@ -223,7 +261,7 @@ export default function AlumniCareerMap() {
               </div>
             </div>
             <p className="text-xs text-muted mt-3 px-1">
-              Klik ikon kampus di peta untuk menyaring alumni — ikon memakai logo kampus, angka
+              Klik ikon kampus di peta untuk menyaring alumni, ikon memakai logo kampus, angka
               kecil menunjukkan jumlah alumni.
             </p>
           </div>
@@ -231,14 +269,22 @@ export default function AlumniCareerMap() {
           <div className="rounded-2xl border border-line bg-cream/60 p-3 flex flex-col min-h-0 h-full">
             <div className="flex items-center justify-between px-1 mb-2">
               <h3 className="font-display font-bold text-ink text-sm">Jelajahi Kampus</h3>
-              {university && (
+            </div>
+            <div
+              className="flex flex-wrap gap-2 px-1 mb-2"
+              role="group"
+              aria-label="Filter jenis kampus: PTN atau PTLN"
+            >
+              {TINGKAT_OPTIONS.map((t) => (
                 <button
-                  onClick={() => setUniversity(null)}
-                  className="text-[11px] font-semibold text-brand-green hover:underline"
+                  key={t}
+                  onClick={() => applyTingkat(t)}
+                  aria-pressed={tingkat === t}
+                  className={cn("chip whitespace-nowrap", tingkat === t && "chip-active")}
                 >
-                  Semua kampus
+                  {t === ALL ? "Semua" : t}
                 </button>
-              )}
+              ))}
             </div>
             <div
               className="grid grid-cols-2 gap-2 overflow-y-auto pr-1 max-h-[344px] lg:max-h-none lg:min-h-0 lg:flex-1"
@@ -253,7 +299,7 @@ export default function AlumniCareerMap() {
                     key={campus.name}
                     onClick={() => toggleCampus(campus.name)}
                     aria-pressed={active}
-                    aria-label={`${campus.name} — ${campus.count} alumni`}
+                    aria-label={`${campus.name}, ${campus.count} alumni`}
                     className={cn(
                       "group relative flex h-20 items-center justify-center overflow-hidden rounded-xl border bg-white transition-colors duration-200 ease-out",
                       active
@@ -315,9 +361,15 @@ export default function AlumniCareerMap() {
                 bidang <strong className="text-ink">{field}</strong>
               </>
             ) : null}
+            {tingkat !== ALL ? (
+              <>
+                {" "}
+                jenis <strong className="text-ink">{tingkat}</strong>
+              </>
+            ) : null}
           </p>
           <div className="flex items-center gap-4">
-            {(field !== ALL || university) && (
+            {(field !== ALL || university || tingkat !== ALL) && (
               <button
                 onClick={resetFilters}
                 className="text-xs font-semibold text-brand-green hover:underline"
@@ -402,7 +454,7 @@ export default function AlumniCareerMap() {
 
         {filtered.length > VISIBLE_LIMIT && (
           <p className="mt-4 text-xs text-muted">
-            Menampilkan {visibleAlumni.length} dari {filtered.length} alumni pada filter ini —{" "}
+            Menampilkan {visibleAlumni.length} dari {filtered.length} alumni pada filter ini,{" "}
             <a href="#direktori" className="font-semibold text-brand-green hover:underline">
               lihat semua di direktori
             </a>

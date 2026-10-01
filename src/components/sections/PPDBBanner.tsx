@@ -1,12 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ExternalLink, Timer, FileCheck, Wallet, ChevronRight } from "lucide-react";
 import PhotoBackdrop from "@/components/sections/PhotoBackdrop";
 
-const PPDB_DATE = new Date("2025-06-03T07:00:00+07:00");
+const PPDB_MONTH = 5; // Juni (0-indexed)
+const PPDB_DAY = 3;
+
+// PPDB Jakarta berjalan tiap Juni. Hitung 3 Juni terdekat yang masih di
+// depan supaya hitung mundur tidak pernah basi menampilkan 00.
+function nextPPDBDate(from = new Date()): Date {
+  const WIB_OFFSET_MS = 7 * 3600000;
+  const wibNow = new Date(from.getTime() + WIB_OFFSET_MS);
+  let year = wibNow.getUTCFullYear();
+  let target = new Date(Date.UTC(year, PPDB_MONTH, PPDB_DAY, 0, 0, 0) - WIB_OFFSET_MS);
+  if (target.getTime() <= from.getTime()) {
+    year += 1;
+    target = new Date(Date.UTC(year, PPDB_MONTH, PPDB_DAY, 0, 0, 0) - WIB_OFFSET_MS);
+  }
+  return target;
+}
 
 function useCountdown(target: Date) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -49,6 +64,31 @@ function CountdownBox({ value, label, mounted }: { value: number; label: string;
   );
 }
 
+// Panel terisolasi: state detik hanya me-render ulang panel ini, bukan
+// seluruh banner. Tahun ikut bergulir supaya label selalu benar.
+function CountdownPanel() {
+  const target = useMemo(() => nextPPDBDate(), []);
+  const { timeLeft, mounted } = useCountdown(target);
+
+  return (
+    <div className="mt-8 inline-flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-8 rounded-2xl border border-edge-1 bg-surface-1 px-7 py-6">
+      <span className="flex items-center gap-2 text-brand-lime text-xs font-semibold uppercase tracking-wider">
+        <Timer size={14} aria-hidden="true" />
+        Menuju PPDB {target.getFullYear()}
+      </span>
+      <span className="sr-only">
+        Pendaftaran dibuka 3 Juni {target.getFullYear()} pukul 07.00 WIB.
+      </span>
+      <span className="flex items-center justify-between sm:justify-start gap-5 sm:gap-7" aria-hidden="true">
+        <CountdownBox value={timeLeft.days} label="Hari" mounted={mounted} />
+        <CountdownBox value={timeLeft.hours} label="Jam" mounted={mounted} />
+        <CountdownBox value={timeLeft.minutes} label="Menit" mounted={mounted} />
+        <CountdownBox value={timeLeft.seconds} label="Detik" mounted={mounted} />
+      </span>
+    </div>
+  );
+}
+
 const steps = [
   {
     icon: FileCheck,
@@ -68,12 +108,10 @@ const steps = [
 ];
 
 export default function PPDBBanner() {
-  const { timeLeft, mounted } = useCountdown(PPDB_DATE);
-
   return (
     <section
       className="relative section-padding bg-brand-pine"
-      aria-label="PPDB — Penerimaan Peserta Didik Baru"
+      aria-label="PPDB, Penerimaan Peserta Didik Baru"
     >
       <PhotoBackdrop src="/assets/sekolah/sekolah-09-pembelajaran.jpg" overlayClassName="bg-black/55" />
 
@@ -93,18 +131,7 @@ export default function PPDBBanner() {
               Prosesnya transparan dan didampingi panitia sampai kamu resmi menjadi siswa.
             </p>
 
-            <div className="mt-8 inline-flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-8 rounded-2xl border border-edge-1 bg-surface-1 px-7 py-6">
-              <span className="flex items-center gap-2 text-brand-lime text-xs font-semibold uppercase tracking-wider">
-                <Timer size={14} aria-hidden="true" />
-                Menuju pembukaan
-              </span>
-              <span className="flex items-center justify-between sm:justify-start gap-5 sm:gap-7">
-                <CountdownBox value={timeLeft.days} label="Hari" mounted={mounted} />
-                <CountdownBox value={timeLeft.hours} label="Jam" mounted={mounted} />
-                <CountdownBox value={timeLeft.minutes} label="Menit" mounted={mounted} />
-                <CountdownBox value={timeLeft.seconds} label="Detik" mounted={mounted} />
-              </span>
-            </div>
+            <CountdownPanel />
 
             <div className="mt-8 flex flex-wrap gap-3">
               <a

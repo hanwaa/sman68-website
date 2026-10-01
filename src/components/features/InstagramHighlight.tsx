@@ -6,7 +6,7 @@ import type { InstagramFeed, InstagramPost } from "@/lib/instagram-feed";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { Skeleton } from "@/components/ui/Skeleton";
 
-// Mode widget pihak ketiga (SnapWidget/LightWidget) — tanpa API/scrape sama sekali.
+// Mode widget pihak ketiga (SnapWidget/LightWidget), tanpa API/scrape sama sekali.
 const EMBED_URL = process.env.NEXT_PUBLIC_INSTAGRAM_EMBED_URL;
 const EMBED_USERNAME = process.env.NEXT_PUBLIC_INSTAGRAM_USERNAME || "smanegeri68jakarta";
 const EMBED_HEIGHT = (() => {
@@ -56,7 +56,7 @@ function MarqueeCard({ post }: { post: InstagramPost }) {
       rel="noopener noreferrer"
       draggable={false}
       aria-label={`Buka postingan Instagram: ${caption || "Postingan SMAN 68 Jakarta"}`}
-      className="group flex w-[80vw] flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-sm transition-transform duration-200 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-pine/25 sm:w-[360px] sm:flex-row md:w-[440px] lg:w-[556px]"
+      className="group flex w-[80vw] flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-pine/25 sm:w-[360px] sm:flex-row md:w-[440px] lg:w-[556px]"
     >
       <span
         className="relative block h-52 w-full flex-shrink-0 overflow-hidden sm:h-auto sm:w-[42%]"

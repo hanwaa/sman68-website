@@ -54,7 +54,7 @@ function allowedImageHosts(): string[] {
       const host = new URL(candidate).hostname;
       if (host) hosts.add(host);
     } catch {
-      // konfigurasi tidak valid — diabaikan.
+      // konfigurasi tidak valid, diabaikan.
     }
   }
   return Array.from(hosts);
@@ -83,11 +83,28 @@ async function loadCover(src: string | null): Promise<string | null> {
     const decision = checkRemoteImage(src, allowedImageHosts());
     if (!decision.ok) return null;
 
-    const res = await fetch(decision.url, {
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-      headers: { accept: "image/*" },
-    });
-    if (!res.ok) return null;
+    // redirect manual + validasi ulang tiap hop: cegah allowlist lolos lalu
+    // 302 ke IP privat/metadata (169.254.169.254).
+    let url = decision.url;
+    let res: Response | null = null;
+    for (let hop = 0; hop < 3; hop += 1) {
+      const step = await fetch(url, {
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+        headers: { accept: "image/*" },
+        redirect: "manual",
+      });
+      const location = step.headers.get("location");
+      if (step.status >= 300 && step.status < 400 && location) {
+        const next = new URL(location, url).toString();
+        const recheck = checkRemoteImage(next, allowedImageHosts());
+        if (!recheck.ok) return null;
+        url = recheck.url;
+        continue;
+      }
+      res = step;
+      break;
+    }
+    if (!res || !res.ok) return null;
     const type = res.headers.get("content-type") ?? "";
     if (!type.startsWith("image/")) return null;
     const buf = Buffer.from(await res.arrayBuffer());

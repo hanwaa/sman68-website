@@ -26,6 +26,7 @@ import AdminUserDetailModal from "@/components/dashboard/parts/admin/AdminUserDe
 import AdminEditUserModal, {
   type UserFormState,
 } from "@/components/dashboard/parts/admin/AdminEditUserModal";
+import AdminLegalisirView from "@/components/dashboard/parts/admin/AdminLegalisirView";
 
 const AdminContentManager = dynamic(() => import("@/components/dashboard/AdminContentManager"), {
   loading: () => <Skeleton className="h-96 w-full" />,
@@ -86,7 +87,7 @@ export default function AdminDashboard({
         setUsersLoaded(true);
       })
       .catch(() => {
-        /* API tidak tersedia — biarkan kosong, tanpa data demo */
+        /* API tidak tersedia, biarkan kosong, tanpa data demo */
         if (!cancelled) setUsersLoaded(true);
       });
 
@@ -104,7 +105,7 @@ export default function AdminDashboard({
     };
   }, [activePage, usersLoaded]);
 
-  // Sinkronkan moderasi & metrik dari Neon
+  // Sinkronkan moderasi & metrik dari database
   useEffect(() => {
     let cancelled = false;
     fetch("/api/admin?resource=moderation", { cache: "no-store" })
@@ -115,7 +116,7 @@ export default function AdminDashboard({
         setModerationLoaded(true);
       })
       .catch(() => {
-        /* API tidak tersedia — biarkan kosong, tanpa data demo */
+        /* API tidak tersedia, biarkan kosong, tanpa data demo */
         if (!cancelled) setModerationLoaded(true);
       });
 
@@ -125,9 +126,11 @@ export default function AdminDashboard({
   }, []);
 
   // Metrik realtime: muat saat mount, lalu segarkan tiap 60 detik.
+  // Lewati poll saat tab hidden/offline (hemat 27-subselect stats di DB).
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
+      if (document.hidden || !navigator.onLine) return;
       try {
         const res = await fetch("/api/admin?resource=stats", { cache: "no-store" });
         if (!res.ok || cancelled) return;
@@ -136,8 +139,8 @@ export default function AdminDashboard({
           setAdminStats(payload.data);
           setStatsUpdatedAt(new Date());
         }
-      } catch {
-        /* biarkan angka terakhir tetap tampil */
+      } catch (error) {
+        console.warn("[admin] gagal memuat stats:", error instanceof Error ? error.message : error);
       }
     };
     void load();
@@ -152,14 +155,16 @@ export default function AdminDashboard({
     setPendingList((prev) => prev.filter((item) => item.id !== id));
     onShowToast(
       source === "achievements"
-        ? `Prestasi "${title}" disetujui — masuk draft. Lengkapi datanya di Manajemen Data lalu publikasikan.`
+        ? `Prestasi "${title}" disetujui, masuk draft. Lengkapi datanya di Manajemen Data lalu publikasikan.`
         : `Konten "${title}" berhasil disetujui dan dipublikasikan.`
     );
     void fetch("/api/admin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "approve", id, source }),
-    }).catch(() => {});
+    }).catch((error) => {
+      console.warn("[admin] approve gagal:", error instanceof Error ? error.message : error);
+    });
   };
 
   const handleReject = (id: string, title: string, source = "queue") => {
@@ -169,7 +174,9 @@ export default function AdminDashboard({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "reject", id, source }),
-    }).catch(() => {});
+    }).catch((error) => {
+      console.warn("[admin] reject gagal:", error instanceof Error ? error.message : error);
+    });
   };
 
   const handleCreateUser = async (draft: NewUserDraft) => {
@@ -209,12 +216,21 @@ export default function AdminDashboard({
           detail: newUser.detail,
         }),
       });
+      const payload = (await res.json().catch(() => null)) as {
+        error?: string;
+        data?: { initialPassword?: string };
+      } | null;
       if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { error?: string } | null;
-        onShowToast(payload?.error ?? "Akun tersimpan lokal — server menolak.");
+        onShowToast(payload?.error ?? "Akun tersimpan lokal, server menolak.");
+        return;
+      }
+      if (payload?.data?.initialPassword) {
+        onShowToast(
+          `Akun "${newUser.name}" dibuat. Password awal (sekali tampil): ${payload.data.initialPassword}`
+        );
       }
     } catch {
-      onShowToast("Akun tersimpan lokal — server tidak terjangkau.");
+      onShowToast("Akun tersimpan lokal, server tidak terjangkau.");
     }
   };
 
@@ -297,7 +313,7 @@ export default function AdminDashboard({
 
   const handleResetPassword = async (user: AdminUser) => {
     const confirmed = window.confirm(
-      `Reset password "${user.name}" menjadi username/NISN-nya (${user.username})?`
+      `Reset password "${user.name}" dengan password acak baru? Password lama langsung tidak berlaku.`
     );
     if (!confirmed) return;
     try {
@@ -306,14 +322,21 @@ export default function AdminDashboard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "reset-password", id: user.id }),
       });
+      const payload = (await res.json().catch(() => null)) as {
+        error?: string;
+        newPassword?: string;
+      } | null;
       if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { error?: string } | null;
         onShowToast(payload?.error ?? "Gagal mereset password.");
         return;
       }
-      onShowToast(`Password ${user.name} direset ke ${user.username}.`);
+      onShowToast(
+        payload?.newPassword
+          ? `Password ${user.name} direset. Password baru (sekali tampil): ${payload.newPassword}`
+          : `Password ${user.name} berhasil direset.`
+      );
     } catch {
-      onShowToast("Gagal mereset password — server tidak terjangkau.");
+      onShowToast("Gagal mereset password, server tidak terjangkau.");
     }
   };
 
@@ -384,7 +407,7 @@ export default function AdminDashboard({
       onShowToast(`Akun "${nextName}" berhasil diperbarui.`);
       setEditingUser(null);
     } catch {
-      onShowToast("Gagal memperbarui akun — server tidak terjangkau.");
+      onShowToast("Gagal memperbarui akun, server tidak terjangkau.");
     } finally {
       setUserSaving(false);
     }
@@ -411,7 +434,7 @@ export default function AdminDashboard({
       setSelectedUser(null);
       onShowToast(`Akun "${user.name}" dihapus.`);
     } catch {
-      onShowToast("Gagal menghapus akun — server tidak terjangkau.");
+      onShowToast("Gagal menghapus akun, server tidak terjangkau.");
     }
   };
 
@@ -452,7 +475,7 @@ export default function AdminDashboard({
             Manajemen Data
           </h1>
           <p className="text-muted text-sm">
-            Kelola semua konten dan data yang tampil di situs — tersimpan langsung ke database.
+            Kelola semua konten dan data yang tampil di situs, tersimpan langsung ke database.
           </p>
         </div>
 
@@ -538,6 +561,8 @@ export default function AdminDashboard({
         onCreate={() => setModalType("user")}
       />
     );
+  } else if (activePage === "legalisir") {
+    content = <AdminLegalisirView onShowToast={onShowToast} />;
   } else {
     content = (
       <AdminHomeView

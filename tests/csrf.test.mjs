@@ -38,12 +38,24 @@ test("Origin tidak valid ditolak", () => {
   assert.equal(isSameOrigin(request({ origin: "https://sman68-jkt.my.id" })), false);
 });
 
-test("menghormati x-forwarded-host di belakang proxy", () => {
+test("mengabaikan x-forwarded-host (anti-spoof)", () => {
+  // x-forwarded-host dapat dikontrol penyerang, jadi tidak boleh dipakai
+  // untuk validasi Origin. Proxy terpercaya wajib meneruskan Host yang benar.
   assert.equal(
     isSameOrigin(
       request({
         host: "127.0.0.1:30000",
         "x-forwarded-host": "sman68-jkt.my.id",
+        origin: "https://sman68-jkt.my.id",
+      })
+    ),
+    false
+  );
+  assert.equal(
+    isSameOrigin(
+      request({
+        host: "sman68-jkt.my.id",
+        "x-forwarded-host": "evil.example.com",
         origin: "https://sman68-jkt.my.id",
       })
     ),

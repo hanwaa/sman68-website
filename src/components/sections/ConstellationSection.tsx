@@ -175,7 +175,7 @@ export default function ConstellationSection() {
   /**
    * Hemat CPU dengan menghentikan rotasi HANYA saat konstelasi benar-benar
    * keluar dari viewport. Berbeda dari versi lama, ini tidak pernah memakai
-   * threshold 0.05 dan tidak pernah bereaksi terhadap hover — jadi menyentuh
+   * threshold 0.05 dan tidak pernah bereaksi terhadap hover, jadi menyentuh
    * planet tidak lagi membuat animasi berhenti.
    */
   useEffect(() => {
@@ -194,7 +194,7 @@ export default function ConstellationSection() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     // Kurangi motion: loop rAF tidak dijalankan sama sekali, bukan hanya
-    // dilewati di dalam tick — supaya tidak tetap membakar frame di layar.
+    // dilewati di dalam tick, supaya tidak tetap membakar frame di layar.
     if (reduceMotion) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
@@ -360,7 +360,7 @@ export default function ConstellationSection() {
                         className="orbit-planet"
                         tabIndex={0}
                         role="link"
-                        aria-label={`${item.name} — ${item.category}. Lihat ringkasan ekskul`}
+                        aria-label={`${item.name}, ${item.category}. Lihat ringkasan ekskul`}
                         onMouseEnter={() => setHovered(item)}
                         onMouseLeave={() => setHovered(null)}
                         onFocus={() => setHovered(item)}

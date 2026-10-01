@@ -20,7 +20,7 @@ export default function GradesTab({ isTeacher, userName, assignments, average, o
           <div>
             <div className="text-xs font-semibold text-muted">Rata-rata nilai kamu</div>
             <div className="font-display text-3xl font-extrabold text-brand-green">
-              {average ?? "—"}
+              {average ?? "-"}
             </div>
           </div>
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-green/10 text-brand-green">
@@ -58,7 +58,7 @@ export default function GradesTab({ isTeacher, userName, assignments, average, o
                     ) : mine ? (
                       <StatusBadge status={mine.status} />
                     ) : (
-                      <span className="text-xs text-muted">—</span>
+                      <span className="text-xs text-muted">,</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -71,7 +71,7 @@ export default function GradesTab({ isTeacher, userName, assignments, average, o
                       </button>
                     ) : (
                       <span className="font-display font-extrabold text-ink">
-                        {mine?.grade ?? "—"}
+                        {mine?.grade ?? "-"}
                         <span className="text-xs font-semibold text-muted">/{assignment.points}</span>
                       </span>
                     )}

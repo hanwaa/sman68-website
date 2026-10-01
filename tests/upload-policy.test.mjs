@@ -21,6 +21,7 @@ test("menerima gambar dengan folder dan MIME yang benar", () => {
     fileName: "Robotika 2026.PNG",
     contentType: "image/png",
     size: 245_000,
+    role: "admin",
   });
   assert.equal(result.folder, "cms/news");
   assert.equal(result.contentType, "image/png");
@@ -33,13 +34,20 @@ test("MIME diturunkan dari ekstensi, bukan dari klaim client", () => {
     fileName: "kaguya cover.jpg",
     contentType: "image/jpeg; charset=binary",
     size: 1000,
+    role: "admin",
   });
   assert.equal(result.contentType, "image/jpeg");
 });
 
 test("menolak contentType yang tidak cocok dengan ekstensi", () => {
-  rejected({ folder: "cms/news", fileName: "a.png", contentType: "text/html", size: 10 }, 415);
-  rejected({ folder: "cms/news", fileName: "a.png", contentType: "image/svg+xml", size: 10 }, 415);
+  rejected(
+    { folder: "cms/news", fileName: "a.png", contentType: "text/html", size: 10, role: "admin" },
+    415
+  );
+  rejected(
+    { folder: "cms/news", fileName: "a.png", contentType: "image/svg+xml", size: 10, role: "admin" },
+    415
+  );
 });
 
 test("menolak MIME berbahaya walau ekstensi Norman", () => {
@@ -56,9 +64,21 @@ test("menolak path traversal dan folder di luar allowlist", () => {
 });
 
 test("folder cms dan absensi hanya menerima gambar", () => {
-  rejected({ folder: "cms/absensi", fileName: "soal.pdf", contentType: "application/pdf", size: 10 }, 415);
+  rejected(
+    { folder: "cms/absensi", fileName: "soal.pdf", contentType: "application/pdf", size: 10, role: "admin" },
+    415
+  );
   rejected({ folder: "absensi", fileName: "rekap.xlsx", contentType: "application/vnd.ms-excel", size: 10 }, 415);
   ok({ folder: "absensi", fileName: "selfie.jpg", contentType: "image/jpeg", size: 10 });
+});
+
+test("folder cms hanya untuk admin", () => {
+  rejected(
+    { folder: "cms/news", fileName: "a.png", contentType: "image/png", size: 10, role: "student" },
+    403
+  );
+  rejected({ folder: "cms/news", fileName: "a.png", contentType: "image/png", size: 10 }, 403);
+  ok({ folder: "cms/news", fileName: "a.png", contentType: "image/png", size: 10, role: "admin" });
 });
 
 test("folder classroom boleh menerima dokumen", () => {

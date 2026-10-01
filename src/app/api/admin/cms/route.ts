@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { dbConfigured, getDb } from "@/lib/db";
 import { cmsResourceById, type CmsField } from "@/lib/cms";
 import { requireRole } from "@/lib/api-auth";
-import { isSameOrigin } from "@/lib/csrf";
+import { guardMutation, readJsonLimited, CMS_BODY_LIMIT } from "@/lib/api-guard";
+import { purgeContentCache } from "@/lib/content-cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,7 +14,11 @@ type Row = Record<string, unknown>;
 const quoteIdent = (name: string) => `"${name.replace(/"/g, '""')}"`;
 
 /** Segarkan cache halaman publik setelah ada perubahan konten dari CMS. */
-const revalidatePublic = () => revalidatePath("/", "layout");
+const revalidatePublic = () => {
+  revalidatePath("/", "layout");
+  updateTag("cms");
+  purgeContentCache();
+};
 
 function normalizeValue(field: CmsField, raw: unknown): unknown {
   if (raw === undefined || raw === null || raw === "") {
@@ -30,6 +35,12 @@ function normalizeValue(field: CmsField, raw: unknown): unknown {
         return String(raw) === "true";
       }
       return String(raw);
+    }
+    case "checkbox": {
+      if (raw === true) return true;
+      if (raw === false) return false;
+      const text = String(raw).trim().toLowerCase();
+      return text === "true" || text === "1" || text === "ya" || text === "yes";
     }
     case "images":
     case "list": {
@@ -52,8 +63,9 @@ const placeholderFor = (field: CmsField, index: number) =>
 async function guard(request: NextRequest) {
   const account = await requireRole(["admin"]);
   if (account instanceof NextResponse) return account;
-  if (request.method !== "GET" && !isSameOrigin(request)) {
-    return NextResponse.json({ error: "Permintaan ditolak." }, { status: 403 });
+  if (request.method !== "GET") {
+    const rejected = guardMutation(request, { maxBytes: CMS_BODY_LIMIT });
+    if (rejected) return rejected;
   }
   if (!dbConfigured()) {
     return NextResponse.json({ error: "Database belum dikonfigurasi." }, { status: 503 });
@@ -83,12 +95,13 @@ export async function POST(request: NextRequest) {
   const resource = await guard(request);
   if (resource instanceof NextResponse) return resource;
 
-  const body = (await request.json().catch(() => null)) as
-    | { values?: Record<string, unknown> }
-    | null;
+  const body = (await readJsonLimited<{ values?: Record<string, unknown> }>(
+    request,
+    CMS_BODY_LIMIT
+  )) as { values?: Record<string, unknown> } | null;
   const values = { ...(body?.values ?? {}) };
 
-  // Jaring aman: tabel ber-PK teks wajib punya ID unik — buat otomatis bila kosong
+  // Jaring aman: tabel ber-PK teks wajib punya ID unik, buat otomatis bila kosong
   const hasTextIdField = resource.fields.some((field) => field.name === resource.primaryKey);
   if (hasTextIdField && !resource.singleton && !values[resource.primaryKey]) {
     values[resource.primaryKey] = `${resource.id.replace(/_/g, "-")}-${Date.now().toString(36)}-${Math.random()
@@ -119,9 +132,10 @@ export async function PATCH(request: NextRequest) {
   const resource = await guard(request);
   if (resource instanceof NextResponse) return resource;
 
-  const body = (await request.json().catch(() => null)) as
-    | { id?: string; values?: Record<string, unknown> }
-    | null;
+  const body = (await readJsonLimited<{ id?: string; values?: Record<string, unknown> }>(
+    request,
+    CMS_BODY_LIMIT
+  )) as { id?: string; values?: Record<string, unknown> } | null;
   if (!body?.id) {
     return NextResponse.json({ error: "id wajib diisi." }, { status: 400 });
   }

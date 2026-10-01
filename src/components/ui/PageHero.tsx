@@ -2,14 +2,13 @@ import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
 type PageHeroProps = {
-  eyebrow?: string;
   title: ReactNode;
   lead?: string;
   children?: ReactNode;
   className?: string;
 };
 
-export default function PageHero({ eyebrow, title, lead, children, className }: PageHeroProps) {
+export default function PageHero({ title, lead, children, className }: PageHeroProps) {
   return (
     <div className={cn("relative bg-brand-pine overflow-hidden", className)}>
       <div className="absolute inset-0 pattern-grid opacity-60" aria-hidden="true" />
@@ -19,12 +18,6 @@ export default function PageHero({ eyebrow, title, lead, children, className }: 
       />
 
       <div className="container-custom relative py-16 md:py-20">
-        {eyebrow && (
-          <p className="flex items-center gap-3 text-brand-lime text-xs font-semibold uppercase tracking-[0.2em] mb-4">
-            <span className="w-8 h-px bg-brand-lime" />
-            {eyebrow}
-          </p>
-        )}
         <h1
           className="font-display font-extrabold text-4xl md:text-5xl text-white text-balance"
           style={{ letterSpacing: "-0.008em", lineHeight: 1.12 }}

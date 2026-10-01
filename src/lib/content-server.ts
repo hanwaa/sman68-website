@@ -1,5 +1,7 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
+
 import { dbConfigured, getDb } from "@/lib/db";
 import {
   achievements as staticAchievements,
@@ -40,8 +42,8 @@ function mapNews(rows: Row[]): NewsArticle[] {
   }));
 }
 
-/** Berita dari Neon — tanpa fallback data statis. */
-export async function getNews(): Promise<NewsArticle[]> {
+/** Berita dari database, tanpa fallback data statis. */
+async function fetchNews(): Promise<NewsArticle[]> {
   if (!dbConfigured()) return [];
   try {
     const rows = (await getDb()`
@@ -56,16 +58,39 @@ export async function getNews(): Promise<NewsArticle[]> {
 }
 
 export async function getNewsBySlug(slug: string): Promise<NewsArticle | undefined> {
-  const all = await getNews();
-  return all.find((article) => article.slug === slug);
+  // Query langsung by slug (unique index), sebelumnya memuat SELURUH tabel
+  // berita untuk 1 artikel (O(table) per halaman /berita/[slug] + sitemap).
+  if (!dbConfigured() || !slug) return undefined;
+  try {
+    const rows = (await getDb()`
+      select slug, title, excerpt, content, category, author, cover_key, views, published_at
+      from news where slug = ${slug} and status = 'published'
+      limit 1
+    `) as Row[];
+    return mapNews(rows)[0];
+  } catch {
+    // Fallback ke cache daftar bila query langsung gagal.
+    const all = await getNews();
+    return all.find((article) => article.slug === slug);
+  }
 }
 
 export async function getNewsSlugs(): Promise<string[]> {
-  const all = await getNews();
-  return all.map((article) => article.slug);
+  // Hanya kolom slug, sebelumnya memuat seluruh konten artikel.
+  if (!dbConfigured()) return [];
+  try {
+    const rows = (await getDb()`
+      select slug from news where status = 'published'
+      order by published_at desc
+    `) as Row[];
+    return rows.map((row) => text(row.slug)).filter(Boolean);
+  } catch {
+    const all = await getNews();
+    return all.map((article) => article.slug);
+  }
 }
 
-export async function getAchievements(): Promise<AchievementContent[]> {
+async function fetchAchievements(): Promise<AchievementContent[]> {
   if (!dbConfigured()) return staticAchievements;
   try {
     // Left join berita supaya tiap prestasi bisa ditautkan ke artikelnya.
@@ -102,7 +127,7 @@ export async function getAchievements(): Promise<AchievementContent[]> {
   }
 }
 
-export async function getEkskul(): Promise<Ekskul[]> {
+async function fetchEkskul(): Promise<Ekskul[]> {
   if (!dbConfigured()) return ekskulList;
   try {
     const rows = (await getDb()`
@@ -132,7 +157,7 @@ export type GalleryData = {  albums: GalleryAlbumContent[];
   photos: GalleryPhotoContent[];
 };
 
-export async function getGallery(): Promise<GalleryData> {
+async function fetchGallery(): Promise<GalleryData> {
   const fallback: GalleryData = { albums: staticAlbums, photos: staticPhotos };
   if (!dbConfigured()) return fallback;
   try {
@@ -162,7 +187,7 @@ export async function getGallery(): Promise<GalleryData> {
 
 export type FaqItem = { id: string; question: string; answer: string; category: string };
 
-export async function getFaqs(): Promise<FaqItem[]> {
+async function fetchFaqs(): Promise<FaqItem[]> {
   if (!dbConfigured()) return staticFaqs;
   try {
     const rows = (await getDb()`
@@ -179,3 +204,27 @@ export async function getFaqs(): Promise<FaqItem[]> {
     return staticFaqs;
   }
 }
+
+// Hasil DB di-cache 60 dtk (ISR) + tag "cms" untuk invalidasi on-demand
+// dari mutasi admin. Tanpa ini, fetch database (no-store) memaksa semua halaman
+// publik jadi dynamic dan tiap hit = round-trip DB.
+export const getNews = unstable_cache(fetchNews, ["cms:news"], {
+  revalidate: 60,
+  tags: ["cms"],
+});
+export const getAchievements = unstable_cache(fetchAchievements, ["cms:achievements"], {
+  revalidate: 60,
+  tags: ["cms"],
+});
+export const getEkskul = unstable_cache(fetchEkskul, ["cms:ekskul"], {
+  revalidate: 60,
+  tags: ["cms"],
+});
+export const getGallery = unstable_cache(fetchGallery, ["cms:gallery"], {
+  revalidate: 60,
+  tags: ["cms"],
+});
+export const getFaqs = unstable_cache(fetchFaqs, ["cms:faqs"], {
+  revalidate: 60,
+  tags: ["cms"],
+});

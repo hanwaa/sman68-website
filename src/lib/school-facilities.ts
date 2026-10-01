@@ -103,7 +103,7 @@ export async function getFacilities(): Promise<Facility[]> {
 }
 /**
  * Kata kunci yang menunjuk ke ruang tertentu (dicari dari nama & deskripsi ruang).
- * Hanya ruang consumption publik — ruang administrasi disaring oleh
+ * Hanya ruang consumption publik, ruang administrasi disaring oleh
  * `getFacilities` dan karena itu tidak perlu dicantumkan di sini.
  */
 const SUBJECT_HINTS: { needle: string; label: string }[] = [
@@ -164,7 +164,7 @@ export async function buildFacilityAnswer(message: string): Promise<string | nul
   }
 
   const lines = scoped.map((item) => {
-    const detail = item.description ? ` — ${item.description}` : "";
+    const detail = item.description ? `, ${item.description}` : "";
     const capacity = item.capacity ? ` (kapasitas ${item.capacity} orang)` : "";
     return `• ${item.name}${capacity}${detail}`;
   });
@@ -173,7 +173,7 @@ export async function buildFacilityAnswer(message: string): Promise<string | nul
 
   if (subject) {
     return [
-      `Di SMAN 68 Jakarta ada ${scoped.length} ruangan cocok — di ${perFloor.join(", ") || "tidak tercatat"}:`,
+      `Di SMAN 68 Jakarta ada ${scoped.length} ruangan cocok, di ${perFloor.join(", ") || "tidak tercatat"}:`,
       ...lines,
     ].join("\n");
   }

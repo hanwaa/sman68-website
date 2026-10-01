@@ -161,7 +161,7 @@ export default function AchievementWall({
             Dinding Prestasi <span className="text-brand-lime">SMAN 68</span>
           </>
         }
-        lead="Setiap trofi, setiap medali, setiap penghargaan — semua adalah cerita tentang dedikasi siswa SMAN 68 Jakarta."
+        lead="Setiap trofi, setiap medali, setiap penghargaan, semua adalah cerita tentang dedikasi siswa SMAN 68 Jakarta."
       >
         <div className="flex flex-wrap gap-x-10 gap-y-4">
           {[
@@ -178,7 +178,7 @@ export default function AchievementWall({
         </div>
       </PageHero>
 
-      {/* Sorotan prestasi — full width (ujung ke ujung) & bisa digeser */}
+      {/* Sorotan prestasi, full width (ujung ke ujung) & bisa digeser */}
       {highlight && (
         <section aria-label="Sorotan prestasi" className="relative select-none">
           <div
@@ -433,10 +433,9 @@ export default function AchievementWall({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.25, delay: Math.min(i * 0.05, 0.3) }}
-                  whileHover={{ y: -4 }}
                   onClick={() => setSelectedAchievement(achievement)}
                   className={cn(
-                    "card cursor-pointer group flex flex-col transition-colors duration-200 ease-out",
+                    "card cursor-pointer group flex flex-col hover:-translate-y-1",
                     highlightedId === achievement.id &&
                       "ring-2 ring-brand-lime border-brand-lime bg-brand-lime/5"
                   )}

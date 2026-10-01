@@ -13,6 +13,7 @@
   },
   "include": [
     "src/lib/upload-policy.ts",
+    "src/lib/upload.ts",
     "src/lib/remote-image.ts",
     "src/lib/csrf.ts",
     "src/lib/a11y.ts"

@@ -19,12 +19,12 @@ export type AchievementContent = {
 
 export const achievements: AchievementContent[] = [
   { id: "1", title: "Juara 1 Olimpiade Matematika Nasional", description: "Tim SMAN 68 meraih medali emas di Olimpiade Matematika tingkat nasional yang diikuti oleh 500+ peserta dari seluruh Indonesia.", level: "nasional", category: "akademik", awardType: "juara1", year: 2024, cover: "/assets/sekolah/sekolah-07-presentasi-kelas.jpg", participants: ["Rafi Ahmad", "Putri Sari"], ekskulId: "kir" },
-  { id: "2", title: "Best Innovation — International Science Fair", description: "Proyek inovasi energi terbarukan karya siswa kelas XII meraih penghargaan tertinggi di kompetisi sains internasional.", level: "internasional", category: "sains", awardType: "penghargaan", year: 2024, cover: "/assets/sekolah/sekolah-08-seminar-karya-ilmiah.jpg", participants: ["Kevin Pratama", "Nadia Kusuma"], ekskulId: "ivratix" },
-  { id: "3", title: "Juara 1 FLS2N — Paduan Suara Provinsi", description: "Paduan Suara SMAN 68 tampil memukau dan meraih juara 1 di Festival Lomba Seni Siswa Nasional tingkat provinsi.", level: "provinsi", category: "seni", awardType: "juara1", year: 2024, cover: "/assets/sekolah/sekolah-15-fls2n.jpg", ekskulId: "mbrass" },
+  { id: "2", title: "Best Innovation, International Science Fair", description: "Proyek inovasi energi terbarukan karya siswa kelas XII meraih penghargaan tertinggi di kompetisi sains internasional.", level: "internasional", category: "sains", awardType: "penghargaan", year: 2024, cover: "/assets/sekolah/sekolah-08-seminar-karya-ilmiah.jpg", participants: ["Kevin Pratama", "Nadia Kusuma"], ekskulId: "ivratix" },
+  { id: "3", title: "Juara 1 FLS2N, Paduan Suara Provinsi", description: "Paduan Suara SMAN 68 tampil memukau dan meraih juara 1 di Festival Lomba Seni Siswa Nasional tingkat provinsi.", level: "provinsi", category: "seni", awardType: "juara1", year: 2024, cover: "/assets/sekolah/sekolah-15-fls2n.jpg", ekskulId: "mbrass" },
   { id: "4", title: "Medali Emas Olimpiade Fisika Kota", description: "Siswa SMAN 68 meraih medali emas di kompetisi fisika tingkat kota Jakarta.", level: "kota", category: "akademik", awardType: "juara1", year: 2024, cover: "/assets/sekolah/sekolah-09-pembelajaran.jpg", participants: ["Bima Putra"], ekskulId: "tosla" },
   { id: "5", title: "Juara Umum O2SN Jakarta Pusat", description: "Atlet SMAN 68 dominasi Olimpiade Olahraga Siswa Nasional tingkat kota Jakarta.", level: "kota", category: "olahraga", awardType: "juara1", year: 2024, cover: "/assets/sekolah/sekolah-06-apel.jpg", ekskulId: "tosla" },
   { id: "6", title: "Juara 2 Debat Bahasa Inggris Nasional", description: "Tim Debat SMAN 68 raih posisi runner-up di kompetisi debat bahasa Inggris tingkat nasional.", level: "nasional", category: "akademik", awardType: "juara2", year: 2023, cover: "/assets/foto-2.webp", participants: ["Anisa Rahma", "Dito Prasetyo"], ekskulId: "kir" },
-  { id: "7", title: "Medali Perunggu Olimpiade Kimia Nasional", description: "Prestasi membanggakan di Olimpiade Kimia Nasional — membuktikan kekuatan akademik SMAN 68.", level: "nasional", category: "sains", awardType: "juara3", year: 2023, cover: "/assets/foto-1.jpg", participants: ["Sari Dewi"], ekskulId: "kir" },
+  { id: "7", title: "Medali Perunggu Olimpiade Kimia Nasional", description: "Prestasi membanggakan di Olimpiade Kimia Nasional, membuktikan kekuatan akademik SMAN 68.", level: "nasional", category: "sains", awardType: "juara3", year: 2023, cover: "/assets/foto-1.jpg", participants: ["Sari Dewi"], ekskulId: "kir" },
   { id: "8", title: "Juara 1 O2SN Basket Putra Kota", description: "Tim basket putra SMAN 68 tak terkalahkan di O2SN tingkat kota Jakarta.", level: "kota", category: "olahraga", awardType: "juara1", year: 2023, cover: "/assets/foto-4.jpg", ekskulId: "sight-basketball" },
   { id: "9", title: "Penghargaan Sekolah Sehat Nasional", description: "SMAN 68 mendapatkan penghargaan Sekolah Sehat dari Kementerian Kesehatan RI.", level: "nasional", category: "sosial", awardType: "penghargaan", year: 2023, cover: "/assets/sekolah/sekolah-13-pentas-siswa.jpg", ekskulId: "pmr" },
   { id: "10", title: "Juara 1 Karya Ilmiah Remaja Provinsi", description: "Penelitian inovatif siswa SMAN 68 mengungguli 200+ peserta se-DKI Jakarta.", level: "provinsi", category: "akademik", awardType: "juara1", year: 2022, cover: "/assets/hero-1.png", participants: ["Rizky Maulana", "Fitri Handayani"], ekskulId: "kir" },
@@ -56,7 +56,6 @@ export const galleryPhotos: GalleryPhotoContent[] = [
   { id: "7", src: "/assets/foto-3.jpg", caption: "Kegiatan ekskul", albumId: "2" },
   { id: "8", src: "/assets/foto-4.jpg", caption: "Keseruan bersama", albumId: "2" },
   { id: "9", src: "/assets/hero.png", caption: "Event tahunan", albumId: "3" },
-  { id: "10", src: "/assets/foto-1.jpg", caption: "Penerimaan penghargaan", albumId: "3" },
   ...schoolData.fotoResmi.map((foto, i) => ({
     id: `resmi-${i + 1}`,
     src: foto.src,
@@ -68,7 +67,7 @@ export const galleryPhotos: GalleryPhotoContent[] = [
 export type FacilityContent = { id: string; name: string; category: string; floor: string; building?: string; capacity?: number; description?: string; images: string[] };
 
 export const facilities: FacilityContent[] = [
-  { id: "ruang-kelas", name: "Ruang Kelas", category: "akademik", floor: "Lantai 1", description: "Ruang kelas dengan papan tulis, ventilasi, dan pencahayaan alami — bagian dari 24 ruang kelas sekolah yang seluruhnya tercatat layak (100%).", images: ["/assets/fasilitas/lantai-1/ruang-kelas/1.webp"] },
+  { id: "ruang-kelas", name: "Ruang Kelas", category: "akademik", floor: "Lantai 1", description: "Ruang kelas dengan papan tulis, ventilasi, dan pencahayaan alami, bagian dari 24 ruang kelas sekolah yang seluruhnya tercatat layak (100%).", images: ["/assets/fasilitas/lantai-1/ruang-kelas/1.webp"] },
   { id: "ruang-guru", name: "Ruang Guru", category: "administrasi", floor: "Lantai 1", description: "Ruang kerja seluruh guru dengan meja masing-masing, papan pengumuman, dan area istirahat.", images: ["/assets/fasilitas/lantai-1/ruang-guru/1.webp", "/assets/fasilitas/lantai-1/ruang-guru/2.webp", "/assets/fasilitas/lantai-1/ruang-guru/3.webp", "/assets/fasilitas/lantai-1/ruang-guru/4.webp", "/assets/fasilitas/lantai-1/ruang-guru/5.webp"] },
   { id: "tata-usaha", name: "Tata Usaha", category: "administrasi", floor: "Lantai 1", description: "Pusat layanan administrasi sekolah: surat-menyurat, legalisir, informasi umum, hingga agenda kegiatan sekolah.", images: ["/assets/fasilitas/lantai-1/tata-usaha/1.webp", "/assets/fasilitas/lantai-1/tata-usaha/2.webp", "/assets/fasilitas/lantai-1/tata-usaha/3.webp"] },
   { id: "kepala-sekolah", name: "Ruang Kepala Sekolah", category: "administrasi", floor: "Lantai 1", description: "Ruang kerja kepala sekolah dengan area tamu untuk menerima orang tua, siswa, dan mitra sekolah.", images: ["/assets/fasilitas/lantai-1/kepala-sekolah/1.webp", "/assets/fasilitas/lantai-1/kepala-sekolah/2.webp", "/assets/fasilitas/lantai-1/kepala-sekolah/3.webp", "/assets/fasilitas/lantai-1/kepala-sekolah/4.webp", "/assets/fasilitas/lantai-1/kepala-sekolah/5.webp"] },
@@ -85,7 +84,7 @@ export const facilities: FacilityContent[] = [
   { id: "lab-komputer", name: "Lab Komputer", category: "akademik", floor: "Lantai 2", description: "Laboratorium komputer untuk pembelajaran informatika dan asesmen berbasis komputer, terhubung jaringan internet sekolah.", images: ["/assets/fasilitas/lantai-2/lab-komputer/1.webp", "/assets/fasilitas/lantai-2/lab-komputer/2.webp", "/assets/fasilitas/lantai-2/lab-komputer/3.webp"] },
   { id: "bk", name: "Ruang BK", category: "layanan", floor: "Lantai 2", description: "Ruang Bimbingan Konseling untuk pendampingan pribadi, sosial, belajar, dan karier siswa.", images: ["/assets/fasilitas/lantai-2/bk/1.webp"] },
   { id: "kelas-xi", name: "Ruang Kelas XI", category: "akademik", floor: "Lantai 3", description: "Ruang kelas lantai 3 dengan tata ruang diskusi kelompok, papan tulis, dan pencahayaan alami.", images: ["/assets/fasilitas/lantai-3/kelas-xi/1.webp"] },
-  { id: "lab-biologi", name: "Lab Biologi", category: "akademik", floor: "Lantai 3", description: "Laboratorium biologi dengan mikroskop, torso, dan peralatan praktikum — lengkap dengan ruang persiapan bahan.", images: ["/assets/fasilitas/lantai-3/lab-biologi/1.webp", "/assets/fasilitas/lantai-3/lab-biologi/5.webp", "/assets/fasilitas/lantai-3/lab-biologi/2.webp", "/assets/fasilitas/lantai-3/lab-biologi/3.webp", "/assets/fasilitas/lantai-3/lab-biologi/4.webp"] },
+  { id: "lab-biologi", name: "Lab Biologi", category: "akademik", floor: "Lantai 3", description: "Laboratorium biologi dengan mikroskop, torso, dan peralatan praktikum, lengkap dengan ruang persiapan bahan.", images: ["/assets/fasilitas/lantai-3/lab-biologi/1.webp", "/assets/fasilitas/lantai-3/lab-biologi/5.webp", "/assets/fasilitas/lantai-3/lab-biologi/2.webp", "/assets/fasilitas/lantai-3/lab-biologi/3.webp", "/assets/fasilitas/lantai-3/lab-biologi/4.webp"] },
   { id: "agama-kristen", name: "Ruang Agama Kristen", category: "ibadah", floor: "Lantai 3", description: "Ruang pembinaan rohani Kristen untuk ibadah, pendalaman iman, dan kegiatan spiritual siswa.", images: ["/assets/fasilitas/lantai-3/agama-kristen/1.webp", "/assets/fasilitas/lantai-3/agama-kristen/2.webp"] },
   { id: "ruang-kelas-4", name: "Ruang Kelas XII", category: "akademik", floor: "Lantai 4", description: "Ruang kelas lantai 4 dengan pencahayaan alami untuk kegiatan belajar mengajar kelas XII.", images: ["/assets/fasilitas/lantai-4/ruang-kelas-4/1.webp"] },
   { id: "lab-ips", name: "Lab IPS", category: "akademik", floor: "Lantai 4", description: "Laboratorium ilmu pengetahuan sosial untuk pembelajaran berbasis proyek, diskusi, dan pameran karya siswa.", images: ["/assets/fasilitas/lantai-4/lab-ips/1.webp", "/assets/fasilitas/lantai-4/lab-ips/2.webp"] },
@@ -128,10 +127,10 @@ export const teachers: TeacherContent[] = [
 export type TestimonialContent = { id: string; name: string; role: string; quote: string; photo: string };
 
 export const testimonials: TestimonialContent[] = [
-  { id: "1", name: "Rafi Ahmad", role: "Siswa Kelas XI IPA", quote: "SMAN 68 bukan sekolah biasa. Di sini aku bukan hanya belajar — aku tumbuh. Ekskul, kompetisi, persahabatan — semua ada di SMAN 68.", photo: "RA" },
-  { id: "2", name: "Dani Kusuma", role: "Alumni 2020, Software Engineer", quote: "Empat tahun di SMAN 68 membentuk siapa aku sekarang. Mentalitas berprestasi, kolaborasi, dan keberanian untuk bermimpi besar — semua dimulai dari sini.", photo: "DK" },
+  { id: "1", name: "Rafi Ahmad", role: "Siswa Kelas XI IPA", quote: "SMAN 68 bukan sekolah biasa. Di sini aku bukan hanya belajar, aku tumbuh. Ekskul, kompetisi, persahabatan, semua ada di SMAN 68.", photo: "RA" },
+  { id: "2", name: "Dani Kusuma", role: "Alumni 2020, Software Engineer", quote: "Empat tahun di SMAN 68 membentuk siapa aku sekarang. Mentalitas berprestasi, kolaborasi, dan keberanian untuk bermimpi besar, semua dimulai dari sini.", photo: "DK" },
   { id: "3", name: "Ibu Dewi Santoso", role: "Orang Tua Siswa", quote: "Sebagai orang tua, saya bangga melihat anak saya berkembang di SMAN 68. Sekolah ini benar-benar peduli pada karakter siswa, bukan hanya nilai akademik.", photo: "DS" },
-  { id: "4", name: "Pak Ahmad Ridwan", role: "Guru Matematika", quote: "Mengajar di SMAN 68 adalah kebanggaan. Siswa di sini tidak hanya cerdas — mereka juga punya karakter. Setiap hari adalah inspirasi bagi saya.", photo: "AR" },
+  { id: "4", name: "Pak Ahmad Ridwan", role: "Guru Matematika", quote: "Mengajar di SMAN 68 adalah kebanggaan. Siswa di sini tidak hanya cerdas, mereka juga punya karakter. Setiap hari adalah inspirasi bagi saya.", photo: "AR" },
 ];
 
 export const peoplePhotos: { src: string; alt: string }[] = [
@@ -178,7 +177,7 @@ export const faqs: FaqContent[] = [
   {
     id: "umum-2",
     question: "Apakah ada biaya pendaftaran?",
-    answer: "Tidak. Seluruh proses PPDB tidak dipungut biaya. Waspadai pihak yang meminta pembayaran dengan alasan apa pun — pendaftaran hanya sah melalui portal resmi.",
+    answer: "Tidak. Seluruh proses PPDB tidak dipungut biaya. Waspadai pihak yang meminta pembayaran dengan alasan apa pun, pendaftaran hanya sah melalui portal resmi.",
     category: "umum",
   },
   {
@@ -190,7 +189,7 @@ export const faqs: FaqContent[] = [
   {
     id: "umum-4",
     question: "Dokumen apa yang harus disiapkan?",
-    answer: "Kartu Keluarga (KK) asli dan fotokopi, Akta Kelahiran, Ijazah/SKHUN SMP atau sederajat, rapor SMP semester 1–5, pas foto 3x4 latar merah, dan sertifikat prestasi (jika ada).",
+    answer: "Kartu Keluarga (KK) asli dan fotokopi, Akta Kelahiran, Ijazah/SKHUN SMP atau sederajat, rapor SMP semester 1-5, pas foto 3x4 latar merah, dan sertifikat prestasi (jika ada).",
     category: "umum",
   },
   {
@@ -202,7 +201,7 @@ export const faqs: FaqContent[] = [
   {
     id: "umum-6",
     question: "Apakah siswa dari luar Jakarta bisa mendaftar?",
-    answer: "Jalur Zonasi dan Afirmasi diperuntukkan bagi warga DKI Jakarta sesuai domisili KK. Siswa luar Jakarta umumnya melalui jalur Prestasi atau Perpindahan Tugas — periksa juknis resmi PPDB DKI untuk ketentuan terbaru.",
+    answer: "Jalur Zonasi dan Afirmasi diperuntukkan bagi warga DKI Jakarta sesuai domisili KK. Siswa luar Jakarta umumnya melalui jalur Prestasi atau Perpindahan Tugas, periksa juknis resmi PPDB DKI untuk ketentuan terbaru.",
     category: "umum",
   },
   {
@@ -244,19 +243,19 @@ export const faqs: FaqContent[] = [
 ];
 
 export const ppdbSteps: { title: string; description: string }[] = [
-  { title: "Kumpulkan Berkas, Santai Saja", description: "Daftar centang dokumen sudah kami siapkan — tidak ada yang terlewat." },
+  { title: "Kumpulkan Berkas, Santai Saja", description: "Daftar centang dokumen sudah kami siapkan, tidak ada yang terlewat." },
   { title: "Daftar dari Rumah", description: "Lima langkah simpel di portal resmi; panitia siap membantu lewat chat." },
-  { title: "Tunggu Kabar Baiknya", description: "Pantau status dengan tenang — kami kabari setiap tahap." },
+  { title: "Tunggu Kabar Baiknya", description: "Pantau status dengan tenang, kami kabari setiap tahap." },
   { title: "Selamat, Saatnya Bergabung!", description: "Selesaikan daftar ulang tanpa biaya, lalu kenalan di orientasi siswa baru." },
 ];
 
 export const ppdbSchedule: { label: string; date: string; note?: string }[] = [
-  { label: "Pendaftaran Zonasi", date: "3 – 7 Juni 2025" },
-  { label: "Verifikasi Dokumen", date: "8 – 10 Juni 2025" },
+  { label: "Pendaftaran Zonasi", date: "3 - 7 Juni 2025" },
+  { label: "Verifikasi Dokumen", date: "8 - 10 Juni 2025" },
   { label: "Pengumuman Zonasi", date: "12 Juni 2025" },
-  { label: "Pendaftaran Prestasi", date: "15 – 20 Juni 2025" },
+  { label: "Pendaftaran Prestasi", date: "15 - 20 Juni 2025" },
   { label: "Pengumuman Final", date: "25 Juni 2025" },
-  { label: "Daftar Ulang", date: "26 – 30 Juni 2025" },
+  { label: "Daftar Ulang", date: "26 - 30 Juni 2025" },
 ];
 
 export const ppdbFees: { label: string; amount: string; note?: string }[] = [

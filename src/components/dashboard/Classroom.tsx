@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Check, Copy, Plus, School, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useModalA11y } from "@/lib/useModalA11y";
@@ -78,6 +78,14 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
   const [postLink, setPostLink] = useState("");
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+    },
+    []
+  );
 
   const [classModal, setClassModal] = useState(false);
   const [classForm, setClassForm] = useState({ name: "", section: "", subject: "", room: "" });
@@ -112,9 +120,11 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
   }, [role, userName]);
 
   // Guru: pantau permintaan bergabung terbaru secara berkala.
+  // Lewati poll saat tab hidden/offline.
   useEffect(() => {
     if (!isTeacher) return;
     const timer = setInterval(async () => {
+      if (document.hidden || !navigator.onLine) return;
       const remote = await apiFetchClassroomStore(role, userName);
       if (remote) setStore(remote);
     }, 60_000);
@@ -138,8 +148,16 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
   const [refreshing, setRefreshing] = useState(false);
   const activeClass = myClasses.find((c) => c.id === activeClassId) ?? null;
   const homeroomClass = myClasses.find((c) => c.id.startsWith("walikelas-")) ?? myClasses[0] ?? null;
-  const studentClassLabel = homeroomClass?.section ?? "-";
-  const studentWaliName = homeroomClass?.teacher ?? "Belum ada";
+  // Kartu "Kelas kamu": prioritaskan kelas wali (enrolled/pending), fallback ke homeroomClass.
+  const homeroomCardClass =
+    [...myClasses, ...studentPendingClasses].find((c) => c.id.startsWith("walikelas-")) ??
+    homeroomClass;
+  // Kartu "Kelas Wali" khusus guru: hanya kelas bawaan (bukan mapel manual).
+  const teacherWaliClass = isTeacher
+    ? (myClasses.find((c) => c.id.startsWith("walikelas-")) ?? null)
+    : null;
+  const studentClassLabel = homeroomCardClass?.section ?? "-";
+  const studentWaliName = homeroomCardClass?.teacher ?? "Belum ada";
   const classPosts = activeClass ? postsFor(store, activeClass.id) : [];
   const classAssignments = activeClass ? assignmentsFor(store, activeClass.id) : [];
 
@@ -167,7 +185,8 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
       await navigator.clipboard.writeText(code);
       setCopiedCode(code);
       onShowToast(`Kode kelas ${code} disalin.`);
-      setTimeout(() => setCopiedCode(null), 2000);
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+      copyTimer.current = setTimeout(() => setCopiedCode(null), 2000);
     } catch {
       onShowToast(`Kode kelas: ${code}`);
     }
@@ -226,27 +245,39 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
   const handleJoinClass = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = joinCode.trim().toUpperCase();
-    const target = store.classes.find((c) => c.code === code && !c.enrolled && !c.pending);
-    if (!target) {
-      onShowToast(`Kode "${code}" tidak ditemukan atau permintaanmu sudah terkirim.`);
-      return;
-    }
+    if (!code) return;
+    // Jangan resolve kode via store lokal: store siswa di-scope ke kelas
+    // miliknya saja, sehingga kode kelas baru tak akan pernah ketemu.
+    // Kirim kode ke server; server yang me-resolve ke classId.
     const result = await apiClassroomAction({
       action: "join-class",
-      classId: target.id,
+      code,
       studentName: userName,
     });
     if (!result.ok) {
       onShowToast(result.error ?? "Gagal mengirim permintaan bergabung.");
       return;
     }
-    setStore((prev) => ({
-      ...prev,
-      classes: prev.classes.map((c) => (c.id === target.id ? { ...c, pending: true } : c)),
-    }));
+    const joinedId = (result as { id?: string }).id;
+    if ((result as { already?: boolean }).already) {
+      onShowToast(`Kamu sudah tergabung di kelas dengan kode "${code}".`);
+    } else {
+      onShowToast(
+        `Permintaan bergabung dengan kode "${code}" terkirim. Tunggu persetujuan guru.`
+      );
+    }
     setJoinCode("");
     setClassModal(false);
-    onShowToast(`Permintaan bergabung ke ${target.name} ${target.section} terkirim. Tunggu persetujuan guru.`);
+    // Segarkan dari server agar kelas pending langsung tampil.
+    const remote = await apiFetchClassroomStore(role, userName);
+    if (remote) {
+      setStore(remote);
+    } else if (joinedId) {
+      setStore((prev) => ({
+        ...prev,
+        classes: prev.classes.map((c) => (c.id === joinedId ? { ...c, pending: true } : c)),
+      }));
+    }
   };
 
   const handleApproveMember = async (request: ClassRequest) => {
@@ -342,7 +373,7 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
       onShowToast(`Berkas "${file.name}" diunggah ke penyimpanan.`);
     } catch {
       if (file.size > 1.5 * 1024 * 1024) {
-        onShowToast("Penyimpanan R2 tidak tersedia — berkas terlalu besar untuk mode offline.");
+        onShowToast("Penyimpanan R2 tidak tersedia, berkas terlalu besar untuk mode offline.");
         return;
       }
       try {
@@ -643,6 +674,24 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
 
   /* ------------------------------- LIST VIEW ------------------------------- */
 
+  // Loading harus dicek sebelum activeClass: saat pertama dibuka activeClass
+  // selalu null (myClasses masih kosong) sehingga skeleton detail tak pernah
+  // tampil dan user sempat melihat "0 kelas" yang terlihat seperti rusak.
+  if (!storeLoaded) {
+    return (
+      <div className="space-y-4" aria-busy="true" aria-live="polite">
+        <span className="sr-only">Memuat kelas digital...</span>
+        <div className="h-8 w-64 animate-pulse rounded-lg bg-line" />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-24 animate-pulse rounded-2xl bg-line/70" />
+          ))}
+        </div>
+        <div className="h-64 animate-pulse rounded-2xl bg-line/60" />
+      </div>
+    );
+  }
+
   if (!activeClass) {
     return (
       <>
@@ -656,6 +705,8 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
           teacherRequests={teacherRequests}
           studentClassLabel={studentClassLabel}
           studentWaliName={studentWaliName}
+          homeroomClass={homeroomCardClass}
+          teacherWaliClass={teacherWaliClass}
           assignmentCountFor={(classId) => assignmentsFor(store, classId).length}
           doneCountFor={(cls) => {
             const list = assignmentsFor(store, cls.id);
@@ -737,13 +788,14 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
             <form onSubmit={handleJoinClass} className="mt-2 space-y-3.5">
               <h2 className="font-display text-lg font-bold text-ink">Gabung Kelas</h2>
               <p className="text-xs leading-relaxed text-muted">
-                Minta kode kelas kepada guru, lalu masukkan kode tersebut di bawah ini. Contoh kode
-                yang bisa dicoba: <span className="font-semibold text-ink">MTK-68X1</span>.
+                Minta kode kelas kepada wali kelas / guru pengampu, lalu masukkan kode tersebut
+                di bawah ini. Kelas bawaan wali kelas sudah otomatis diikuti, menu ini hanya
+                untuk kelas tambahan.
               </p>
               <input
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value)}
-                placeholder="Contoh: MTK-68X1"
+                placeholder="Contoh: WALI-XI3"
                 className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-center text-sm font-bold uppercase tracking-widest focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
                 required
               />
@@ -774,21 +826,6 @@ export default function Classroom({ role, userName, onShowToast = () => {} }: Cl
             gradedAssignments.length
         )
       : null;
-
-  if (!storeLoaded) {
-    return (
-      <div className="space-y-4" aria-busy="true" aria-live="polite">
-        <span className="sr-only">Memuat kelas digital...</span>
-        <div className="h-8 w-64 animate-pulse rounded-lg bg-line" />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-2xl bg-line/70" />
-          ))}
-        </div>
-        <div className="h-64 animate-pulse rounded-2xl bg-line/60" />
-      </div>
-    );
-  }
 
   return (
     <div>

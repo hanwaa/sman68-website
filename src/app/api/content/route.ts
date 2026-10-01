@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConfigured, getDb } from "@/lib/db";
+import { trackScale } from "@/lib/track-sample";
 import { classInitials } from "@/lib/classroom";
 import { newsArticles, type NewsArticle } from "@/lib/news";
 import {
@@ -49,8 +50,64 @@ const heroSlidesFallback = [
   { src: "/assets/foto-2.webp", alt: "Semangat siswa SMAN 68 Jakarta", caption: "Kebersamaan siswa" },
 ];
 
+// Cache server 30 dtk per resource: tiap hitakken DB/external cukup 1x per
+// 30 dtk per proses, bukan per request. State di lib bersama agar invalidasi
+// dari route admin/CMS benar-benar membersihkan cache route ini.
+import {
+  clearInflight,
+  getContentCache,
+  getInflight,
+  setContentCache,
+  setInflight,
+  type ContentPayload,
+} from "@/lib/content-cache";
+export { purgeContentCache } from "@/lib/content-cache";
+
 /** GET /api/content?resource=news|achievements|gallery|facilities|teachers|testimonials|faqs|ppdb|ekskul|events */
 export async function GET(request: NextRequest) {
+  const params = request.nextUrl.searchParams;
+  const resource = params.get('resource') ?? '';
+  const plainGet = request.method === 'GET' && resource !== '' && [...params.keys()].length === 1;
+  if (!plainGet) return handleGet(request);
+
+  // Cache hit: selalu bikin NextResponse baru (body tidak boleh dipakai ulang).
+  const hit = getContentCache(resource);
+  if (hit) {
+    return NextResponse.json({ data: hit.body, source: hit.source });
+  }
+
+  // Singleflight: N request MISS konkuren untuk resource sama berbagi HASIL
+  // (data), bukan objek Response. Berbagi Response membuat request kedua kena
+  // "ReadableStream is locked" karena stream body hanya bisa dikonsumsi sekali.
+  const pending = getInflight(resource);
+  if (pending) {
+    const { status, body } = await pending;
+    return NextResponse.json(body as object, { status });
+  }
+
+  const task = (async (): Promise<ContentPayload> => {
+    try {
+      const res = await handleGet(request);
+      const body = (await res.json()) as { data?: unknown; source?: string };
+      if (res.ok && body.data !== undefined) {
+        setContentCache(resource, body.data, body.source ?? "db");
+        return { status: 200, body: { data: body.data, source: body.source ?? "db" } };
+      }
+      return { status: res.status, body };
+    } catch {
+      return { status: 500, body: { error: "Gagal memuat konten." } };
+    }
+  })();
+  setInflight(resource, task);
+  try {
+    const { status, body } = await task;
+    return NextResponse.json(body as object, { status });
+  } finally {
+    clearInflight(resource, task);
+  }
+}
+
+async function handleGet(request: NextRequest) {
   const resource = request.nextUrl.searchParams.get("resource") ?? "";
 
   const fallback = () => {
@@ -120,7 +177,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "resource wajib diisi." }, { status: 400 });
   }
 
-  // Instagram tidak bergantung pada database — ambil langsung dari feed widget.
+  // Instagram tidak bergantung pada database, ambil langsung dari feed widget.
   if (resource === "instagram") {
     const feed = await getInstagramFeed();
     return NextResponse.json({ data: feed, source: "instagram" });
@@ -150,7 +207,8 @@ export async function GET(request: NextRequest) {
           category: text(row.category) as NewsArticle["category"],
           author: text(row.author),
           cover: text(row.cover_key),
-          views: Number(row.views) || 0,
+          // Samakan dengan dasbor: hitungan mentah × skala sampling.
+          views: (Number(row.views) || 0) * trackScale(),
           dateLabel: relativeLabel(row.published_at as string | null),
           publishedAt: text(row.published_at),
         }));
@@ -377,8 +435,17 @@ export async function GET(request: NextRequest) {
           order by a.sort asc
         `) as Row[];
         if (rows.length === 0) break;
+        // Dedupe: 1 alumni bisa punya N riwayat pendidikan (fan-out join).
+        // Ambil baris pertama per alumni agar kartu tidak duplikat.
+        const seen = new Set<string>();
+        const unique = rows.filter((row) => {
+          const id = text(row.id);
+          if (seen.has(id)) return false;
+          seen.add(id);
+          return true;
+        });
         return NextResponse.json({
-          data: rows.map((row) => ({
+          data: unique.map((row) => ({
             id: text(row.id),
             name: text(row.name),
             graduationYear: row.graduation_year == null ? null : Number(row.graduation_year),

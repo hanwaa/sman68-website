@@ -4,7 +4,7 @@
  * Modul ini murni (tanpa I/O) supaya bisa diuji terpisah. Catatan keamanan:
  * Content-Type yang ditandatangani ke R2 selalu diambil dari ekstensi, bukan
  * dari klaim client. Kalau MIME tidak boleh (text/html, image/svg+xml, JS),
- * file ditolak — mencegah R2 menyajikan berkas yang dieksekusi peramban.
+ * file ditolak, mencegah R2 menyajikan berkas yang dieksekusi peramban.
  */
 
 export const UPLOAD_MAX_BYTES = 25 * 1024 * 1024;
@@ -37,10 +37,13 @@ const FOLDER_ROOTS = ["uploads", "cms", "classroom", "absensi"] as const;
 /** Akar folder yang hanya menerima gambar (bukan dokumen). */
 const IMAGE_ONLY_ROOTS = new Set<string>(["absensi", "cms"]);
 
+/** Akar folder yang hanya boleh ditulis admin (konten publik situs). */
+const ADMIN_ONLY_ROOTS = new Set<string>(["cms"]);
+
 const FOLDER_PATTERN = /^[a-z0-9][a-z0-9/_-]{0,48}$/;
 
 export type UploadPolicyDecision =
-  | { ok: true; folder: string; extension: string; contentType: string }
+  | { ok: true; folder: string; extension: string; contentType: string; size: number }
   | { ok: false; status: number; error: string };
 
 export type UploadPolicyInput = {
@@ -48,6 +51,8 @@ export type UploadPolicyInput = {
   fileName?: unknown;
   contentType?: unknown;
   size?: unknown;
+  /** Peran peminta, folder admin-only ditolak bila bukan admin. */
+  role?: unknown;
 };
 
 function extensionOf(fileName: string): string {
@@ -66,6 +71,7 @@ export function validateUpload({
   fileName,
   contentType,
   size,
+  role,
 }: UploadPolicyInput): UploadPolicyDecision {
   const cleanFolder = typeof folder === "string" ? folder.trim().replace(/^\/+|\/+$/g, "") : "";
   const root = cleanFolder.split("/")[0];
@@ -74,6 +80,10 @@ export function validateUpload({
   }
   if (!(FOLDER_ROOTS as readonly string[]).includes(root)) {
     return { ok: false, status: 400, error: "Folder unggahan tidak diizinkan." };
+  }
+  // Folder CMS menampung aset publik situs, siswa tidak boleh staging berkas di sana.
+  if (ADMIN_ONLY_ROOTS.has(root) && role !== "admin") {
+    return { ok: false, status: 403, error: "Folder ini hanya untuk admin." };
   }
 
   const name = typeof fileName === "string" ? fileName.trim() : "";
@@ -117,5 +127,5 @@ export function validateUpload({
     return { ok: false, status: 413, error: "Ukuran berkas melebihi 25 MB." };
   }
 
-  return { ok: true, folder: cleanFolder, extension, contentType: allowed };
+  return { ok: true, folder: cleanFolder, extension, contentType: allowed, size: Math.trunc(bytes) };
 }

@@ -473,7 +473,7 @@ export const alumniCareer: AlumniCareer[] = [
     field: "Bisnis & Keuangan",
     photo: "https://i.pravatar.cc/800?img=34",
     linkedin: "https://www.linkedin.com/in/ameliaputri",
-    bio: "Menganalisis pasar investasi Australia–Asia dan aktif di komunitas diaspora Indonesia.",
+    bio: "Menganalisis pasar investasi Australia-Asia dan aktif di komunitas diaspora Indonesia.",
     path: [
       { year: "2016", title: "Lulus SMAN 68 Jakarta", place: "IPS" },
       { year: "2020", title: "S1 Akuntansi", place: "Universitas Indonesia" },

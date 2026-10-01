@@ -49,6 +49,8 @@ export type AdminStats = {
   visitorsToday: number;
   pageviewsToday: number;
   pageviewsTotal: number;
+  trafficSampled: boolean;
+  trafficScale: number;
   moderationPending: number;
   roles: { student: number; teacher: number; admin: number };
   weekly: { day: string; visitors: number; pageviews: number }[];

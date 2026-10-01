@@ -76,7 +76,7 @@ export default function BeritaList({ initialArticles }: { initialArticles: NewsA
             Selalu Ada Cerita Baru <span className="text-brand-lime">dari SMAN 68</span>
           </>
         }
-        lead="Ikuti perkembangan terbaru — prestasi, kegiatan, dan pengumuman resmi dari SMAN 68 Jakarta."
+        lead="Ikuti perkembangan terbaru: prestasi, kegiatan, dan pengumuman resmi dari SMAN 68 Jakarta."
       />
 
       <div className="container-custom py-10">
@@ -130,9 +130,8 @@ export default function BeritaList({ initialArticles }: { initialArticles: NewsA
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  whileHover={{ y: -3 }}
                   className={cn(
-                    "card mb-6 group cursor-pointer overflow-hidden",
+                    "card mb-6 group cursor-pointer overflow-hidden hover:-translate-y-1",
                     highlightedId === featured.id &&
                       "ring-2 ring-brand-lime border-brand-lime bg-brand-lime/5"
                   )}
@@ -173,9 +172,8 @@ export default function BeritaList({ initialArticles }: { initialArticles: NewsA
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ delay: Math.min(i * 0.05, 0.3) }}
-                    whileHover={{ y: -4 }}
                     className={cn(
-                      "group relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer bg-brand-pine",
+                      "group relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer bg-brand-pine transition-transform duration-200 ease-out hover:-translate-y-1",
                       highlightedId === article.id &&
                         "ring-2 ring-brand-lime border border-brand-lime"
                     )}

@@ -9,7 +9,7 @@ export type AttendanceApiRecord = {
   recordedBy?: string | null;
 };
 
-/** Ambil data absensi dari Neon. Mengembalikan null bila API tidak tersedia. */
+/** Ambil data absensi dari database. Mengembalikan null bila API tidak tersedia. */
 export async function apiFetchAttendance(params: {
   studentId?: string;
   date?: string;
@@ -29,7 +29,7 @@ export async function apiFetchAttendance(params: {
   }
 }
 
-/** Simpan/perbarui absensi di Neon. */
+/** Simpan/perbarui absensi di database. */
 export async function apiPushAttendance(payload: {
   studentId: string;
   date: string;

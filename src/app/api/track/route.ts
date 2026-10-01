@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConfigured, getDb } from "@/lib/db";
+import { trackSampleRate } from "@/lib/track-sample";
+import { readJsonLimited } from "@/lib/api-guard";
+import { isSameOrigin } from "@/lib/csrf";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,7 +24,7 @@ const PUBLIC_PREFIXES = [
   "/aksesibilitas",
 ];
 
-/** Hanya lintasan halaman publik yang dicatat — bukan dashboard/login/API. */
+/** Hanya lintasan halaman publik yang dicatat, bukan dashboard/login/API. */
 function sanitizePath(raw: string): string | null {
   const path = raw.split("?")[0].split("#")[0].trim();
   if (!path.startsWith("/") || path.length > PATH_MAX_LENGTH) return null;
@@ -32,12 +35,12 @@ function sanitizePath(raw: string): string | null {
 }
 
 export async function POST(request: NextRequest) {
-  const body = (await request.json().catch(() => null)) as { path?: string } | null;
+  const body = (await readJsonLimited<{ path?: string }>(request, 2000)) as {
+    path?: string;
+  } | null;
   const path = sanitizePath(body?.path ?? "");
 
-  const origin = request.headers.get("origin");
-  const host = request.headers.get("host");
-  const sameOrigin = !origin || !host || new URL(origin).host === host;
+  const sameOrigin = isSameOrigin(request);
   const userAgent = request.headers.get("user-agent") ?? "";
 
   if (!path || !sameOrigin || BOT_PATTERN.test(userAgent) || !dbConfigured()) {
@@ -51,12 +54,41 @@ export async function POST(request: NextRequest) {
     issueCookie = true;
   }
 
+  // Sampling tulis: tiap pageview = 3 tulis ke baris panas yang sama
+  // (upsert page_views + insert site_visits + update news.views). Saat banjir
+  // traffic, ratusan upsert konkuren ke SATU baris = lock contention +
+  // pool habis. Sampling deterministik per pengunjung (hash stabil, tak bias):
+  // beban tulis turun proporsional, estimasi = hitungan × (1/rate).
+  // Atur penuh via env saat butuh akurasi mutlak: TRACK_SAMPLE_RATE=1
+  const TRACK_SAMPLE_RATE = trackSampleRate();
+  let visitorHash = 0;
+  for (let i = 0; i < visitorId.length; i++) {
+    visitorHash = (visitorHash * 31 + visitorId.charCodeAt(i)) >>> 0;
+  }
+  const sampledIn = TRACK_SAMPLE_RATE >= 1 || visitorHash % 100 < TRACK_SAMPLE_RATE * 100;
+
   // Hitungan pembaca artikel: /berita/<slug>
   const articleMatch = path.match(/^\/berita\/([^/]+)$/);
   const slug = articleMatch ? decodeURIComponent(articleMatch[1]).slice(0, 160) : null;
 
+  if (!sampledIn) {
+    const response = new NextResponse(null, { status: 204 });
+    if (issueCookie) {
+      response.cookies.set(VISITOR_COOKIE, visitorId, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: VISITOR_MAX_AGE,
+      });
+    }
+    return response;
+  }
+
   try {
     const sql = getDb();
+    // Ketiga tulis digabung paralel (termasuk update views artikel) agar
+    // 1 pageview = 1 round-trip, bukan 2.
     await Promise.all([
       sql`
         insert into page_views (day, path, views)
@@ -70,13 +102,13 @@ export async function POST(request: NextRequest) {
         values (current_date, ${visitorId})
         on conflict (day, visitor_id) do nothing
       `,
+      slug
+        ? sql`
+          update news set views = views + 1
+          where slug = ${slug} and status = 'published'
+        `
+        : Promise.resolve([]),
     ]);
-    if (slug) {
-      await sql`
-        update news set views = views + 1
-        where slug = ${slug} and status = 'published'
-      `;
-    }
   } catch {
     /* pencatatan statistik tidak boleh mengganggu pengunjung */
   }

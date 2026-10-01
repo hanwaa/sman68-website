@@ -28,6 +28,18 @@ const nextConfig = {
         ],
       },
       {
+        // Aset statis publik (logo, foto sekolah/guru): aman di-cache lama di
+        // edge & browser. Nama file stabil; update konten di-deploy ulang dan
+        // SWR menutup jeda propagasi tanpa ever-stale seperti immutable.
+        source: "/assets/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, s-maxage=31536000, stale-while-revalidate=86400",
+          },
+        ],
+      },
+      {
         // Sitemap & robots: dibuat stabil di cache edge supaya fetch Google
         // tidak pernah menyentuh origin (dan tidak gagal saat deploy).
         source: "/sitemap.xml",
@@ -51,6 +63,27 @@ const nextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
+          // CSP bertahap: longgar untuk script/style (Next inline + framer/leaflet
+          // butuh 'unsafe-inline'), ketat untuk yang lain. Menutup object/embed
+          // asing, form ke luar, dan framing — tanpa merusak render saat ini.
+          // Pengetatan lanjutan (nonce + hapus unsafe-inline) butuh middleware.
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "style-src 'self' 'unsafe-inline'",
+              "font-src 'self' data:",
+              "img-src 'self' data: blob: https:",
+              "media-src 'self' blob: https:",
+              "connect-src 'self' https://api.search.tinyfish.ai https://api.fetch.tinyfish.ai",
+              "frame-src 'self' https:",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+            ].join("; "),
+          },
         ],
       },
     ];

@@ -26,7 +26,7 @@ export type KnowledgeItem = {
   chips?: string[];
   volatile?: boolean;
   webQuery?: string;
-  /** Data internal sekolah — jangan ditimpa info web yang bisa bertentangan. */
+  /** Data internal sekolah, jangan ditimpa info web yang bisa bertentangan. */
   noWeb?: boolean;
 };
 
@@ -356,7 +356,13 @@ function staticItems(): KnowledgeItem[] {
 async function buildDynamicItems(): Promise<KnowledgeItem[]> {
   const items: KnowledgeItem[] = [];
 
-  const faqs = await getFaqs();
+  // Paralel: 4 query independen, sebelumnya sekuensial (4x latency DB).
+  const [faqs, news, achievements, ekskul] = await Promise.all([
+    getFaqs(),
+    getNews(),
+    getAchievements(),
+    getEkskul(),
+  ]);
   const ppdbPattern = /ppdb|pendaftaran|jalur|zonasi|afirmasi|daftar ulang|spmb/;
   for (const faq of faqs) {
     const aboutPpdb =
@@ -376,7 +382,6 @@ async function buildDynamicItems(): Promise<KnowledgeItem[]> {
     });
   }
 
-  const news = await getNews();
   if (news.length > 0) {
     items.push({
       id: "berita",
@@ -388,7 +393,6 @@ async function buildDynamicItems(): Promise<KnowledgeItem[]> {
     });
   }
 
-  const achievements = await getAchievements();
   if (achievements.length > 0) {
     items.push({
       id: "prestasi",
@@ -413,7 +417,6 @@ async function buildDynamicItems(): Promise<KnowledgeItem[]> {
     });
   }
 
-  const ekskul = await getEkskul();
   if (ekskul.length > 0) {
     const shown = ekskul.slice(0, 10).map((item) => item.name);
     const rest = ekskul.length - shown.length;
@@ -506,14 +509,12 @@ function coverage(message: string, item: KnowledgeItem): number {
   return hits / messageTokens.length;
 }
 
-const FRESHNESS_WORDS = [
+const FRESHNESS_WORDS_BASE = [
   "terbaru",
   "terupdate",
   "update",
   "sekarang",
   "tahun ini",
-  "2026",
-  "2027",
   "masih",
   "terakhir",
   "berubah",
@@ -522,8 +523,17 @@ const FRESHNESS_WORDS = [
   "kapan",
 ];
 
+/** Kata freshness + tahun berjalan/dinamika (deteksi /19xx|20xx/ agar tak basi tiap tahun). */
+function freshnessWords(): string[] {
+  const year = new Date().getFullYear();
+  return [...FRESHNESS_WORDS_BASE, String(year), String(year + 1)];
+}
+
+const FRESHNESS_WORDS = freshnessWords();
+
 const SCHOOL_NAME_PATTERN = /sman\s?68|sma negeri 68|sman68/;
-const SITE_OPERATOR = /(?:^|\s)-?site:[^\s]+/g;
+const SITE_OPERATOR = /(?:^|\s)-?site:[^\s]+/;
+const YEAR_PATTERN = /\b(19|20)\d{2}\b/;
 const OFFICIAL_TOPIC_PATTERN =
   /ppdb|pendaftaran|spmb|zonasi|afirmasi|jalur|kuota|beasiswa|akreditasi/;
 
@@ -540,11 +550,10 @@ function buildWebQuery(message: string): string {
 }
 
 async function searchSchoolSite(query: string) {
+  // Tolak operator site: custom (tanpa flag global, tanpa lastIndex stateful).
   if (SITE_OPERATOR.test(query)) {
-    SITE_OPERATOR.lastIndex = 0;
     return [];
   }
-  SITE_OPERATOR.lastIndex = 0;
   const stripped = query.replace(SITE_OPERATOR, " ").replace(/\s+/g, " ").trim();
   if (!stripped) return [];
   return webSearch(stripped, { limit: 6, pages: 2, site: SCHOOL_SITE });
@@ -553,12 +562,13 @@ async function searchSchoolSite(query: string) {
 async function answerFromWeb(rawQuery: string, withFetch: boolean) {
   const query = buildWebQuery(rawQuery);
   const officialTopic = OFFICIAL_TOPIC_PATTERN.test(query);
-  const hasSiteOperator = /site:[^\s]+/.test(query);
-  const webPages = hasSiteOperator ? 3 : 2;
+  // Satu halaman hasil saja: tiap halaman = 1 round-trip eksternal sekuensial.
+  // Snippet halaman pertama cukup untuk jawaban chat; fetch detail menyusul bila perlu.
+  const webPages = 1;
 
   const [siteResults, webResults] = await Promise.all([
     searchSchoolSite(query).catch(() => []),
-    webSearch(query, { limit: 12, pages: webPages }).catch(() => []),
+    webSearch(query, { limit: 8, pages: webPages }).catch(() => []),
   ]);
 
   const merged = [...siteResults, ...webResults];
@@ -635,6 +645,11 @@ export async function answerQuestion(rawMessage: string): Promise<ChatAnswer> {
     };
   }
 
+  // Sapaan singkat dijawab langsung TANPA query DB (hemat 4 round-trip).
+  if (message.split(" ").length <= 3 && containsAny(message, GREETING_WORDS)) {
+    return { answer: GREETING, chips: DEFAULT_CHIPS, intent: "sapaan" };
+  }
+
   // Fasilitas & ruang kelas: jawaban langsung dari data sekolah, bukan dari web.
   const facilityAnswer = await buildFacilityAnswer(rawMessage);
   if (facilityAnswer) {
@@ -647,7 +662,7 @@ export async function answerQuestion(rawMessage: string): Promise<ChatAnswer> {
 
   const match = findBest(message, await getKnowledge());
   const webEnabled = tinyfishConfigured();
-  const wantsFresh = containsAny(message, FRESHNESS_WORDS);
+  const wantsFresh = containsAny(message, FRESHNESS_WORDS) || YEAR_PATTERN.test(message);
   const related = match ? coverage(message, match.item) >= 0.6 : false;
 
   const webAnswer = async (query: string, withFetch: boolean) =>
@@ -677,10 +692,6 @@ export async function answerQuestion(rawMessage: string): Promise<ChatAnswer> {
       sources: web.sources,
       intent: `${base.intent}+web`,
     };
-  }
-
-  if (message.split(" ").length <= 3 && containsAny(message, GREETING_WORDS)) {
-    return { answer: GREETING, chips: DEFAULT_CHIPS, intent: "sapaan" };
   }
 
   const web = await webAnswer(buildWebQuery(message), true);

@@ -37,6 +37,8 @@ export default function NotificationPopover({
           initial={{ opacity: 0, y: 10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 10, scale: 0.95 }}
+          transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+          style={{ transformOrigin: "top right" }}
           className="absolute right-0 top-full mt-2 w-[min(20rem,calc(100vw-2.5rem))] sm:w-96 bg-white rounded-xl shadow-card border border-line overflow-hidden z-50 text-ink"
         >
           <div className="p-3.5 bg-brand-pine text-white flex items-center justify-between gap-3">

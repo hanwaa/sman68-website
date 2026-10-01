@@ -15,10 +15,10 @@ import type { Metadata } from "next";
 import { getAchievements } from "@/lib/content-server";
 import { buildMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = buildMetadata({
-  title: "SMA Negeri 68 Jakarta — Situs Resmi",
+  title: "SMA Negeri 68 Jakarta, Situs Resmi",
   description:
     "Situs resmi SMA Negeri 68 Jakarta (NPSN 20100199): profil sekolah, akademik, prestasi, kegiatan, galeri, alumni, dan informasi PPDB.",
   path: "/",

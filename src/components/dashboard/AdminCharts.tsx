@@ -11,6 +11,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { useA11y } from "@/components/providers/A11yProvider";
 
 interface AdminChartsProps {
   weeklyData: { name: string; visitors: number; pageviews: number }[];
@@ -25,7 +26,7 @@ type TooltipEntry = {
 };
 
 const formatValue = (value: number | string | undefined) =>
-  typeof value === "number" ? value.toLocaleString("id-ID") : (value ?? "—");
+  typeof value === "number" ? value.toLocaleString("id-ID") : (value ?? "-");
 
 /**
  * Tooltip kustom: Recharts memberi warna teks According to series memakai warna
@@ -70,6 +71,7 @@ function ChartTooltip({
 const HOVER_CURSOR = { stroke: "#7C8C82", strokeWidth: 1, strokeDasharray: "4 4" };
 
 export default function AdminCharts({ weeklyData, roleChartData }: AdminChartsProps) {
+  const { reduceMotion } = useA11y();
   const hasWeekly = weeklyData.some((item) => item.visitors > 0 || item.pageviews > 0);
 
   return (
@@ -116,6 +118,9 @@ export default function AdminCharts({ weeklyData, roleChartData }: AdminChartsPr
                   strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorPageviews)"
+                  isAnimationActive={!reduceMotion}
+                  animationDuration={300}
+                  animationEasing="ease-out"
                 />
                 <Area
                   type="monotone"
@@ -125,6 +130,9 @@ export default function AdminCharts({ weeklyData, roleChartData }: AdminChartsPr
                   strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#colorVisitors)"
+                  isAnimationActive={!reduceMotion}
+                  animationDuration={300}
+                  animationEasing="ease-out"
                 />
               </AreaChart>
             </ResponsiveContainer>

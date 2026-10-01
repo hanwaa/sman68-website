@@ -42,8 +42,8 @@ async function fetchScrapeCreators(
 /**
  * Ambil feed Instagram di server (dipakai /api/content?resource=instagram).
  * Urutan sumber:
- * 1. INSTAGRAM_FEED_URL — JSON feed dari widget (Behold dll.)
- * 2. SCRAPECREATORS_API_KEY — scrape endpoint posts by username
+ * 1. INSTAGRAM_FEED_URL, JSON feed dari widget (Behold dll.)
+ * 2. SCRAPECREATORS_API_KEY, scrape endpoint posts by username
  * Mengembalikan null bila semua sumber tak tersedia/gagal.
  */
 export async function getInstagramFeed(): Promise<InstagramFeed | null> {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbConfigured, getDb } from "@/lib/db";
 import { r2PublicUrl } from "@/lib/r2";
 import { requireAccount } from "@/lib/api-auth";
+import { guardMutation, readJsonLimited } from "@/lib/api-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -68,17 +69,32 @@ export async function GET(request: NextRequest) {
   }
 
   if (studentId) {
+    // Scope: guru hanya boleh membaca siswa kelasnya sendiri; admin bebas.
+    if (account.role === "teacher") {
+      const target = (await sql`
+        select class_name from students where id = ${studentId} limit 1
+      `) as Record<string, unknown>[];
+      if (!target[0] || String(target[0].class_name) !== account.className) {
+        return NextResponse.json({ error: "Akses ditolak." }, { status: 403 });
+      }
+    }
     const rows = (await sql`
       select a.student_id, s.name, a.date::text as date, a.status, a.selfie_key, a.check_in_time, a.recorded_by
       from attendance a
       join students s on s.id = a.student_id
       where a.student_id = ${studentId}
       order by a.date desc
+      limit 1000
     `) as Record<string, unknown>[];
     return NextResponse.json({ records: rows.map(mapRow) });
   }
 
   if (date) {
+    // Tanpa filter kelas hanya boleh untuk admin. Guru tanpa wali kelas
+    // tidak boleh membaca seluruh sekolah lewat jalur ini.
+    if (!className && account.role !== "admin") {
+      return NextResponse.json({ error: "Akses ditolak." }, { status: 403 });
+    }
     const rows = (className
       ? await sql`
           select s.id as student_id, s.name, (${date}::date)::text as date, a.status,
@@ -100,6 +116,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ records: rows.map(mapRow) });
   }
 
+  // Fallback tanpa filter hanya untuk admin. Guru/siswa wajib memakai
+  // ?studentId=... atau ?date=...&class=... agar tidak membocorkan data
+  // seluruh sekolah (IDOR).
+  if (account.role !== "admin") {
+    return NextResponse.json(
+      { error: "Parameter studentId atau date wajib diisi." },
+      { status: 400 }
+    );
+  }
   const rows = (await sql`
     select a.student_id, s.name, a.date::text as date, a.status, a.selfie_key, a.check_in_time, a.recorded_by
     from attendance a
@@ -110,8 +135,10 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ records: rows.map(mapRow) });
 }
 
-/** POST /api/attendance — upsert absensi (siswa: selfie, wali kelas: status) */
+/** POST /api/attendance, upsert absensi (siswa: selfie, wali kelas: status) */
 export async function POST(request: NextRequest) {
+  const rejected = guardMutation(request);
+  if (rejected) return rejected;
   const account = await requireAccount();
   if (account instanceof NextResponse) return account;
 
@@ -119,15 +146,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Database belum dikonfigurasi." }, { status: 503 });
   }
 
-  const body = (await request.json().catch(() => null)) as
-    | {
-        studentId?: string;
-        date?: string;
-        status?: Status;
-        selfieKey?: string;
-        checkInTime?: string;
-      }
-    | null;
+  const body = (await readJsonLimited<{
+    studentId?: string;
+    date?: string;
+    status?: Status;
+    selfieKey?: string;
+    checkInTime?: string;
+  }>(request)) as {
+    studentId?: string;
+    date?: string;
+    status?: Status;
+    selfieKey?: string;
+    checkInTime?: string;
+  } | null;
 
   const studentId = String(body?.studentId ?? "").trim();
   const date = String(body?.date ?? "").trim();
@@ -153,9 +184,16 @@ export async function POST(request: NextRequest) {
   const status = body?.status && STATUSES.includes(body.status) ? body.status : null;
   const recordedBy = account.role === "student" ? null : account.name;
 
+  // selfieKey wajib key R2 (karakter path aman), menolak URL absolut
+  // (https://evil/...) yang akan dirender sebagai link foto di dashboard.
+  const selfieKey = body?.selfieKey ?? null;
+  if (selfieKey !== null && !/^[A-Za-z0-9/_.-]{1,220}$/.test(String(selfieKey))) {
+    return NextResponse.json({ error: "selfieKey tidak valid." }, { status: 400 });
+  }
+
   const rows = (await sql`
     insert into attendance (student_id, date, status, selfie_key, check_in_time, recorded_by)
-    values (${studentId}, ${date}::date, ${status}, ${body?.selfieKey ?? null},
+    values (${studentId}, ${date}::date, ${status}, ${selfieKey},
             ${body?.checkInTime ?? null}, ${recordedBy})
     on conflict (student_id, date) do update set
       status = coalesce(excluded.status, attendance.status),

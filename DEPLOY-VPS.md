@@ -438,6 +438,14 @@ Query terberat terekam via `log_min_duration_statement=500` di `conf.d/zz-sman68
   `(http.request.uri.path eq "/api/content" and http.request.uri.query in {"resource=news" ... 14 resource})`
   → Eligible for cache, Edge TTL ikuti origin. Jangan cache `/api/auth*`, `/api/admin*`,
   `/api/attendance*`, `/api/classroom*`, `/api/students*`.
+- Cache Rule HTML anonim (lomba, via `cf` CLI — fase `http_request_cache_settings`,
+  setelah rule `/api/content`): hanya `GET`/`HEAD`, bypass bila cookie berisi
+  `sman68_session`, abaikan request RSC (`rsc: 1`):
+  `path eq "/"` → Edge TTL override 300 dtk;
+  `starts_with(path, "/berita"|"/prestasi"|"/tentang"|"/kehidupan"|"/ppdb"|"/akademik"|"/komunitas"|"/aksesibilitas"|"/kebijakan-privasi")`
+  → Edge TTL override 600 dtk. `/login`, `/dashboard`, `/api/*` tetap DYNAMIC.
+  Paket Free: custom cache key tidak entitled, jadi query unik tetap MISS (origin sanggup).
+- Smart Tiered Cache: ON (`cf cache settings smart-tiered-cache edit --value on`).
 - **Celah yang pernah ada**: flood cache-busting (`/api/content?resource=news&r=acak`) membuat
   Cloudflare mengantre MISS ~10–16 rps dengan stall 15 dtk + worker Apache habis (health timeout),
   padahal origin sendiri sanggup 801 rps untuk query unik. Setelah expression dibatasi daftar
@@ -490,6 +498,23 @@ Lewat Cloudflare (dari luar):
 - **`max_memory_restart` 700M → 1500M**: pada 700M, burst login membuat RSS menembus batas →
   PM2 restart + 9 request gagal & health drop sesaat. Setelah 1500M: 0 gagal,
   RSS puncak ±305 MB (RAM total terpakai ≤736 MB).
+- **Mode lomba** (`deploy/ecosystem.config.cjs`): `instances: 2`, `exec_mode: cluster`,
+  `max_memory_restart: 700M` per instance (RAM VPS 4 GB, available ±3,3 GB — butuh ±600 MB).
+  Terapkan via `pm2 reload sman68` (zero-downtime, bukan restart). Batas proses OpenVZ 500:
+  +1 instance ≈ +12 thread, aman dari puncak 382 — jangan naikkan ke 3+ tanpa cek ulang.
+  ISR halaman publik `revalidate` 60 → 300 (CMS publish tetap refresh instan via
+  `revalidatePath`, jadi tanpa risiko konten basi).
+- **Jebakan `pm2 reload`**: reload TIDAK menerapkan perubahan `exec_mode`/`instances`
+  (fork→cluster, 1→2 instance). Kalau dua nilai itu berubah, wajib
+  `pm2 delete sman68 && pm2 start deploy/ecosystem.config.cjs` sekali, lalu
+  `pm2 save`. Deploy berikutnya cukup reload karena topologi berjalan sudah cluster.
+- **Throttle login vs juri (tanpa rubrik, pilih aman)**: `LOGIN_IP_LIMIT_PER_MIN`
+  (default 30/menit/IP, in-memory per proses PM2 — cluster 2 instance ≈ 2× nilai).
+  Lockout per-username (5 gagal → kunci 15 mnt) tetap aktif sebagai proteksi brute-force
+  yang sebenarnya. Saat window lomba: `LOGIN_IP_LIMIT_PER_MIN=300` + `pm2 reload sman68`
+  (tanpa rebuild); setelah lomba, hapus env-nya dan reload lagi. Jangan lupa deploy ulang
+  dari repo terbaru agar perilaku sama dengan yang diuji (limit lama yang ter-deploy
+  tampak lebih rendah dari 30).
 - **Penting**: akses langsung ke IP origin dari internet publik di-reset provider saat burst
   (proteksi koneksi massal). Uji beban harus lewat domain/Cloudflare — jalur yang memang dipakai.
 

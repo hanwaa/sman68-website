@@ -3,8 +3,8 @@
  * dan client (browser fetch). Murni tanpa dependensi server.
  *
  * Mendukung dua bentuk payload:
- * 1. JSON feed penyedia widget (Behold) — { username, posts: [{ sizes, ... }] }
- * 2. Respons `web_profile_info` Instagram — { data: { user: { edge_owner_to_timeline_media } } }
+ * 1. JSON feed penyedia widget (Behold), { username, posts: [{ sizes, ... }] }
+ * 2. Respons `web_profile_info` Instagram, { data: { user: { edge_owner_to_timeline_media } } }
  */
 
 export type InstagramPost = {

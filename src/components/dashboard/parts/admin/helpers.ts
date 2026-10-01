@@ -16,7 +16,7 @@ export const formatDateTime = (iso: string | null) =>
         hour: "2-digit",
         minute: "2-digit",
       })
-    : "—";
+    : "-";
 
 export const relativeDay = (iso: string | null) => {
   if (!iso) return "Belum pernah";

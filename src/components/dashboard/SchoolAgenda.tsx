@@ -111,7 +111,6 @@ export default function SchoolAgenda() {
                   return (
                     <motion.button
                       key={day}
-                      whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setSelectedDate(isSelected ? null : dateStr)}
                       className={cn(

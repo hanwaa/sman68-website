@@ -8,7 +8,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Program Studi",
   description:
-    "Program akademik dan peminatan SMA Negeri 68 Jakarta dengan Kurikulum Merdeka — mata pelajaran, layanan belajar, dan pembinaan siswa.",
+    "Program akademik dan peminatan SMA Negeri 68 Jakarta dengan Kurikulum Merdeka, mata pelajaran, layanan belajar, dan pembinaan siswa.",
   path: "/akademik/program",
 });
 

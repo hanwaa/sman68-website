@@ -7,11 +7,11 @@ import { getGallery } from "@/lib/content-server";
 import { breadcrumbSchema } from "@/lib/schema";
 import { buildMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = buildMetadata({
   title: "Galeri",
-  description: "Galeri foto kegiatan dan momen terbaik SMAN 68 Jakarta — akademik, ekskul, dan acara sekolah.",
+  description: "Galeri foto kegiatan dan momen terbaik SMAN 68 Jakarta, akademik, ekskul, dan acara sekolah.",
   path: "/kehidupan/galeri",
 });
 

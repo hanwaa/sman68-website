@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConfigured, getDb } from "@/lib/db";
 import { requireAccount } from "@/lib/api-auth";
+import { guardMutation } from "@/lib/api-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -270,7 +271,7 @@ async function buildNotifications(account: {
   return items.sort((a, b) => b.ts - a.ts).slice(0, 15);
 }
 
-/** GET /api/notifications — notifikasi live sesuai peran akun */
+/** GET /api/notifications, notifikasi live sesuai peran akun */
 export async function GET() {
   const account = await requireAccount();
   if (account instanceof NextResponse) return account;
@@ -291,8 +292,10 @@ export async function GET() {
   }
 }
 
-/** POST /api/notifications — status baca kini dikelola di klien. */
+/** POST /api/notifications, status baca kini dikelola di klien. */
 export async function POST(request: NextRequest) {
+  const rejected = guardMutation(request);
+  if (rejected) return rejected;
   const account = await requireAccount();
   if (account instanceof NextResponse) return account;
 

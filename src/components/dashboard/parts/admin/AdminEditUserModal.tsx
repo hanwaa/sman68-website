@@ -2,6 +2,7 @@
 
 import { useEffect, type RefObject } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { MODAL_PANEL, MODAL_TRANSITION } from "@/lib/motion";
 import { Pencil, Trash2, X } from "lucide-react";
 import type { AdminUser } from "@/components/dashboard/parts/admin/types";
 
@@ -49,6 +50,7 @@ export default function AdminEditUserModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={MODAL_TRANSITION}
             className="absolute inset-0 bg-brand-pine/70"
           />
           <motion.div
@@ -57,9 +59,10 @@ export default function AdminEditUserModal({
             role="dialog"
             aria-modal="true"
             aria-label={`Edit ${user.name}`}
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            initial={MODAL_PANEL.initial}
+            animate={MODAL_PANEL.animate}
+            exit={MODAL_PANEL.exit}
+            transition={MODAL_TRANSITION}
             onClick={(e) => e.stopPropagation()}
             className="relative w-full max-w-md bg-white rounded-2xl p-6 sm:p-7 shadow-card-hover z-10 focus:outline-none max-h-[88vh] overflow-y-auto"
           >

@@ -57,12 +57,37 @@ export function safeKey(folder: string, fileName: string): string {
 export async function presignUpload(
   key: string,
   contentType: string,
-  expiresIn = 600
+  expiresIn = 600,
+  contentLength?: number
 ): Promise<string> {
   const command = new PutObjectCommand({
     Bucket: bucket,
     Key: key,
     ContentType: contentType,
+    // Enforce ukuran di sisi signature agar klaim `size` kecil tidak bisa
+    // dipakai mengunggah file raksasa (kuota 25 MB di upload-policy).
+    ...(Number.isFinite(contentLength) && (contentLength as number) > 0
+      ? { ContentLength: contentLength as number }
+      : {}),
   });
   return getSignedUrl(getR2(), command, { expiresIn });
+}
+
+/**
+ * Unggah objek langsung dari server (fallback saat PUT presigned dari
+ * browser diblokir, mis. CORS bucket belum mengizinkan origin situs).
+ */
+export async function putR2Object(
+  key: string,
+  body: Uint8Array,
+  contentType: string
+): Promise<void> {
+  await getR2().send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+    })
+  );
 }

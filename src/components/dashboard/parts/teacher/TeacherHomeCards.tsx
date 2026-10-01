@@ -22,7 +22,7 @@ export function TeacherKpiCards({ rosterCount, className, hadir, tercatat, loadi
   const stats = [
     {
       label: "Siswa Wali Kelas",
-      value: rosterCount ? String(rosterCount) : "—",
+      value: rosterCount ? String(rosterCount) : "-",
       sub: className ? `Kelas ${className}` : "Belum ada kelas",
       showSkeleton: false,
     },

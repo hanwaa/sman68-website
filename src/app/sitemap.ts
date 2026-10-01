@@ -4,9 +4,9 @@ import { siteBase } from "@/lib/seo";
 
 /**
  * Sitemap di-prerender saat build (force-static) dan disajikan Next langsung
- * dari berkas statis — tanpa runtime Node dan tanpa query DB saat request.
+ * dari berkas statis, tanpa runtime Node dan tanpa query DB saat request.
  * Ini yang membuat Googlebot tidak pernah Dependent dari kondisi server: GSC
- * sempat mencatat "Pengambilan halaman: Gagal — Error server (5xx)" saat
+ * sempat mencatat "Pengambilan halaman: Gagal, Error server (5xx)" saat
  * sitemap masih dirender on-demand.
  *
  * Konsekuensi: artikel yang baru terbit belum masuk sitemap sampai deploy
@@ -35,10 +35,14 @@ const staticRoutes: string[] = [
   "/kehidupan/ekskul",
   "/kehidupan/galeri",
   "/komunitas/alumni",
+  "/komunitas/ptnfavorit",
   "/tentang/profil",
   "/tentang/visi-misi",
-  "/tentang/guru-staf",
+  "/tentang/struktur-organisasi",
+  "/tentang/struktur-tu",
+  "/tentang/ppid",
   "/tentang/fasilitas",
+  "/layanan/mutasi",
   "/kebijakan-privasi",
   "/aksesibilitas",
 ];
@@ -69,7 +73,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
   } catch {
-    // DB tidak tersedia saat build — sitemap statis tetap terbit.
+    // DB tidak tersedia saat build, sitemap statis tetap terbit.
   }
 
   return entries;

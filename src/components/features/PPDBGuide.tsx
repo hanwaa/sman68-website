@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   CheckCircle2,
   Circle,
@@ -43,7 +43,7 @@ const STEP_REQUIREMENTS: string[][] = [
   ],
   [
     "Cek pengumuman hasil seleksi di portal",
-    "Jika diterima, lengkapi berkas daftar ulang — tanpa biaya",
+    "Jika diterima, lengkapi berkas daftar ulang, tanpa biaya",
     "Ikuti orientasi siswa baru",
   ],
 ];
@@ -51,6 +51,7 @@ const STEP_REQUIREMENTS: string[][] = [
 const STEP_COLORS = ["bg-brand-green", "bg-brand-leaf", "bg-brand-leaf", "bg-brand-green"];
 
 export default function PPDBGuide() {
+  const reduce = useReducedMotion();
   const ppdb = useContent<{
     steps: { title: string; description: string }[];
     schedule: { label: string; date: string; note?: string }[];
@@ -99,7 +100,7 @@ export default function PPDBGuide() {
             <span className="text-brand-lime">dari SMAN 68</span>
           </>
         }
-        lead="Kami pandu langkah demi langkah, dari menyiapkan dokumen sampai daftar ulang — supaya tidak bingung dan tidak terlambat."
+        lead="Kami pandu langkah demi langkah, dari menyiapkan dokumen sampai daftar ulang, supaya tidak bingung dan tidak terlambat."
       >
         <div className="inline-flex items-center gap-6 bg-white/10 border border-white/20 rounded-xl px-7 py-5">
           <Timer size={20} className="text-brand-lime" aria-hidden="true" />
@@ -128,7 +129,7 @@ export default function PPDBGuide() {
               Daftar di Portal Resmi PPDB Jakarta
             </h2>
             <p className="text-muted text-sm leading-relaxed">
-              Pendaftaran hanya melalui <strong>ppdb.jakarta.go.id</strong> — tanpa biaya dan tanpa
+              Pendaftaran hanya melalui <strong>ppdb.jakarta.go.id</strong>, tanpa biaya dan tanpa
               perantara. Siapkan dokumen lalu ikuti panduan langkah di bawah.
             </p>
           </div>
@@ -152,8 +153,8 @@ export default function PPDBGuide() {
 
         <div className="flex flex-wrap gap-2.5 mb-8">
           {[
-            { icon: CheckCircle2, text: "Gratis — tanpa biaya pendaftaran" },
-            { icon: ShieldCheck, text: "Aman — hanya portal resmi" },
+            { icon: CheckCircle2, text: "Gratis, tanpa biaya pendaftaran" },
+            { icon: ShieldCheck, text: "Aman, hanya portal resmi" },
             { icon: HeartHandshake, text: "Ditemani sampai daftar ulang" },
           ].map(({ icon: Icon, text }) => (
             <span
@@ -244,10 +245,10 @@ export default function PPDBGuide() {
                       <AnimatePresence>
                         {isOpen && (
                           <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
+                            initial={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                            animate={reduce ? { opacity: 1 } : { height: "auto", opacity: 1 }}
+                            exit={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                            transition={reduce ? { duration: 0.15 } : { duration: 0.2 }}
                           >
                             <div className="px-4 pb-4 border-t border-line pt-3">
                               <p className="text-muted text-sm mb-3">{step.description}</p>
@@ -294,9 +295,10 @@ export default function PPDBGuide() {
                     <AnimatePresence>
                       {activeFaq === i && (
                         <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
+                          initial={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                          animate={reduce ? { opacity: 1 } : { height: "auto", opacity: 1 }}
+                          exit={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                          transition={reduce ? { duration: 0.15 } : { duration: 0.2 }}
                         >
                           <div className="px-4 pb-4 border-t border-line pt-3 text-sm text-muted leading-relaxed">
                             {faq.answer}
@@ -364,7 +366,7 @@ export default function PPDBGuide() {
             >
               <h3 className="font-display font-bold text-base mb-2">Tanya apa saja, kami bantu</h3>
               <p className="text-white/60 text-xs leading-relaxed mb-4">
-                Tim kami siap membantu — dari dokumen sampai daftar ulang.
+                Tim kami siap membantu, dari dokumen sampai daftar ulang.
               </p>
               <div className="space-y-2 text-xs">
                 <a href={schoolData.kontak.teleponHref} className="flex items-center gap-2 text-brand-leaf hover:text-brand-leaf/80 transition-colors">

@@ -45,7 +45,7 @@ const OPTION_GROUPS: { title: string; options: PrefOption[] }[] = [
         desc: "Hentikan carousel, marquee, dan transisi",
       },
       { key: "strongFocus", label: "Sorot fokus tegas", desc: "Outline fokus lebih tebal dan kontras" },
-      { key: "touchTargets", label: "Area sentuh besar", desc: "Tombol dan tautan minimal 44px — mudah ditekan" },
+      { key: "touchTargets", label: "Area sentuh besar", desc: "Tombol dan tautan minimal 44px, mudah ditekan" },
     ],
   },
 ];

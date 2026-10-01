@@ -7,20 +7,19 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   let db = false;
-  let dbError: string | null = null;
 
   if (dbConfigured()) {
     try {
       await getDb()`select 1 as ok`;
       db = true;
     } catch (error) {
-      dbError = error instanceof Error ? error.message : "Gagal terhubung ke database";
+      // Sengaja tidak mengembalikan pesan error driver (bisa memuat
+      // host/user/detail koneksi), cukup status boolean; detail ada di log server.
+      console.error("[health] database tidak terjangkau:", error instanceof Error ? error.message : error);
     }
   }
 
-  return NextResponse.json({
-    ok: db && r2Configured(),
-    db: { configured: dbConfigured(), connected: db, error: dbError },
-    r2: { configured: r2Configured() },
-  });
+  // Respons generik: cukup `ok` untuk monitor/deploy. Detail kesiapan
+  // infra (db/r2 configured/connected) tidak diekspos ke publik (recon).
+  return NextResponse.json({ ok: db && r2Configured() });
 }

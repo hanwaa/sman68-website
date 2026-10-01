@@ -5,11 +5,14 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useContent } from "@/lib/use-content";
 import { universityShortNames } from "@/lib/alumni-career";
+import { prefersReducedMotion } from "@/lib/motion";
 
 type AlumniCampusMapProps = {
   counts: Record<string, number>;
   selectedName: string | null;
   onSelect: (name: string) => void;
+  /** Batasi marker ke kampus tertentu (mis. filter PTN/PTLN). Null = semua. */
+  visibleNames?: string[] | null;
 };
 
 type UniversityRow = {
@@ -72,6 +75,7 @@ export default function AlumniCampusMap({
   counts,
   selectedName,
   onSelect,
+  visibleNames = null,
 }: AlumniCampusMapProps) {
   const universityRows = useContent<UniversityRow[]>("universities", []);
 
@@ -151,15 +155,16 @@ export default function AlumniCampusMap({
     markersRef.current = {};
 
     campuses.forEach((campus) => {
+      if (visibleNames && !visibleNames.includes(campus.name)) return;
       const count = counts[campus.name] ?? campus.alumniCount;
       const marker = L.marker([campus.lat, campus.lng], {
         icon: makeIcon(campus, count, selectedName === campus.name),
         riseOnHover: true,
         keyboard: true,
-        title: `${campus.name} — klik untuk melihat alumni`,
+        title: `${campus.name}, klik untuk melihat alumni`,
         alt: campus.name,
       });
-      marker.bindTooltip(`${campus.name} — ${count} alumni`, {
+      marker.bindTooltip(`${campus.name}, ${count} alumni`, {
         direction: "top",
         offset: [0, -10],
         className: "sman68-tip",
@@ -168,14 +173,14 @@ export default function AlumniCampusMap({
       marker.addTo(map);
       markersRef.current[campus.name] = marker;
     });
-  }, [campuses, counts, selectedName]);
+  }, [campuses, counts, selectedName, visibleNames]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !selectedName) return;
     const campus = campuses.find((c) => c.name === selectedName);
     if (!campus) return;
-    map.flyTo([campus.lat, campus.lng], 8, { duration: 0.9 });
+    map.flyTo([campus.lat, campus.lng], 8, { duration: prefersReducedMotion() ? 0 : 0.9 });
   }, [campuses, selectedName]);
 
   return (

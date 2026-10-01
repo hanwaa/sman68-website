@@ -6,7 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Profil Sekolah",
-  description: "Profil lengkap SMA Negeri 68 Jakarta — sejarah, visi misi, akreditasi, dan prestasi.",
+  description: "Profil lengkap SMA Negeri 68 Jakarta, sejarah, visi misi, akreditasi, dan prestasi.",
   path: "/tentang/profil",
 });
 

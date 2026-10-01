@@ -92,8 +92,16 @@ export default function AdminHomeView({
                 Realtime
               </span>
               <span aria-live="polite">
-                diperbarui {updatedAt ? updatedAt.toLocaleTimeString("id-ID") : "—"}
+                diperbarui {updatedAt ? updatedAt.toLocaleTimeString("id-ID") : "-"}
               </span>
+              {stats?.trafficSampled && (
+                <span
+                  className="inline-flex items-center rounded-full bg-brand-lime/25 px-2 py-0.5 font-semibold text-brand-pine"
+                  title={`Angka kunjungan adalah estimasi (sampling ${Math.round(100 / (stats.trafficScale || 1))}%). Naikkan TRACK_SAMPLE_RATE untuk sensus penuh.`}
+                >
+                  estimasi ×{stats.trafficScale}
+                </span>
+              )}
               <button
                 onClick={onRefresh}
                 className="inline-flex items-center gap-1 font-semibold text-brand-green hover:text-brand-pine"
@@ -117,14 +125,18 @@ export default function AdminHomeView({
         {[
           {
             label: "Pengunjung Hari Ini",
-            value: stats ? stats.visitorsToday.toLocaleString("id-ID") : "—",
-            sub: stats ? `${stats.pageviewsToday.toLocaleString("id-ID")} halaman dilihat` : "menunggu data",
+            value: stats
+              ? `${stats.trafficSampled ? "~" : ""}${stats.visitorsToday.toLocaleString("id-ID")}`
+              : "-",
+            sub: stats
+              ? `${stats.trafficSampled ? "~" : ""}${stats.pageviewsToday.toLocaleString("id-ID")} halaman dilihat`
+              : "menunggu data",
             icon: Eye,
             tone: "bg-brand-green/10 text-brand-green",
           },
           {
             label: "Pengguna Online",
-            value: stats ? stats.onlineSessions.toLocaleString("id-ID") : "—",
+            value: stats ? stats.onlineSessions.toLocaleString("id-ID") : "-",
             sub: stats
               ? `aktif 5 menit terakhir · ${stats.loginsToday.toLocaleString("id-ID")} login hari ini`
               : "menunggu data",
@@ -133,7 +145,7 @@ export default function AdminHomeView({
           },
           {
             label: "Kehadiran Hari Ini",
-            value: stats ? stats.presentToday.toLocaleString("id-ID") : "—",
+            value: stats ? stats.presentToday.toLocaleString("id-ID") : "-",
             sub: stats
               ? `${stats.students > 0 ? Math.round((stats.presentToday / stats.students) * 100) : 0}% dari ${stats.students.toLocaleString("id-ID")} siswa`
               : "menunggu data",
@@ -142,7 +154,7 @@ export default function AdminHomeView({
           },
           {
             label: "Perlu Moderasi",
-            value: stats ? stats.moderationPending.toLocaleString("id-ID") : "—",
+            value: stats ? stats.moderationPending.toLocaleString("id-ID") : "-",
             sub: "konten menunggu tinjauan",
             icon: Inbox,
             tone:
@@ -179,7 +191,7 @@ export default function AdminHomeView({
         {[
           { label: "Berita Tayang", value: stats?.news, sub: `${stats?.newsDraft ?? 0} draf & pending`, icon: Newspaper },
           { label: "Pengumuman Terbit", value: stats?.announcements, sub: "siswa & guru", icon: Bell },
-          { label: "Total Pembaca", value: stats?.pageviewsTotal, sub: `${stats?.pageviewsToday ?? 0} hari ini`, icon: Eye },
+          { label: "Total Pembaca", value: stats ? `${stats.trafficSampled ? "~" : ""}${(stats.pageviewsTotal ?? 0).toLocaleString("id-ID")}` : undefined, sub: `${stats?.trafficSampled ? "~" : ""}${stats?.pageviewsToday ?? 0} hari ini`, icon: Eye },
           { label: "Agenda Mendatang", value: stats?.eventsUpcoming, sub: "event aktif", icon: CalendarClock },
           { label: "Prestasi Terdata", value: stats?.achievements, sub: `${stats?.achievementsPending ?? 0} menunggu verifikasi`, icon: GraduationCap },
           { label: "Tugas Belum Dinilai", value: stats?.submissionsPending, sub: "kelas digital", icon: FileText },
@@ -192,7 +204,7 @@ export default function AdminHomeView({
                 <span className="text-[10px] font-bold uppercase tracking-wide">{stat.label}</span>
               </div>
               <div className="font-display font-extrabold text-xl text-ink mt-1.5 tabular-nums">
-                {stat.value === undefined ? "—" : stat.value.toLocaleString("id-ID")}
+                {stat.value === undefined ? "-" : stat.value.toLocaleString("id-ID")}
               </div>
               <div className="text-[10px] text-muted/80 mt-0.5 truncate">{stat.sub}</div>
             </div>
@@ -206,7 +218,9 @@ export default function AdminHomeView({
         <div className="card p-5 mb-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-display font-bold text-ink text-base">Halaman Terpopuler</h2>
-            <span className="text-[11px] text-muted">akumulasi kunjungan</span>
+            <span className="text-[11px] text-muted">
+              akumulasi kunjungan{stats?.trafficSampled ? " · estimasi" : ""}
+            </span>
           </div>
           <ol className="space-y-2">
             {stats.topPages.slice(0, 5).map((page, index) => (
@@ -223,6 +237,7 @@ export default function AdminHomeView({
                   {page.path}
                 </a>
                 <span className="text-xs font-semibold text-brand-green tabular-nums">
+                  {stats?.trafficSampled ? "~" : ""}
                   {page.views.toLocaleString("id-ID")}
                 </span>
               </li>

@@ -18,7 +18,7 @@ export function schoolSchema() {
     logo: absoluteUrl("/assets/logo.png"),
     image: absoluteUrl(DEFAULT_OG_IMAGE),
     description:
-      "SMA Negeri 68 Jakarta — sekolah negeri terakreditasi A di Senen, Jakarta Pusat, dengan Kurikulum Merdeka dan 26 ekskul aktif.",
+      "SMA Negeri 68 Jakarta, sekolah negeri terakreditasi A di Senen, Jakarta Pusat, dengan Kurikulum Merdeka dan 26 ekskul aktif.",
     foundingDate: String(identitas.tahunBerdiri),
     slogan: "Disiplin, Kreatif, Prestasi",
     identifier: {

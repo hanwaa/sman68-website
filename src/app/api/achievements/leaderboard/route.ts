@@ -9,6 +9,10 @@ export const dynamic = "force-dynamic";
 type Row = Record<string, unknown>;
 const text = (v: unknown) => (v == null ? "" : String(v));
 
+// Cache server 120 dtk untuk agregat leaderboard (full-scan achievements).
+let leaderboardCache: { at: number; body: unknown } | null = null;
+const LEADERBOARD_TTL_MS = 120_000;
+
 export type LeaderboardClass = {
   className: string;
   total: number;
@@ -42,25 +46,41 @@ export async function GET() {
     return NextResponse.json({ data: empty });
   }
 
+  // Cache server 120 dtk: agregat full-scan, tidak perlu dihitung per request.
+  const now = Date.now();
+  if (leaderboardCache && now - leaderboardCache.at < LEADERBOARD_TTL_MS) {
+    return NextResponse.json(leaderboardCache.body);
+  }
+
   try {
     const sql = getDb();
+    // Agregat tanpa join (hindari fan-out nama kembar yang menggandakan
+    // hitungan). Kelas dipetakan terpisah via lookup distinct.
     const rows = (await sql`
       select a.student_name as student_name,
-             coalesce(s.class_name, 'Tanpa Kelas') as class_name,
-             a.level as level,
-             count(*)::int as total
+              a.level as level,
+              count(*)::int as total
       from achievements a
-      left join students s on s.name = a.student_name
       where a.status in ('published', 'draft', 'approved') and a.student_name is not null
-      group by 1, 2, 3
+      group by 1, 2
     `) as Row[];
+    const names = Array.from(new Set(rows.map((r) => text(r.student_name)).filter(Boolean))).slice(0, 2000);
+    const classRows =
+      names.length === 0
+        ? []
+        : ((await sql.query(
+            `select distinct on (s.name) s.name as name, s.class_name as class_name
+             from students s where s.name = any($1) order by s.name, s.class_name`,
+            [names]
+          )) as Row[]);
+    const classByName = new Map(classRows.map((r) => [text(r.name), text(r.class_name) || "Tanpa Kelas"]));
 
     const classMap = new Map<string, { className: string; total: number; points: number }>();
     const studentMap = new Map<string, LeaderboardStudent>();
 
     for (const row of rows) {
-      const className = text(row.class_name) || "Tanpa Kelas";
       const name = text(row.student_name);
+      const className = classByName.get(name) ?? "Tanpa Kelas";
       const total = Number(row.total) || 0;
       const points = achievementPoints(text(row.level)) * total;
 
@@ -101,7 +121,9 @@ export async function GET() {
       };
     }
 
-    return NextResponse.json({ data: { classes, students, me } });
+    const payload = { data: { classes, students, me } };
+    leaderboardCache = { at: Date.now(), body: payload };
+    return NextResponse.json(payload);
   } catch {
     return NextResponse.json({ data: empty });
   }

@@ -10,7 +10,9 @@ import { AlertCircle, ArrowLeft, Eye, EyeOff, Lock, LogIn, User } from "lucide-r
 function LoginForm() {
   const searchParams = useSearchParams();
   const requestedNext = searchParams.get("next") || "";
-  const nextPath = requestedNext.startsWith("/") ? requestedNext : "/dashboard";
+  // Tolak open redirect: hanya path internal absolut ("/..."), bukan "//evil.com",
+  // backslash, atau skema lain. Pola: diawali satu "/" diikuti bukan "/" atau "\".
+  const nextPath = /^\/[^/\\]/.test(requestedNext) ? requestedNext : "/dashboard";
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +30,7 @@ function LoginForm() {
         if (res.ok && !cancelled) window.location.replace(nextPath);
       })
       .catch(() => {
-        /* belum login — tetap tampilkan form */
+        /* belum login, tetap tampilkan form */
       });
     return () => {
       cancelled = true;

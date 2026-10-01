@@ -37,12 +37,10 @@ export default function DashboardSidebar({
     <>
       <motion.aside
         initial={false}
-        animate={{
-          width: open ? 240 : 0,
-          opacity: open ? 1 : 0,
-        }}
-        transition={{ duration: 0.2 }}
-        className="fixed left-0 top-16 bottom-0 bg-white border-r border-line z-40 overflow-hidden flex-shrink-0 shadow-sm"
+        animate={{ transform: open ? "translateX(0)" : "translateX(-100%)" }}
+        transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+        inert={!open}
+        className="fixed left-0 top-16 bottom-0 w-[240px] bg-white border-r border-line z-40 overflow-hidden flex-shrink-0 shadow-sm"
         aria-label="Sidebar navigasi"
       >
         <div className="w-[240px] flex flex-col h-full">
@@ -106,9 +104,12 @@ export default function DashboardSidebar({
         </div>
       </motion.aside>
 
-      {open && isMobile && (
+      {isMobile && (
         <div
-          className="fixed inset-0 top-16 z-30 bg-brand-pine/50 backdrop-blur-[1px]"
+          className={cn(
+            "fixed inset-0 top-16 z-30 bg-brand-pine/50 backdrop-blur-[1px] transition-opacity duration-200 ease-[var(--ease-out)]",
+            open ? "opacity-100" : "pointer-events-none opacity-0"
+          )}
           onClick={onCloseMobile}
           aria-hidden="true"
         />

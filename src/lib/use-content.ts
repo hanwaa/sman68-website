@@ -34,7 +34,7 @@ export function useContentResource<T>(
   initialData?: T
 ): { data: T; loading: boolean } {
   const [data, setData] = useState<T>(() => {
-    // Di server: selalu pakai data fresh dari render (initialData/fallback) —
+    // Di server: selalu pakai data fresh dari render (initialData/fallback),
     // jangan sentuh cache modul agar tidak bocor antar-request.
     if (!isBrowser) return initialData !== undefined ? initialData : fallback;
 
@@ -48,7 +48,7 @@ export function useContentResource<T>(
   });
   // Nilai awal `loading` WAJIB sama di server dan client, karena render
   // pertama client adalah hydration dari HTML server. Kalau berbeda, React
-  // membuang HTML itu dan regenerate di client — gejalanya "Hydration failed"
+  // membuang HTML itu dan regenerate di client, gejalanya "Hydration failed"
   // plus flash skeleton.
   //
   // Server juga bernilai `initialData === undefined` (bukan selalu false):

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
+import { purgeContentCache } from "@/lib/content-cache";
 import { dbConfigured, getDb } from "@/lib/db";
+import { trackScale, trafficSampled } from "@/lib/track-sample";
 import { hashPassword } from "@/lib/auth";
 import { requireRole, safeErrorMessage } from "@/lib/api-auth";
+import { guardMutation, readJsonLimited, CMS_BODY_LIMIT } from "@/lib/api-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,6 +35,12 @@ const relativeLabel = (iso: string | null) => {
   if (days === 1) return "Kemarin";
   return `${days} hari lalu`;
 };
+
+// Cache server 45 dtk untuk resource=stats: 27 subselect + 3 agregat berat
+// tidak perlu dihitung ulang setiap poll dashboard (60 dtk per admin).
+type StatsCache = { at: number; body: unknown };
+let statsCache: StatsCache | null = null;
+const STATS_TTL_MS = 45_000;
 
 /** Pastikan akun siswa tertaut ke baris `students` (join kelas & absensi butuh student_id). */
 async function ensureStudentLink(accountId: string, username: string, name: string, detail: string) {
@@ -120,19 +129,29 @@ export async function GET(request: NextRequest) {
   const sql = getDb();
 
   if (resource === "users") {
+    // Agregasi sesi dihitung sekali via GROUP BY (bukan 2 correlated subquery
+    // per baris = 2000 probe untuk LIMIT 1000).
     const rows = (await sql`
       select a.id, a.username, a.role, a.name, a.detail, a.status, a.created_at,
              s.nisn, s.class_name,
              t.nig, t.subject, t.position,
              (select hc.name from homeroom_classes hc where hc.teacher_id = a.teacher_id limit 1) as homeroom_name,
-             (select count(*)::int from auth_sessions ses
-               where ses.account_id = a.id and ses.expires_at > now()
-                 and ses.last_seen_at > now() - interval '5 minutes') as active_sessions,
-             (select max(ses.created_at) from auth_sessions ses
-               where ses.account_id = a.id) as last_login_at
+             coalesce(sess.active_sessions, 0)::int as active_sessions,
+             lastlog.last_login_at as last_login_at
       from accounts a
       left join students s on s.id = a.student_id
       left join teachers t on t.id = a.teacher_id
+      left join (
+        select account_id, count(*)::int as active_sessions
+        from auth_sessions
+        where expires_at > now() and last_seen_at > now() - interval '5 minutes'
+        group by account_id
+      ) sess on sess.account_id = a.id
+      left join (
+        select account_id, max(created_at) as last_login_at
+        from auth_sessions
+        group by account_id
+      ) lastlog on lastlog.account_id = a.id
       order by case a.role when 'admin' then 0 when 'teacher' then 1 else 2 end, a.name asc
       limit 1000
     `) as Row[];
@@ -177,6 +196,9 @@ export async function GET(request: NextRequest) {
   }
 
   if (resource === "stats") {
+    if (statsCache && Date.now() - statsCache.at < STATS_TTL_MS) {
+      return NextResponse.json(statsCache.body);
+    }
     const [rows, weekly, topPages] = await Promise.all([
       sql`
         select
@@ -237,13 +259,17 @@ export async function GET(request: NextRequest) {
       ` as Promise<Row[]>,
     ]);
     const row = rows[0];
+    // Angka traffic dikali skala sampling agar merepresentasikan kunjungan
+    // penuh (lihat TRACK_SAMPLE_RATE). Flag sampled ikut ke UI sebagai label.
+    const scale = trackScale();
+    const sampled = trafficSampled();
     const moderationPending =
       (Number(row.moderation_queue) || 0) +
       (Number(row.achievements_pending) || 0) +
       (Number(row.news_pending) || 0) +
       (Number(row.announcements_pending) || 0);
 
-    return NextResponse.json({
+    const payload = {
       data: {
         students: Number(row.students) || 0,
         teachers: Number(row.teachers) || 0,
@@ -263,9 +289,11 @@ export async function GET(request: NextRequest) {
         onlineSessions: Number(row.online_sessions) || 0,
         loginsToday: Number(row.logins_today) || 0,
         presentToday: Number(row.present_today) || 0,
-        visitorsToday: Number(row.visitors_today) || 0,
-        pageviewsToday: Number(row.pageviews_today) || 0,
-        pageviewsTotal: Number(row.pageviews_total) || 0,
+        visitorsToday: (Number(row.visitors_today) || 0) * scale,
+        pageviewsToday: (Number(row.pageviews_today) || 0) * scale,
+        pageviewsTotal: (Number(row.pageviews_total) || 0) * scale,
+        trafficSampled: sampled,
+        trafficScale: scale,
         moderationPending,
         roles: {
           student: Number(row.role_student) || 0,
@@ -274,17 +302,19 @@ export async function GET(request: NextRequest) {
         },
         weekly: weekly.map((item) => ({
           day: text(item.day),
-          visitors: Number(item.visitors) || 0,
-          pageviews: Number(item.pageviews) || 0,
+          visitors: (Number(item.visitors) || 0) * scale,
+          pageviews: (Number(item.pageviews) || 0) * scale,
         })),
         topPages: topPages.map((item) => ({
           path: text(item.path),
-          views: Number(item.views) || 0,
+          views: (Number(item.views) || 0) * scale,
         })),
         updatedAt: new Date().toISOString(),
       },
       source: "db",
-    });
+    };
+    statsCache = { at: Date.now(), body: payload };
+    return NextResponse.json(payload);
   }
 
   if (resource === "moderation") {
@@ -328,25 +358,35 @@ export async function GET(request: NextRequest) {
 
 /** POST /api/admin { action: create-user | toggle-user | approve | reject } */
 export async function POST(request: NextRequest) {
+  const rejected = guardMutation(request, { maxBytes: CMS_BODY_LIMIT });
+  if (rejected) return rejected;
   const account = await requireRole(["admin"]);
   if (account instanceof NextResponse) return account;
 
   if (!dbConfigured()) {
     return NextResponse.json({ error: "Database belum dikonfigurasi." }, { status: 503 });
   }
-  const body = (await request.json().catch(() => null)) as
-    | {
-        action?: string;
-        id?: string;
-        source?: string;
-        name?: string;
-        email?: string;
-        username?: string;
-        role?: string;
-        detail?: string;
-        status?: string;
-      }
-    | null;
+  const body = (await readJsonLimited<{
+    action?: string;
+    id?: string;
+    source?: string;
+    name?: string;
+    email?: string;
+    username?: string;
+    role?: string;
+    detail?: string;
+    status?: string;
+  }>(request, CMS_BODY_LIMIT)) as {
+    action?: string;
+    id?: string;
+    source?: string;
+    name?: string;
+    email?: string;
+    username?: string;
+    role?: string;
+    detail?: string;
+    status?: string;
+  } | null;
 
   const sql = getDb();
 
@@ -355,9 +395,13 @@ export async function POST(request: NextRequest) {
       case "create-user": {
         if (!body.name || !body.email) throw new Error("Nama dan username/NISN wajib diisi.");
         const username = body.email.trim().toLowerCase();
+        // Password awal acak (bukan = username yang semi-publik). Dikembalikan
+        // sekali di respons agar admin bisa menyampaikannya ke user.
+        const { randomBytes } = await import("node:crypto");
+        const initialPassword = randomBytes(9).toString("base64url");
         const rows = (await sql`
           insert into accounts (username, password_hash, role, name, detail, status)
-          values (${username}, ${await hashPassword(username)},
+          values (${username}, ${await hashPassword(initialPassword)},
                   ${ROLE_VALUE[body.role ?? "Siswa"] ?? "student"},
                   ${body.name}, ${body.detail ?? "-"}, ${"Aktif"})
           on conflict (username) do update set name = excluded.name,
@@ -372,6 +416,7 @@ export async function POST(request: NextRequest) {
         } else if (roleKey === "teacher") {
           await ensureTeacherLink(accountId, username, text(row.name), text(row.detail));
         }
+        statsCache = null;
         return NextResponse.json({
           data: {
             id: accountId,
@@ -381,6 +426,7 @@ export async function POST(request: NextRequest) {
             roleKey,
             detail: text(row.detail),
             status: text(row.status),
+            initialPassword,
           },
         });
       }
@@ -404,10 +450,13 @@ export async function POST(request: NextRequest) {
         `) as Row[];
         if (!target[0]) throw new Error("User tidak ditemukan.");
         const username = text(target[0].username);
+        const { randomBytes: randomBytesReset } = await import("node:crypto");
+        const newPassword = randomBytesReset(9).toString("base64url");
         await sql`
-          update accounts set password_hash = ${await hashPassword(username)} where id = ${body.id}
+          update accounts set password_hash = ${await hashPassword(newPassword)} where id = ${body.id}
         `;
-        return NextResponse.json({ ok: true, username });
+        statsCache = null;
+        return NextResponse.json({ ok: true, username, newPassword });
       }
 
       case "update-user": {
@@ -529,6 +578,9 @@ export async function POST(request: NextRequest) {
         }
         // Status konten berubah → segarkan cache halaman publik.
         revalidatePath("/", "layout");
+        updateTag("cms");
+        purgeContentCache();
+        statsCache = null;
         return NextResponse.json({ ok: true });
       }
 

@@ -137,7 +137,7 @@ export function writeStoredA11yPrefs(
   try {
     storage?.setItem(A11Y_STORAGE_KEY, JSON.stringify(prefs));
   } catch {
-    /* storage penuh atau ditolak browser — abaikan, preferensi tetap jalan */
+    /* storage penuh atau ditolak browser, abaikan, preferensi tetap jalan */
   }
 }
 

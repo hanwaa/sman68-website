@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Universitas Diponegoro">
+  <rect width="64" height="64" rx="14" fill="#0D3B7A"/>
+  <text x="32" y="33" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12.5" font-weight="800" fill="#FFFFFF" letter-spacing="0.3">UNDIP</text>
+  <rect x="22" y="38" width="20" height="3" rx="1.5" fill="#F5C542"/>
+</svg>

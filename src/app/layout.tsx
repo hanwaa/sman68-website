@@ -12,11 +12,11 @@ import { DEFAULT_OG_IMAGE, SITE_NAME, absoluteUrl, siteBase } from "@/lib/seo";
 export const metadata: Metadata = {
   metadataBase: new URL(siteBase()),
   title: {
-    template: "%s — SMAN 68 Jakarta",
+    template: "%s | SMAN 68 Jakarta",
     default: "SMAN 68 Jakarta",
   },
   description:
-    "Situs resmi SMA Negeri 68 Jakarta — informasi akademik, prestasi, kegiatan, PPDB, dan komunitas sekolah.",
+    "Situs resmi SMA Negeri 68 Jakarta, informasi akademik, prestasi, kegiatan, PPDB, dan komunitas sekolah.",
   keywords: ["SMAN 68 Jakarta", "SMA Negeri 68 Jakarta", "PPDB SMAN 68", "sekolah menengah atas Jakarta"],
   authors: [{ name: SITE_NAME }],
   openGraph: {

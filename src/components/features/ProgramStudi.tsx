@@ -133,10 +133,9 @@ export default function ProgramStudi() {
                   initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05, ease: "easeOut" }}
-                  whileHover={{ y: -3 }}
                   onClick={() => setBookSubject(subject.name)}
-                  aria-label={`${subject.name} — ${subject.books.length} buku bacaan`}
-                  className="card group flex items-start gap-3.5 p-4 text-left transition-shadow hover:shadow-card-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40"
+                  aria-label={`${subject.name}, ${subject.books.length} buku bacaan`}
+                  className="card group flex items-start gap-3.5 p-4 text-left hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40"
                 >
                   <span
                     className={cn(
@@ -246,7 +245,7 @@ export default function ProgramStudi() {
                 </ul>
 
                 <p className="border-t border-line bg-cream px-5 py-3 text-[11px] text-muted">
-                  Daftar bacaan yang lazim dipakai di SMAN 68 — ketersediaan salinan
+                  Daftar bacaan yang lazim dipakai di SMAN 68, ketersediaan salinan
                   bisa ditanyakan ke perpustakaan sekolah.
                 </p>
               </motion.div>

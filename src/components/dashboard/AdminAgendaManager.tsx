@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { MODAL_PANEL, MODAL_TRANSITION } from "@/lib/motion";
 import {
   CalendarDays,
   ChevronLeft,
@@ -233,7 +234,7 @@ export default function AdminAgendaManager({ onShowToast = () => {} }: AdminAgen
               Kelola Agenda Sekolah
             </h1>
             <p className="text-sm text-muted">
-              Klik tanggal untuk menambah atau mengubah agenda — tampil di dashboard semua peran.
+              Klik tanggal untuk menambah atau mengubah agenda, tampil di dashboard semua peran.
             </p>
           </div>
         </div>
@@ -296,7 +297,7 @@ export default function AdminAgendaManager({ onShowToast = () => {} }: AdminAgen
                       : "border-line bg-white text-ink hover:border-brand-green/40 hover:bg-brand-mist",
                     today && !active && "border-brand-green/50"
                   )}
-                  aria-label={`${day} ${MONTH_NAMES[cursor.month]} — ${dayEvents.length} agenda`}
+                  aria-label={`${day} ${MONTH_NAMES[cursor.month]}, ${dayEvents.length} agenda`}
                 >
                   <span>{day}</span>
                   {dayEvents.length > 0 && (
@@ -409,6 +410,7 @@ export default function AdminAgendaManager({ onShowToast = () => {} }: AdminAgen
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={MODAL_TRANSITION}
               className="absolute inset-0 bg-brand-pine/70"
             />
             <motion.div
@@ -417,9 +419,10 @@ export default function AdminAgendaManager({ onShowToast = () => {} }: AdminAgen
               role="dialog"
               aria-modal="true"
               aria-label={editingId ? "Edit agenda" : "Tambah agenda"}
-              initial={{ opacity: 0, scale: 0.96, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              initial={MODAL_PANEL.initial}
+              animate={MODAL_PANEL.animate}
+              exit={MODAL_PANEL.exit}
+              transition={MODAL_TRANSITION}
               onClick={(e) => e.stopPropagation()}
               className="relative z-10 max-h-[85vh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-5 text-ink shadow-card focus:outline-none sm:p-6"
             >

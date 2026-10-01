@@ -120,8 +120,8 @@ export default function AttendanceHistory({
             </div>
             <div className="mt-2.5 h-1.5 rounded-full bg-line overflow-hidden">
               <span
-                className="block h-full rounded-full bg-brand-green transition-colors duration-200 ease-out"
-                style={{ width: `${persentase}%` }}
+                className="block h-full w-full origin-left rounded-full bg-brand-green transition-transform duration-300 ease-out"
+                style={{ transform: `scaleX(${persentase / 100})` }}
               />
             </div>
             <div className="text-[11px] text-muted mt-1.5">Dari {total} hari sekolah</div>
@@ -166,7 +166,7 @@ export default function AttendanceHistory({
           <div className="w-11 h-11 rounded-xl overflow-hidden bg-brand-green/10 flex items-center justify-center flex-shrink-0">
             {checkedToday && selfieSrc ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={selfieSrc} alt="Foto selfie presensi" className="w-full h-full object-cover" />
+              <img src={selfieSrc} alt="Foto selfie presensi" loading="lazy" decoding="async" className="w-full h-full object-cover" />
             ) : (
               <CheckCircle size={22} className="text-brand-green" aria-hidden="true" />
             )}
@@ -177,7 +177,7 @@ export default function AttendanceHistory({
               {checkedToday
                 ? checkinTime
                   ? `Tercatat pukul ${checkinTime} · foto selfie terlampir`
-                  : "Sudah terpresensi — terima kasih!"
+                  : "Sudah terpresensi, terima kasih!"
                 : "Wajib presensi dengan foto selfie · Batas 07.30 WIB"}
             </div>
           </div>

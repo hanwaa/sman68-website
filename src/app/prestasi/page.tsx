@@ -7,11 +7,11 @@ import { getAchievements } from "@/lib/content-server";
 import { breadcrumbSchema } from "@/lib/schema";
 import { buildMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = buildMetadata({
   title: "Dinding Prestasi",
-  description: "Visualisasi seluruh prestasi SMA Negeri 68 Jakarta — dari tingkat kota hingga internasional.",
+  description: "Visualisasi seluruh prestasi SMA Negeri 68 Jakarta, dari tingkat kota hingga internasional.",
   path: "/prestasi",
 });
 

@@ -79,7 +79,6 @@ export default function GaleriView({
   );
 
   const [activeAlbum, setActiveAlbum] = useState<string | null>(null);
-  const [spotlightId, setSpotlightId] = useState<string | null>(null);
   const [slide, setSlide] = useState(0);
   const reduceMotion = useReducedMotion();
   const [perView, setPerView] = useState(3);
@@ -89,16 +88,30 @@ export default function GaleriView({
   const closeLightbox = useCallback(() => setLightbox(null), []);
   const modalRef = useModalA11y<HTMLDivElement>(!!lightbox, closeLightbox);
 
-  const spotlight = photos.find((photo) => photo.id === spotlightId) ?? photos[0] ?? null;
+  /*
+   * Satu foto hanya tampil di SATU bagian halaman: buang duplikat src lebih
+   * dulu, lalu bagi berurutan ke Sorotan, Momen Pilihan, Carousel, dan Arsip.
+   */
+  const uniquePhotos = useMemo(() => {
+    const seen = new Set<string>();
+    return photos.filter((photo) => {
+      if (seen.has(photo.src)) return false;
+      seen.add(photo.src);
+      return true;
+    });
+  }, [photos]);
 
-  const highlights = useMemo(() => photos.slice(0, 14), [photos]);
+  const spotlight = uniquePhotos[0] ?? null;
+  const stripPhotos = useMemo(() => uniquePhotos.slice(1, 9), [uniquePhotos]);
+  const carouselPhotos = useMemo(() => uniquePhotos.slice(9, 18), [uniquePhotos]);
+  const archivePhotos = useMemo(() => uniquePhotos.slice(18), [uniquePhotos]);
 
-  const slides = useMemo(() => chunk(photos, perView), [photos, perView]);
+  const slides = useMemo(() => chunk(carouselPhotos, perView), [carouselPhotos, perView]);
   const maxSlide = Math.max(0, slides.length - 1);
 
   const archive = useMemo(
-    () => (activeAlbum ? photos.filter((photo) => photo.album === activeAlbum) : photos),
-    [activeAlbum, photos]
+    () => (activeAlbum ? archivePhotos.filter((photo) => photo.album === activeAlbum) : archivePhotos),
+    [activeAlbum, archivePhotos]
   );
 
   useEffect(() => {
@@ -118,6 +131,13 @@ export default function GaleriView({
   const openLightbox = useCallback((list: GalleryPhoto[], index: number) => {
     setLightbox({ photos: list, index });
   }, []);
+
+  /** Buka lightbox pada daftar lengkap, di posisi foto yang diklik. */
+  const openPhoto = useCallback(
+    (photo: GalleryPhoto) =>
+      openLightbox(uniquePhotos, uniquePhotos.findIndex((item) => item.id === photo.id)),
+    [openLightbox, uniquePhotos]
+  );
 
   const stepLightbox = useCallback((direction: number) => {
     setLightbox((current) => {
@@ -177,7 +197,7 @@ export default function GaleriView({
           )
         ) : (
           <>
-            {/* 1. Spotlight — satu foto besar */}
+            {/* 1. Spotlight, satu foto besar */}
             {spotlight && (
               <section aria-label="Sorotan galeri">
                 <SectionHeader
@@ -187,13 +207,13 @@ export default function GaleriView({
                       Sedang <span className="text-brand-leaf">Disorot</span>
                     </>
                   }
-                  lead="Pilih foto dari daftar di bawah untuk menampilkannya dalam ukuran besar."
+                  lead="Satu momen pilihan yang sedang disorot. Klik untuk memperbesar."
                   className="mb-6 md:mb-8"
                 />
 
                 <button
                   type="button"
-                  onClick={() => openLightbox(photos, photos.findIndex((p) => p.id === spotlight.id))}
+                  onClick={() => openPhoto(spotlight)}
                   className="group relative block aspect-[16/9] w-full overflow-hidden rounded-3xl bg-line text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
                 >
                   <Image
@@ -217,32 +237,6 @@ export default function GaleriView({
                     </span>
                   </span>
                 </button>
-
-                {/* Pemilih foto spotlight */}
-                <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  {photos.map((photo) => (
-                    <button
-                      key={photo.id}
-                      type="button"
-                      onClick={() => setSpotlightId(photo.id)}
-                      aria-label={`Tampilkan ${photo.caption}`}
-                      className={cn(
-                        "relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-colors duration-150 ease-out",
-                        spotlight.id === photo.id
-                          ? "border-brand-green opacity-100"
-                          : "border-transparent opacity-60 hover:opacity-100"
-                      )}
-                    >
-                      <Image
-                        src={photo.src}
-                        alt=""
-                        fill
-                        className="object-cover"
-                        sizes="80px"
-                      />
-                    </button>
-                  ))}
-                </div>
               </section>
             )}
 
@@ -255,7 +249,7 @@ export default function GaleriView({
                     Geser untuk <span className="text-brand-leaf">Menjelajah</span>
                   </>
                 }
-                lead="Deretan momen favorit — geser ke kanan atau kiri untuk melihat semuanya."
+                lead="Deretan momen favorit. Geser ke kanan atau kiri untuk melihat semuanya."
                 action={
                   <div className="flex gap-2">
                     <ArrowButton direction="left" onClick={() => scrollStrip(-1)} label="Geser ke kiri" />
@@ -269,11 +263,11 @@ export default function GaleriView({
                 ref={stripRef}
                 className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
-                {highlights.map((photo, index) => (
+                {stripPhotos.map((photo) => (
                   <button
                     key={photo.id}
                     type="button"
-                    onClick={() => openLightbox(photos, index)}
+                    onClick={() => openPhoto(photo)}
                     className="group relative h-40 flex-shrink-0 snap-start overflow-hidden rounded-2xl bg-line sm:h-52 lg:h-64"
                   >
                     <Image
@@ -337,11 +331,11 @@ export default function GaleriView({
                   {slides.map((group, groupIndex) => (
                     <div key={groupIndex} className="w-full flex-shrink-0 pr-3 last:pr-0">
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {group.map((photo, index) => (
+                        {group.map((photo) => (
                           <button
                             key={photo.id}
                             type="button"
-                            onClick={() => openLightbox(group, index)}
+                            onClick={() => openPhoto(photo)}
                             className="group relative block w-full overflow-hidden rounded-2xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
                           >
                             <span className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-brand-pine">
@@ -382,7 +376,7 @@ export default function GaleriView({
                       onClick={() => setSlide(index)}
                       aria-label={`Ke kelompok ${index + 1}`}
                       className={cn(
-                        "h-1.5 rounded-full transition-colors duration-200 ease-out",
+                        "h-1.5 rounded-full transition-[width,background-color] duration-200 ease-out",
                         index === slide ? "w-6 bg-brand-green" : "w-1.5 bg-ink/15 hover:bg-ink/30"
                       )}
                     />
@@ -391,16 +385,16 @@ export default function GaleriView({
               )}
             </section>
 
-            {/* 4. Arsip semua foto */}
-            <section aria-label="Semua foto">
+            {/* 4. Arsip foto lainnya */}
+            <section aria-label="Arsip foto">
               <SectionHeader
                 eyebrow="Arsip"
                 title={
                   <>
-                    Semua <span className="text-brand-leaf">Foto</span>
+                    Arsip <span className="text-brand-leaf">Foto</span>
                   </>
                 }
-                lead="Telusuri seluruh koleksi berdasarkan album."
+                lead="Lebih banyak foto sekolah, telusuri berdasarkan album."
                 className="mb-6"
               />
 
@@ -410,7 +404,7 @@ export default function GaleriView({
                   onClick={() => setActiveAlbum(null)}
                   className={cn("chip", !activeAlbum && "chip-active")}
                 >
-                  Semua Foto
+                  Semua
                 </button>
                 {albums.map((album) => (
                   <button
@@ -427,8 +421,12 @@ export default function GaleriView({
               {archive.length === 0 ? (
                 <EmptyState
                   icon="🖼️"
-                  title="Belum ada foto di album ini"
-                  description="Koleksi album ini masih kosong. Lihat semua foto dulu, ya."
+                  title={activeAlbum ? "Belum ada foto di album ini" : "Belum ada foto lainnya"}
+                  description={
+                    activeAlbum
+                      ? "Koleksi album ini masih kosong. Lihat semua foto dulu, ya."
+                      : "Semua foto sudah tampil di bagian atas halaman."
+                  }
                   action={{ label: "Lihat Semua Foto", onClick: () => setActiveAlbum(null) }}
                 />
               ) : (
@@ -443,7 +441,7 @@ export default function GaleriView({
                       initial={{ opacity: 0, y: 18 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: Math.min(index, 8) * 0.04, ease: "easeOut" }}
-                      onClick={() => openLightbox(archive, index)}
+                      onClick={() => openPhoto(photo)}
                       aria-label={`Perbesar foto: ${photo.caption || "Galeri SMAN 68"}`}
                       className="group mb-3 block w-full break-inside-avoid overflow-hidden rounded-2xl bg-line text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 md:mb-4"
                     >

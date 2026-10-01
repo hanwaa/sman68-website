@@ -22,15 +22,15 @@ import { schoolData } from "@/lib/school-data";
 const milestones = [
   { year: "1967", title: "Lahirnya SMAN 68", desc: "SMA Negeri 68 Jakarta resmi didirikan dan mulai beroperasi dengan ratusan siswa angkatan pertama." },
   { year: "1972", title: "Gedung Baru", desc: "Pembangunan gedung permanen pertama sebagai wujud komitmen pemerintah terhadap pendidikan berkualitas." },
-  { year: "1980", title: "1.000 Siswa", desc: "SMAN 68 mencapai tonggak bersejarah — jumlah siswa melampaui 1.000 orang untuk pertama kalinya." },
+  { year: "1980", title: "1.000 Siswa", desc: "SMAN 68 mencapai tonggak bersejarah, jumlah siswa melampaui 1.000 orang untuk pertama kalinya." },
   { year: "1990", title: "Laboratorium Modern", desc: "Penambahan laboratorium IPA dan komputer pertama, menjadikan SMAN 68 sebagai pelopor teknologi pendidikan." },
   { year: "1995", title: "Akreditasi A Pertama", desc: "SMAN 68 meraih Akreditasi A dari Dinas Pendidikan DKI Jakarta untuk pertama kalinya." },
   { year: "2000", title: "Era Baru Milenium", desc: "Memasuki milenium baru dengan berbagai pembaruan kurikulum dan fasilitas yang semakin lengkap." },
   { year: "2005", title: "Sekolah Berprestasi Nasional", desc: "Meraih penghargaan Sekolah Berprestasi tingkat nasional dari Kementerian Pendidikan RI." },
-  { year: "2010", title: "Olimpiade Sains", desc: "Pertama kali meraih medali emas di Olimpiade Sains Nasional — awal dari era dominasi akademik." },
+  { year: "2010", title: "Olimpiade Sains", desc: "Pertama kali meraih medali emas di Olimpiade Sains Nasional, awal dari era dominasi akademik." },
   { year: "2015", title: "Digitalisasi Sekolah", desc: "Implementasi sistem informasi sekolah digital, menjadi pelopor transformasi digital pendidikan di Jakarta Pusat." },
   { year: "2019", title: "International Recognition", desc: "Tim sains SMAN 68 meraih penghargaan di International Science Fair untuk pertama kalinya." },
-  { year: "2022", title: "Kurikulum Merdeka", desc: "SMAN 68 menjadi sekolah penggerak Kurikulum Merdeka — mengimplementasikan pembelajaran berbasis proyek." },
+  { year: "2022", title: "Kurikulum Merdeka", desc: "SMAN 68 menjadi sekolah penggerak Kurikulum Merdeka, mengimplementasikan pembelajaran berbasis proyek." },
   { year: "2024", title: "Portal Digital Diluncurkan", desc: "Peluncuran portal digital terpadu SMAN 68 yang menghubungkan seluruh komunitas sekolah." },
 ];
 
@@ -70,7 +70,7 @@ const dataResmi = [
     icon: FlaskConical,
     title: "Sarana & Prasarana",
     items: [
-      `${schoolData.sarana.ruangKelas} ruang kelas — ${schoolData.sarana.ruangKelasLayak}% layak`,
+      `${schoolData.sarana.ruangKelas} ruang kelas, ${schoolData.sarana.ruangKelasLayak}% layak`,
       `Laboratorium IPA (fisika, kimia, biologi), lab bahasa, lab IPS, dan lab komputer`,
       `${schoolData.sarana.perpustakaan} perpustakaan`,
       `Internet ${schoolData.sarana.internet}`,
@@ -98,20 +98,11 @@ export default function ProfilSekolah() {
         </div>
         <div className="container-custom relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex items-center gap-4 mb-6">
-              <div className="relative w-16 h-16">
-                <Image src="/assets/logo.png" alt="Logo SMAN 68" fill className="object-contain" />
-              </div>
-              <div>
-                <div className="text-white/60 text-sm">SMA Negeri</div>
-                <div className="font-display font-extrabold text-3xl text-white">68 Jakarta</div>
-              </div>
-            </div>
             <h1 className="font-display font-extrabold text-4xl md:text-5xl text-white mb-4">
               Profil <span className="text-brand-lime">Sekolah</span>
             </h1>
             <p className="text-white/70 text-lg max-w-2xl">
-              Mengenal lebih dalam SMA Negeri 68 Jakarta — sejarah, identitas, dan komitmen kami terhadap pendidikan berkualitas.
+              Mengenal lebih dalam SMA Negeri 68 Jakarta: sejarah, identitas, dan komitmen kami terhadap pendidikan berkualitas.
             </p>
           </motion.div>
         </div>
@@ -142,7 +133,7 @@ export default function ProfilSekolah() {
                 ["NPSN", schoolData.identitas.npsn],
                 [
                   "Akreditasi",
-                  `${schoolData.identitas.akreditasi} — Skor ${schoolData.identitas.skorAkreditasi} (${schoolData.identitas.skAkreditasi})`,
+                  `${schoolData.identitas.akreditasi}, Skor ${schoolData.identitas.skorAkreditasi} (${schoolData.identitas.skAkreditasi})`,
                 ],
                 ["Status", schoolData.identitas.status],
                 ["Jenjang", "SMA (Sekolah Menengah Atas)"],

@@ -7,11 +7,11 @@ import { getNews } from "@/lib/content-server";
 import { breadcrumbSchema } from "@/lib/schema";
 import { buildMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = buildMetadata({
   title: "Berita",
-  description: "Berita terbaru dari SMAN 68 Jakarta — prestasi, kegiatan, dan pengumuman.",
+  description: "Berita terbaru dari SMAN 68 Jakarta, prestasi, kegiatan, dan pengumuman.",
   path: "/berita",
 });
 

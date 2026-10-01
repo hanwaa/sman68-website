@@ -1,5 +1,5 @@
 /**
- * Inisialisasi schema PostgreSQL (Neon atau server lokal).
+ * Inisialisasi schema PostgreSQL.
  * Jalankan: node --env-file=.env.local scripts/db-init.mjs
  */
 import { readFileSync } from "node:fs";
@@ -10,28 +10,12 @@ if (!url) {
   process.exit(1);
 }
 
-const isNeon = /(^|\.)neon\.tech$/i.test(new URL(url).hostname);
-
-let sql;
-let close = async () => {};
-
-if (isNeon) {
-  const { neon } = await import("@neondatabase/serverless");
-  const neonSql = neon(url);
-  sql = {
-    query: (text, params = []) =>
-      neonSql.query(text, params),
-  };
-  console.log("Driver: Neon serverless");
-} else {
-  const { Pool } = await import("pg");
-  const pool = new Pool({ connectionString: url });
-  sql = {
-    query: async (text, params = []) => (await pool.query(text, params)).rows,
-  };
-  close = () => pool.end();
-  console.log("Driver: pg (PostgreSQL lokal)");
-}
+const { Pool } = await import("pg");
+const pool = new Pool({ connectionString: url });
+const sql = {
+  query: async (text, params = []) => (await pool.query(text, params)).rows,
+};
+console.log("Driver: pg (PostgreSQL)");
 
 const schema = readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8");
 
@@ -52,5 +36,5 @@ for (const statement of statements) {
   const label = statement.replace(/\s+/g, " ").slice(0, 70);
   console.log(`  ok  ${label}...`);
 }
-await close();
+await pool.end();
 console.log("Schema PostgreSQL siap.");

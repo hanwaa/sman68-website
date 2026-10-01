@@ -1,5 +1,5 @@
 -- ============================================================
--- SMAN 68 Jakarta — Neon Postgres schema
+-- SMAN 68 Jakarta — PostgreSQL schema
 -- Jalankan: node scripts/db-init.mjs
 -- ============================================================
 
@@ -537,3 +537,48 @@ create table if not exists site_visits (
   primary key (day, visitor_id)
 );
 create index if not exists idx_site_visits_day on site_visits (day desc);
+
+-- ------------------------------------------------------------
+-- Index hasil audit performa (join/filter panas + antrian moderasi).
+-- Idempoten; samakan dengan index yang sudah ada di production.
+-- ------------------------------------------------------------
+create index if not exists idx_news_achievement on news (achievement_id) where status = 'published';
+create index if not exists idx_news_pending on news (published_at) where status = 'pending';
+create index if not exists idx_achievements_pub on achievements (status, year desc) where status = 'published';
+create index if not exists idx_ach_pending on achievements (created_at) where status = 'pending';
+create index if not exists idx_achievements_student_name on achievements (student_name, year desc);
+create index if not exists idx_announcements_status_aud_pub on announcements (status, audience, published_at desc);
+create index if not exists idx_ann_pending on announcements (published_at) where status = 'pending';
+create index if not exists idx_class_comments_post on class_comments (post_id);
+create index if not exists idx_members_pending on class_members (class_id) where enrolled = false;
+create index if not exists idx_classes_teacher on classes (teacher_name);
+create index if not exists idx_class_schedules_class on class_schedules (audience, class_name);
+create index if not exists idx_class_schedules_teacher on class_schedules (teacher);
+create index if not exists idx_ae_alumni on alumni_educations (alumni_id);
+create index if not exists idx_ae_univ on alumni_educations (university_id);
+create index if not exists idx_mod_pending on moderation_queue (created_at) where status = 'pending';
+
+-- ------------------------------------------------------------
+-- Layanan administrasi: legalisir ijazah (kelas 12, dibuka admin)
+-- ------------------------------------------------------------
+create table if not exists service_settings (
+  key text primary key,
+  value jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists legalisir_requests (
+  id uuid primary key default gen_random_uuid(),
+  student_id text,
+  student_name text not null,
+  class_name text,
+  sheets integer not null default 1,
+  purpose text,
+  status text not null default 'pending'
+    check (status in ('pending', 'approved', 'rejected', 'done')),
+  note text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists idx_legalisir_status on legalisir_requests (status, created_at desc);
+create index if not exists idx_legalisir_student on legalisir_requests (student_name, created_at desc);

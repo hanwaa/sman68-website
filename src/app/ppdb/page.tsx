@@ -6,7 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "PPDB",
-  description: "Panduan lengkap PPDB SMAN 68 Jakarta — jadwal, persyaratan, dan langkah pendaftaran.",
+  description: "Panduan lengkap PPDB SMAN 68 Jakarta, jadwal, persyaratan, dan langkah pendaftaran.",
   path: "/ppdb",
 });
 

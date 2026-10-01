@@ -40,9 +40,10 @@ export function useA11y(): A11yContextValue {
  * seluruh aturan CSS (termasuk yang hanya untuk satu pref tertentu) berlaku
  * untuk semua elemen tanpa perlu masing-masing komponen membaca state.
  *
- * `MotionConfig` di sini adalah jaring pengaman: dengan menyetel
- * `reducedMotion`, seluruh animasi framer-motion di situs ikut berhenti —
- * termasuk yang tidak punya handler khusus, yang sebelumnya lolos begitu saja.
+ * `MotionConfig` di sini adalah jaring pengaman untuk animasi transform/layout
+ * framer-motion. Fade opacity sengaja tidak dimatikan (sesuai prinsip
+ * prefers-reduced-motion: kurangi gerak, bukan hapus semua umpan balik);
+ * sisi CSS ditangani allowlist transition-property di globals.css.
  */
 export default function A11yProvider({ children }: { children: React.ReactNode }) {
   const [prefs, setPrefs] = useState<A11yPrefs>(defaultA11yPrefs);

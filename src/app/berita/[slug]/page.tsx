@@ -4,13 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Calendar, Eye, Tag, User } from "lucide-react";
+import { ArrowLeft, Calendar, ExternalLink, Eye, Tag, User } from "lucide-react";
 import JsonLd from "@/components/seo/JsonLd";
 import { getNewsBySlug, getNewsSlugs } from "@/lib/content-server";
 import { articleSchema, breadcrumbSchema } from "@/lib/schema";
 import { SITE_NAME, buildMetadata, ogCardUrl } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export async function generateStaticParams() {
   const slugs = await getNewsSlugs();
@@ -54,7 +54,7 @@ function ContentBlocks({ content }: { content: string }) {
         return (
           <div key={i} className="space-y-3">
             {paragraphs.map((line, j) => (
-              <p key={j}>{line}</p>
+              <p key={j} className="text-pretty">{line}</p>
             ))}
             {items.length > 0 && (
               <ul className="list-disc pl-5 space-y-1.5">
@@ -84,6 +84,18 @@ export default async function BeritaDetail({ params }: { params: Promise<{ slug:
     Kegiatan: "bg-brand-green/10 text-brand-green",
     Akademik: "bg-brand-green/10 text-brand-green",
   };
+
+  const sourceMatch = article.content.match(/\n\nSumber:\s*(\S+)\s*$/);
+  const sourceUrl = sourceMatch?.[1] ?? null;
+  const bodyContent = sourceMatch ? article.content.slice(0, sourceMatch.index).trimEnd() : article.content;
+  let sourceLabel: string | null = null;
+  if (sourceUrl) {
+    try {
+      sourceLabel = new URL(sourceUrl).hostname.replace(/^www\./, "");
+    } catch {
+      sourceLabel = null;
+    }
+  }
 
   return (
     <>
@@ -116,7 +128,40 @@ export default async function BeritaDetail({ params }: { params: Promise<{ slug:
           </nav>
 
           <article>
-            <div className="relative aspect-video overflow-hidden rounded-2xl shadow-card">
+            <header>
+              <span className={`badge ${catColors[article.category] || "bg-line text-muted"}`}>
+                <Tag size={10} aria-hidden="true" /> {article.category}
+              </span>
+
+              <h1 className="mt-4 font-display text-3xl font-extrabold leading-[1.12] tracking-[-0.01em] text-ink text-balance md:text-4xl">
+                {article.title}
+              </h1>
+
+              {article.excerpt?.trim() && (
+                <p className="mt-4 text-base leading-relaxed text-muted md:text-lg">
+                  {article.excerpt}
+                </p>
+              )}
+
+              <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-line pb-5 text-xs tracking-[0.01em] text-muted">
+                <span className="inline-flex items-center gap-1.5">
+                  <User size={12} aria-hidden="true" />
+                  {article.author}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Calendar size={12} aria-hidden="true" />
+                  <time dateTime={article.publishedAt} className="tabular-nums">
+                    {new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(new Date(article.publishedAt))}
+                  </time>
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Eye size={12} aria-hidden="true" />
+                  {article.views.toLocaleString("id-ID")} pembaca
+                </span>
+              </div>
+            </header>
+
+            <div className="relative mt-8 aspect-video overflow-hidden rounded-2xl shadow-card">
               <Image
                 src={article.cover}
                 alt={article.title}
@@ -125,49 +170,41 @@ export default async function BeritaDetail({ params }: { params: Promise<{ slug:
                 priority
                 sizes="(max-width:768px) 100vw, 800px"
               />
-              <span className={`badge absolute left-4 top-4 shadow-sm ${catColors[article.category] || "bg-line text-muted"}`}>
-                <Tag size={10} aria-hidden="true" /> {article.category}
-              </span>
             </div>
 
-            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-line pb-5 text-xs text-muted">
-              <span className="inline-flex items-center gap-1.5">
-                <User size={12} aria-hidden="true" />
-                {article.author}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Calendar size={12} aria-hidden="true" />
-                <time dateTime={article.publishedAt} className="tabular-nums">
-                  {new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(new Date(article.publishedAt))}
-                </time>
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Eye size={12} aria-hidden="true" />
-                {article.views.toLocaleString("id-ID")} pembaca
-              </span>
-            </div>
-
-            <h1 className="mt-5 font-display text-2xl font-extrabold leading-tight text-ink md:text-3xl">
-              {article.title}
-            </h1>
-
-            {article.excerpt?.trim() && (
-              <p className="mt-3 text-base leading-relaxed text-muted md:text-lg">
-                {article.excerpt}
-              </p>
-            )}
-
-            <div className="card mt-6 p-6 md:p-9">
-              <div className="space-y-4 text-sm leading-relaxed text-ink md:text-base">
-                <ContentBlocks content={article.content} />
+            <div className="card-static mt-8 p-6 md:p-9">
+              <div className="space-y-4 text-[15px] leading-[1.75] text-ink md:text-base">
+                <ContentBlocks content={bodyContent} />
               </div>
+              {sourceUrl && (
+                <footer className="mt-8 border-t border-line pt-5">
+                  <p className="text-xs tracking-[0.01em] text-muted">
+                    Sumber:{" "}
+                    <a
+                      href={sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded font-semibold text-brand-green underline-offset-2 transition-colors hover:text-brand-pine hover:underline active:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40"
+                    >
+                      {sourceLabel ?? "tautan asli"}
+                      <ExternalLink size={12} aria-hidden="true" />
+                    </a>
+                  </p>
+                </footer>
+              )}
             </div>
 
             <div className="mt-8 flex items-center justify-between gap-3 border-t border-line pt-5">
-              <Link href="/berita" className="btn-ghost text-sm">
+              <Link
+                href="/berita"
+                className="btn-ghost text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40"
+              >
                 <ArrowLeft size={15} aria-hidden="true" /> Semua Berita
               </Link>
-              <Link href="/" className="text-xs font-semibold text-muted transition-colors hover:text-brand-green">
+              <Link
+                href="/"
+                className="rounded text-xs font-semibold text-muted transition-colors hover:text-brand-green active:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40"
+              >
                 Kembali ke Beranda
               </Link>
             </div>

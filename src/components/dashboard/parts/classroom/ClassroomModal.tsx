@@ -2,6 +2,7 @@
 
 import type { RefObject } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { MODAL_PANEL, MODAL_TRANSITION } from "@/lib/motion";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,7 @@ export default function ClassroomModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={MODAL_TRANSITION}
             className="absolute inset-0 bg-brand-pine/70"
           />
           <motion.div
@@ -36,9 +38,10 @@ export default function ClassroomModal({
             role="dialog"
             aria-modal="true"
             aria-label={label}
-            initial={{ opacity: 0, scale: 0.95, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 16 }}
+            initial={MODAL_PANEL.initial}
+            animate={MODAL_PANEL.animate}
+            exit={MODAL_PANEL.exit}
+            transition={MODAL_TRANSITION}
             onClick={(e) => e.stopPropagation()}
             className={cn(
               "relative z-10 max-h-[85vh] w-full overflow-y-auto rounded-xl bg-white p-5 text-ink shadow-card focus:outline-none sm:p-6",

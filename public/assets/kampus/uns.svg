@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Universitas Sebelas Maret">
+  <rect width="64" height="64" rx="14" fill="#123A73"/>
+  <text x="32" y="35" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF" letter-spacing="0.3">UNS</text>
+  <rect x="24" y="40" width="16" height="3" rx="1.5" fill="#FFD24A"/>
+</svg>

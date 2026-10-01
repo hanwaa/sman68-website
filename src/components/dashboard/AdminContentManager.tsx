@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { MODAL_PANEL, MODAL_TRANSITION } from "@/lib/motion";
 import {
   Calendar,
   Camera,
@@ -14,7 +15,6 @@ import {
   Image as ImageIcon,
   LayoutGrid,
   Map as MapIcon,
-  MapPin,
   Megaphone,
   MessageSquareQuote,
   Newspaper,
@@ -27,29 +27,28 @@ import {
   Trash2,
   Trophy,
   Upload,
-  Users,
   X,
-  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useModalA11y } from "@/lib/useModalA11y";
 import { uploadToR2 } from "@/lib/upload";
-import { CMS_RESOURCES, cmsResourceById, type CmsField } from "@/lib/cms";
+import { CMS_RESOURCES, cmsResourceById, type CmsDynamicSource, type CmsField } from "@/lib/cms";
+import { ekskulList } from "@/lib/ekskul";
 
 type Row = Record<string, unknown>;
+
+type SelectOption = { value: string; label: string };
 
 const RESOURCE_ICONS: Record<string, React.ElementType> = {
   news: Newspaper,
   achievements: Trophy,
   extracurriculars: Star,
-  teachers: Users,
   facilities: MapIcon,
   testimonials: MessageSquareQuote,
   faqs: HelpCircle,
   events: Calendar,
   announcements: Megaphone,
   alumni: GraduationCap,
-  cities: MapPin,
   universities: School,
   gallery_albums: Images,
   gallery_photos: Camera,
@@ -57,7 +56,6 @@ const RESOURCE_ICONS: Record<string, React.ElementType> = {
   facility_highlights: LayoutGrid,
   people_photos: Camera,
   ppdb_config: ClipboardList,
-  school_profile: Building2,
 };
 
 const STATUS_STYLES: Record<string, string> = {
@@ -72,7 +70,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 const formatCell = (value: unknown) => {
-  if (value === null || value === undefined) return "—";
+  if (value === null || value === undefined) return "-";
   if (typeof value === "boolean") return value ? "Ya" : "Tidak";
   const text = String(value);
   if (/^\d{4}-\d{2}-\d{2}T/.test(text)) {
@@ -121,6 +119,12 @@ export default function AdminContentManager({ onShowToast = () => {} }: AdminCon
   const [form, setForm] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [uploadingField, setUploadingField] = useState<string | null>(null);
+  // Opsi select dinamis per sumber (diambil live dari database + fallback).
+  const [dynOptions, setDynOptions] = useState<Record<CmsDynamicSource, SelectOption[]>>({
+    ekskul: [],
+    achievement: [],
+    album: [],
+  });
   const modalRef = useModalA11y<HTMLDivElement>(modalOpen, () => setModalOpen(false));
 
   const resource = cmsResourceById(resourceId) ?? CMS_RESOURCES[0];
@@ -147,6 +151,57 @@ export default function AdminContentManager({ onShowToast = () => {} }: AdminCon
     void load(resourceId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resourceId]);
+
+  // Muat opsi select dinamis sekali (paralel, payload kecil). Endpoint admin
+  // dipakai agar baris draft ikut tampil (API publik hanya yang published).
+  useEffect(() => {
+    let cancelled = false;
+    const text = (value: unknown) => String(value ?? "").trim();
+    const cmsRows = async (resource: string): Promise<Row[]> => {
+      try {
+        const res = await fetch(`/api/admin/cms?resource=${resource}`, { cache: "no-store" });
+        if (!res.ok) return [];
+        const payload = (await res.json()) as { data?: Row[] };
+        return Array.isArray(payload.data) ? payload.data : [];
+      } catch {
+        return [];
+      }
+    };
+    (async () => {
+      const [ekskulRows, achievementRows, albumRows] = await Promise.all([
+        cmsRows("extracurriculars"),
+        cmsRows("achievements"),
+        cmsRows("gallery_albums"),
+      ]);
+      if (cancelled) return;
+      const opt = (value: string, label: string): SelectOption | null =>
+        value && label ? { value, label } : null;
+      const compact = (list: (SelectOption | null)[]): SelectOption[] =>
+        list.filter((item): item is SelectOption => item !== null);
+      const ekskulLive = compact(
+        ekskulRows.map((row) => opt(text(row.id), text(row.name)))
+      );
+      setDynOptions({
+        ekskul:
+          ekskulLive.length > 0
+            ? ekskulLive
+            : ekskulList.map((item) => ({ value: item.id, label: item.name })),
+        achievement: compact(
+          achievementRows.map((row) => opt(text(row.id), text(row.title)))
+        ),
+        album: compact(albumRows.map((row) => opt(text(row.id), text(row.title)))),
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /** Resolve opsi select: dinamis (optionsFrom) atau statis (options). */
+  const selectOptions = (field: CmsField): SelectOption[] => {
+    if (field.optionsFrom) return dynOptions[field.optionsFrom] ?? [];
+    return (field.options ?? []).map((option) => ({ value: option, label: option }));
+  };
 
   const filteredRows = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -201,7 +256,8 @@ export default function AdminContentManager({ onShowToast = () => {} }: AdminCon
         initial[field.name] = generateUniqueId(resource.id);
         return;
       }
-      initial[field.name] = field.type === "select" ? field.options?.[0] ?? "" : "";
+      initial[field.name] =
+        field.type === "select" ? (field.optionsFrom ? "" : (field.options?.[0] ?? "")) : "";
     });
     setForm(initial);
     setEditing(null);
@@ -478,6 +534,7 @@ export default function AdminContentManager({ onShowToast = () => {} }: AdminCon
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={MODAL_TRANSITION}
               className="absolute inset-0 bg-brand-pine/70"
             />
             <motion.div
@@ -486,9 +543,10 @@ export default function AdminContentManager({ onShowToast = () => {} }: AdminCon
               role="dialog"
               aria-modal="true"
               aria-label={`${editing ? "Edit" : "Tambah"} ${resource.label}`}
-              initial={{ opacity: 0, scale: 0.96, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              initial={MODAL_PANEL.initial}
+              animate={MODAL_PANEL.animate}
+              exit={MODAL_PANEL.exit}
+              transition={MODAL_TRANSITION}
               onClick={(e) => e.stopPropagation()}
               className="relative z-10 max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-5 text-ink shadow-card focus:outline-none sm:p-6"
             >
@@ -531,7 +589,7 @@ export default function AdminContentManager({ onShowToast = () => {} }: AdminCon
                             className={cn(common, "cursor-not-allowed bg-cream/60 text-muted")}
                           />
                           <p className="mt-1 text-[10px] text-muted">
-                            ID dibuat otomatis &amp; unik — tidak perlu diisi.
+                            ID dibuat otomatis &amp; unik, tidak perlu diisi.
                           </p>
                         </div>
                       ) : field.type === "image" ? (
@@ -625,7 +683,7 @@ export default function AdminContentManager({ onShowToast = () => {} }: AdminCon
                                   className="relative h-14 w-14 overflow-hidden rounded-lg border border-line"
                                 >
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={src} alt="" className="h-full w-full object-cover" />
+                                  <img src={src} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                                   <button
                                     type="button"
                                     onClick={() =>
@@ -657,6 +715,23 @@ export default function AdminContentManager({ onShowToast = () => {} }: AdminCon
                           }
                           className={cn(common, "resize-none")}
                         />
+                      ) : field.type === "checkbox" ? (
+                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-line bg-white px-3 py-2.5">
+                          <input
+                            type="checkbox"
+                            checked={value === "true"}
+                            onChange={(e) =>
+                              setForm((prev) => ({
+                                ...prev,
+                                [field.name]: String(e.target.checked),
+                              }))
+                            }
+                            className="h-4 w-4 shrink-0 accent-brand-green"
+                          />
+                          <span className="text-sm font-semibold text-ink">
+                            {value === "true" ? "Ya" : "Tidak"}
+                          </span>
+                        </label>
                       ) : field.type === "select" ? (
                         <select
                           value={value}
@@ -665,11 +740,27 @@ export default function AdminContentManager({ onShowToast = () => {} }: AdminCon
                           }
                           className={common}
                         >
-                          {field.options?.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
+                          {(() => {
+                            const opts = selectOptions(field);
+                            // Nilai lama yang tak ada di daftar (mis. ekskul yang
+                            // sudah dihapus) tetap ditampilkan agar tak hilang saat simpan.
+                            const rows =
+                              value && !opts.some((o) => o.value === value)
+                                ? [...opts, { value, label: `${value} (tak terdaftar)` }]
+                                : opts;
+                            return (
+                              <>
+                                {!field.required && (
+                                  <option value="">, Kosongkan,</option>
+                                )}
+                                {rows.map((option) => (
+                                  <option key={option.value} value={option.value}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </>
+                            );
+                          })()}
                         </select>
                       ) : (
                         <input

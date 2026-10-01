@@ -2,6 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { dbConfigured, getDb } from "@/lib/db";
 import {
+  LEGACY_SESSION_COOKIE,
   SESSION_COOKIE,
   type AccountRole,
   type SessionAccount,
@@ -14,7 +15,11 @@ export async function getSessionAccount(): Promise<SessionAccount | null> {
   if (!dbConfigured()) return null;
 
   const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  // Transisi __Host-: baca cookie baru dulu, fallback ke nama lama agar sesi
+  // aktif tidak langsung invalid saat deploy.
+  const token =
+    cookieStore.get(SESSION_COOKIE)?.value ??
+    cookieStore.get(LEGACY_SESSION_COOKIE)?.value;
   if (!token) return null;
 
   try {
@@ -62,19 +67,33 @@ export async function getSessionAccount(): Promise<SessionAccount | null> {
   }
 }
 
+/** Batas sesi aktif per akun (sesi kedaluwarsa selalu dibersihkan). */
+export const MAX_SESSIONS_PER_ACCOUNT = 10;
+
 export async function createSession(
   accountId: string,
   ttlSeconds: number,
   token: string
 ): Promise<void> {
   const sql = getDb();
-  // Satu round-trip: bersihkan sesi kedaluwarsa + insert sesi baru.
+  // Satu round-trip: bersihkan sesi kedaluwarsa + insert sesi baru +
+  // eviksi sesi tertua bila melebihi batas (anti-akumulasi sesi).
   await sql`
     with cleanup as (
       delete from auth_sessions where expires_at < now()
+    ),
+    inserted as (
+      insert into auth_sessions (token, account_id, expires_at)
+      values (${token}, ${accountId}, now() + make_interval(secs => ${ttlSeconds}))
+      returning account_id, created_at
+    ),
+    ranked as (
+      select token, row_number() over (partition by account_id order by created_at desc) as rn
+      from auth_sessions
+      where account_id = ${accountId} and expires_at > now()
     )
-    insert into auth_sessions (token, account_id, expires_at)
-    values (${token}, ${accountId}, now() + make_interval(secs => ${ttlSeconds}))
+    delete from auth_sessions using ranked
+    where auth_sessions.token = ranked.token and ranked.rn > ${MAX_SESSIONS_PER_ACCOUNT}
   `;
 }
 
@@ -82,4 +101,14 @@ export async function destroySession(token: string): Promise<void> {
   if (!dbConfigured()) return;
   const sql = getDb();
   await sql`delete from auth_sessions where token = ${token}`;
+}
+
+/** Keluar dari semua perangkat (hapus seluruh sesi akun pemilik token). */
+export async function destroyAllSessions(token: string): Promise<void> {
+  if (!dbConfigured()) return;
+  const sql = getDb();
+  await sql`
+    delete from auth_sessions
+    where account_id = (select account_id from auth_sessions where token = ${token} limit 1)
+  `;
 }

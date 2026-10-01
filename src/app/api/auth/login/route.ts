@@ -9,33 +9,61 @@ import {
   passwordNeedsRehash,
   REMEMBER_TTL_SECONDS,
   SESSION_TTL_SECONDS,
+  verifyDummyPassword,
   verifyPassword,
 } from "@/lib/auth";
-import { SESSION_COOKIE } from "@/lib/auth-constants";
+import { LEGACY_SESSION_COOKIE, SESSION_COOKIE } from "@/lib/auth-constants";
 import { createSession } from "@/lib/auth-server";
-import { isSameOrigin } from "@/lib/csrf";
+import { guardMutation, readJsonLimited, MemoryThrottle, clientIp } from "@/lib/api-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// Throttle per IP: lapis tambahan di atas lockout per-username.
+// Bisa dilonggarkan via env saat window lomba (default 30/menit, normal).
+// Catatan: throttle ini in-memory per proses PM2, cluster 2 instance ≈ 2× nilai env.
+const LOGIN_IP_LIMIT_PER_MIN = Number(process.env.LOGIN_IP_LIMIT_PER_MIN ?? 30);
+const loginIpThrottle = new MemoryThrottle(
+  2000,
+  Number.isFinite(LOGIN_IP_LIMIT_PER_MIN) && LOGIN_IP_LIMIT_PER_MIN > 0
+    ? Math.trunc(LOGIN_IP_LIMIT_PER_MIN)
+    : 30,
+  60_000
+);
+
 type Row = Record<string, unknown>;
 
 export async function POST(request: NextRequest) {
-  if (!isSameOrigin(request)) {
-    return NextResponse.json({ error: "Permintaan ditolak." }, { status: 403 });
+  const rejected = guardMutation(request);
+  if (rejected) return rejected;
+
+  const ipThrottle = loginIpThrottle.take(`login:${clientIp(request)}`);
+  if (!ipThrottle.allowed) {
+    return NextResponse.json(
+      { error: "Terlalu banyak percobaan masuk. Coba lagi nanti." },
+      { status: 429, headers: { "Retry-After": String(ipThrottle.retryAfter) } }
+    );
   }
 
-  const payload = (await request.json().catch(() => null)) as
-    | { username?: string; password?: string; remember?: boolean }
-    | null;
+  const payload = (await readJsonLimited<{
+    username?: string;
+    password?: string;
+    remember?: boolean;
+  }>(request)) as { username?: string; password?: string; remember?: boolean } | null;
 
-  const username = payload?.username?.trim() ?? "";
-  const password = payload?.password ?? "";
+  const username = (payload?.username?.trim() ?? "").slice(0, 64);
+  const password = (payload?.password ?? "").slice(0, 128);
 
   if (!username || !password) {
     return NextResponse.json(
       { error: "NISN/NIP/NPSN dan password wajib diisi." },
       { status: 400 }
+    );
+  }
+  if (username.length < 3) {
+    return NextResponse.json(
+      { error: "Nomor induk atau password salah." },
+      { status: 401 }
     );
   }
 
@@ -80,34 +108,45 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 2) Validasi kredensial (pesan seragam agar tidak membocorkan status akun)
+    // 2) Validasi kredensial (pesan seragam agar tidak membocorkan status akun).
+    // Selalu jalankan scrypt (asli atau dummy) agar timing respons seragam
+    // dan penyerang tidak bisa membedakan username valid via timing.
     const account = accountRows[0];
-    const validCredentials =
-      Boolean(account) &&
-      String(account?.status) === "Aktif" &&
-      (await verifyPassword(password, String(account?.password_hash)));
+    const active = account && String(account?.status) === "Aktif";
+    const passwordOk = active
+      ? await verifyPassword(password, String(account?.password_hash))
+      : await verifyDummyPassword().then(() => false);
+    const validCredentials = Boolean(active) && passwordOk;
 
     if (!account || !validCredentials) {
-      const windowAge = attempt ? Number(attempt.window_age) : null;
-      const sameWindow = windowAge !== null && windowAge <= LOGIN_WINDOW_SECONDS;
-      const failedCount = sameWindow ? Number(attempt?.failed_count ?? 0) + 1 : 1;
-      const shouldLock = failedCount >= LOGIN_MAX_ATTEMPTS;
-
-      await sql`
+      // Upsert ATOMIK single-statement: hitung + kunci dalam satu query agar
+      // N request gagal yang datang bersamaan masing-masing terhitung (sebelumnya
+      // read-di-JS lalu write → puluhan request paralel hanya terhitung ~1 dan
+      // lockout bisa dilewati). Mengembalikan counter pasca-increment.
+      const counted = (await sql`
         insert into auth_login_attempts (
           username, failed_count, first_failed_at, last_attempt_at, locked_until
         ) values (
-          ${username}, ${failedCount}, now(), now(),
-          ${shouldLock ? new Date(Date.now() + LOGIN_LOCK_SECONDS * 1000).toISOString() : null}
+          ${username}, 1, now(), now(), null
         )
         on conflict (username) do update set
-          failed_count = excluded.failed_count,
+          failed_count = case
+            when auth_login_attempts.first_failed_at < now() - make_interval(secs => ${LOGIN_WINDOW_SECONDS})
+            then 1 else auth_login_attempts.failed_count + 1 end,
           first_failed_at = case
             when auth_login_attempts.first_failed_at < now() - make_interval(secs => ${LOGIN_WINDOW_SECONDS})
             then now() else auth_login_attempts.first_failed_at end,
           last_attempt_at = now(),
-          locked_until = excluded.locked_until
-      `;
+          locked_until = case
+            when (case
+              when auth_login_attempts.first_failed_at < now() - make_interval(secs => ${LOGIN_WINDOW_SECONDS})
+              then 1 else auth_login_attempts.failed_count + 1 end) >= ${LOGIN_MAX_ATTEMPTS}
+            then now() + make_interval(secs => ${LOGIN_LOCK_SECONDS})
+            else null end
+        returning failed_count
+      `) as Row[];
+
+      const shouldLock = Number(counted[0]?.failed_count ?? 1) >= LOGIN_MAX_ATTEMPTS;
 
       if (shouldLock) {
         return NextResponse.json(
@@ -150,10 +189,14 @@ export async function POST(request: NextRequest) {
         detail: account.detail == null ? null : String(account.detail),
       },
     });
-    response.cookies.set(SESSION_COOKIE, token, {
+    // Cookie __Host- butuh Secure (https/prod). Di dev http (localhost),
+    // pakai nama legacy agar login lokal tetap berfungsi; server membaca keduanya.
+    const isSecure =
+      process.env.NODE_ENV === "production" || request.nextUrl.protocol === "https:";
+    response.cookies.set(isSecure ? SESSION_COOKIE : LEGACY_SESSION_COOKIE, token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: isSecure,
       path: "/",
       maxAge: ttl,
     });

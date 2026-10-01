@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConfigured, getDb } from "@/lib/db";
 import { requireAccount, requireRole } from "@/lib/api-auth";
+import { guardMutation, readJsonLimited } from "@/lib/api-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,7 +27,11 @@ export async function GET(request: NextRequest) {
   if (!dbConfigured()) {
     return NextResponse.json({ data: [], source: "none" });
   }
-  const audience = request.nextUrl.searchParams.get("audience");
+  // Default audience mengikuti peran peminta: tanpa ?audience=, siswa tidak
+  // lagi menerima pengumuman untuk guru (dan sebaliknya).
+  const requested = request.nextUrl.searchParams.get("audience");
+  const audience =
+    requested ?? (account.role === "student" ? "student" : account.role === "teacher" ? "teacher" : null);
   const sql = getDb();
 
   const rows = (audience
@@ -59,26 +64,45 @@ export async function GET(request: NextRequest) {
   });
 }
 
-/** POST /api/announcements — guru/admin menerbitkan pengumuman */
+/** POST /api/announcements, guru/admin menerbitkan pengumuman */
 export async function POST(request: NextRequest) {
+  const rejected = guardMutation(request);
+  if (rejected) return rejected;
   const account = await requireRole(["teacher", "admin"]);
   if (account instanceof NextResponse) return account;
 
   if (!dbConfigured()) {
     return NextResponse.json({ error: "Database belum dikonfigurasi." }, { status: 503 });
   }
-  const body = (await request.json().catch(() => null)) as
-    | { title?: string; body?: string; audience?: string; urgent?: boolean }
-    | null;
+  const body = (await readJsonLimited<{
+    title?: string;
+    body?: string;
+    audience?: string;
+    urgent?: boolean;
+  }>(request)) as {
+    title?: string;
+    body?: string;
+    audience?: string;
+    urgent?: boolean;
+  } | null;
 
-  if (!body?.title?.trim()) {
-    return NextResponse.json({ error: "Judul pengumuman wajib diisi." }, { status: 400 });
+  const title = body?.title?.trim() ?? "";
+  if (!title || title.length > 200) {
+    return NextResponse.json(
+      { error: "Judul pengumuman wajib diisi (maks 200 karakter)." },
+      { status: 400 }
+    );
   }
+  const audienceAllow = ["all", "student", "teacher"];
+  const audience = audienceAllow.includes(body?.audience ?? "")
+    ? (body?.audience as string)
+    : "student";
+  const content = (body?.body ?? "").slice(0, 20000);
 
   const rows = await getDb()`
     insert into announcements (title, body, audience, urgent, pinned, author, status)
-    values (${body.title.trim()}, ${body.body ?? null}, ${body.audience ?? "student"},
-            ${Boolean(body.urgent)}, ${false}, ${account.name}, ${"published"})
+    values (${title}, ${content || null}, ${audience},
+            ${Boolean(body?.urgent)}, ${false}, ${account.name}, ${"published"})
     returning id, title, body, audience, urgent, pinned, author, published_at
   `;
 

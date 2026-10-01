@@ -2,6 +2,7 @@
 
 import { useState, type RefObject } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { MODAL_PANEL, MODAL_TRANSITION } from "@/lib/motion";
 import { Trophy, X } from "lucide-react";
 import type { StudentAchievement } from "@/components/dashboard/parts/student/types";
 
@@ -36,6 +37,7 @@ export default function AddAchievementModal({ open, modalRef, onSubmit, onClose 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={MODAL_TRANSITION}
             onClick={onClose}
             className="absolute inset-0 bg-brand-pine/70"
           />
@@ -45,9 +47,10 @@ export default function AddAchievementModal({ open, modalRef, onSubmit, onClose 
             role="dialog"
             aria-modal="true"
             aria-label="Ajukan Prestasi Baru"
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            initial={MODAL_PANEL.initial}
+            animate={MODAL_PANEL.animate}
+            exit={MODAL_PANEL.exit}
+            transition={MODAL_TRANSITION}
             className="relative w-full max-w-md bg-white rounded-xl p-6 sm:p-7 shadow-card z-10 focus:outline-none"
           >
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-line">

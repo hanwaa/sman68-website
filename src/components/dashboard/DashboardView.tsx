@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
+import { TOAST_PANEL, TOAST_TRANSITION } from "@/lib/motion";
 import Link from "next/link";
 import Image from "next/image";
 import { Bell, Check, Menu, X } from "lucide-react";
@@ -76,21 +77,46 @@ export default function DashboardView({ account }: { account: SessionAccount }) 
   const [emailNotif, setEmailNotif] = useState(true);
   const [pushNotif, setPushNotif] = useState(true);
 
-  // Toast System
+  // Toast System (jeda saat kursor di atasnya, ala Sonner)
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimer = useRef<number | undefined>(undefined);
+  const toastEndsAt = useRef(0);
+  const TOAST_MS = 3500;
+
+  const clearToastTimer = useCallback(() => {
+    if (toastTimer.current !== undefined) {
+      clearTimeout(toastTimer.current);
+      toastTimer.current = undefined;
+    }
+  }, []);
+
+  const armToastTimer = useCallback(
+    (ms: number) => {
+      clearToastTimer();
+      toastEndsAt.current = Date.now() + ms;
+      toastTimer.current = window.setTimeout(() => setToastMessage(null), ms);
+    },
+    [clearToastTimer]
+  );
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
   };
 
   useEffect(() => {
-    if (toastMessage) {
-      const timer = setTimeout(() => {
-        setToastMessage(null);
-      }, 3500);
-      return () => clearTimeout(timer);
-    }
-  }, [toastMessage]);
+    if (toastMessage) armToastTimer(TOAST_MS);
+    return clearToastTimer;
+  }, [toastMessage, armToastTimer, clearToastTimer]);
+
+  const pauseToast = () => {
+    if (toastTimer.current === undefined) return;
+    clearToastTimer();
+  };
+
+  const resumeToast = () => {
+    if (!toastMessage || toastTimer.current !== undefined) return;
+    armToastTimer(Math.max(toastEndsAt.current - Date.now(), 0));
+  };
 
   const visibleNotifications = notifications.filter((n) => !dismissedIds.includes(n.id));
 
@@ -136,18 +162,30 @@ export default function DashboardView({ account }: { account: SessionAccount }) 
   useEffect(() => {
     try {
       const rawRead = localStorage.getItem(readKeyFor(account.username));
-      if (rawRead) setReadIds(JSON.parse(rawRead) as string[]);
+      if (rawRead) {
+        const parsed: unknown = JSON.parse(rawRead);
+        if (Array.isArray(parsed) && parsed.every((x) => typeof x === "string")) {
+          setReadIds(parsed);
+        }
+      }
       const rawDismissed = localStorage.getItem(dismissedKeyFor(account.username));
-      if (rawDismissed) setDismissedIds(JSON.parse(rawDismissed) as string[]);
+      if (rawDismissed) {
+        const parsedDismissed: unknown = JSON.parse(rawDismissed);
+        if (Array.isArray(parsedDismissed) && parsedDismissed.every((x) => typeof x === "string")) {
+          setDismissedIds(parsedDismissed);
+        }
+      }
     } catch {
       /* abaikan */
     }
   }, [account.username]);
 
   // Notifikasi live: muat saat mount lalu segarkan tiap 60 detik.
+  // Lewati poll saat tab hidden (hemat query DB) dan saat offline.
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
+      if (document.hidden || !navigator.onLine) return;
       try {
         const res = await fetch("/api/notifications", { cache: "no-store" });
         if (!res.ok || cancelled) return;
@@ -175,7 +213,11 @@ export default function DashboardView({ account }: { account: SessionAccount }) 
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
     } catch {
       /* tetap lanjut keluar */
     }
@@ -278,7 +320,7 @@ export default function DashboardView({ account }: { account: SessionAccount }) 
         {/* Content Area */}
         <main
           id="main-content"
-          className="flex-1 min-w-0 overflow-x-hidden transition-colors duration-200 ease-out min-h-[calc(100vh-4rem)]"
+          className="flex-1 min-w-0 overflow-x-hidden transition-[margin-left] duration-200 ease-[var(--ease-out)] min-h-[calc(100vh-4rem)]"
           style={{ marginLeft: !isMobile && sidebarOpen ? 240 : 0 }}
         >
           <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
@@ -333,9 +375,12 @@ export default function DashboardView({ account }: { account: SessionAccount }) 
           <motion.div
             role="status"
             aria-live="polite"
-            initial={{ opacity: 0, y: 30, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={TOAST_PANEL.initial}
+            animate={TOAST_PANEL.animate}
+            exit={TOAST_PANEL.exit}
+            transition={TOAST_TRANSITION}
+            onMouseEnter={pauseToast}
+            onMouseLeave={resumeToast}
             className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex max-w-[calc(100vw-2rem)] items-center gap-3 px-4 py-3 bg-brand-pine text-white text-xs sm:text-sm font-semibold rounded-xl shadow-card border border-white/20"
           >
             <div className="w-6 h-6 rounded-full bg-brand-leaf text-brand-pine flex items-center justify-center font-bold flex-shrink-0">

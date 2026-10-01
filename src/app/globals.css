@@ -70,10 +70,16 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    /* Gerakan (transform/layout) berhenti; opacity/warna tetap halus agar
+       umpan balik tetap terbaca. */
+    html {
+      scroll-behavior: auto;
+    }
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
+      transition-property: opacity, color, background-color, border-color, box-shadow, fill, stroke !important;
+      transition-duration: 120ms !important;
     }
   }
 }
@@ -173,7 +179,13 @@
     .group:hover .group-hover\:scale-105,
     .group:hover .group-hover\:scale-\[1\.04\],
     .group:hover .group-hover\:scale-\[1\.03\],
-    .group:hover .group-hover\:scale-\[1\.02\] {
+    .group:hover .group-hover\:scale-\[1\.02\],
+    .group:hover .group-hover\:translate-x-0\.5 {
+      transform: none;
+    }
+    .hover\:-translate-y-0\.5:hover,
+    .hover\:-translate-y-1:hover,
+    .hover\:scale-105:hover {
       transform: none;
     }
   }
@@ -295,6 +307,12 @@
            hover:shadow-card-hover hover:border-brand-leaf/30
            overflow-hidden;
     transition: transform 200ms var(--ease-out), box-shadow 200ms ease-out, border-color 200ms ease-out;
+  }
+
+  /* Kartu informasional (tidak bisa diklik): tanpa reaksi hover agar tidak
+     menjanjikan aksi yang tidak ada. */
+  .card-static {
+    @apply bg-white rounded-2xl border border-line shadow-card overflow-hidden;
   }
 
   .badge {
@@ -483,7 +501,8 @@ html.a11y-motion-off *,
 html.a11y-motion-off *::before,
 html.a11y-motion-off *::after {
   animation: none !important;
-  transition: none !important;
+  transition-property: opacity, color, background-color, border-color, box-shadow, fill, stroke !important;
+  transition-duration: 120ms !important;
   scroll-behavior: auto !important;
 }
 

@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   School,
   Shield,
+  Stamp,
   Trophy,
   UserPlus,
   Users,
@@ -31,6 +32,7 @@ export const navByRole: Record<RoleId, { icon: ElementType; label: string; id: s
     { id: "absensi", icon: ClipboardCheck, label: "Absensi" },
     { id: "pengumuman", icon: Bell, label: "Pengumuman" },
     { id: "prestasi", icon: Trophy, label: "Prestasi Saya" },
+    { id: "legalisir", icon: Stamp, label: "Legalisir Ijazah" },
   ],
   teacher: [
     { id: "beranda", icon: LayoutDashboard, label: "Beranda" },
@@ -44,6 +46,7 @@ export const navByRole: Record<RoleId, { icon: ElementType; label: string; id: s
     { id: "agenda-sekolah", icon: Calendar, label: "Agenda Sekolah" },
     { id: "konten", icon: BookOpen, label: "Manajemen Data" },
     { id: "users", icon: Users, label: "Data Pengguna" },
+    { id: "legalisir", icon: Stamp, label: "Legalisir Ijazah" },
   ],
 };
 

@@ -1,9 +1,9 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
+import { purgeContentCache } from "@/lib/content-cache";
 import { timingSafeEqual } from "node:crypto";
 import { dbConfigured, getDb } from "@/lib/db";
 import { schoolData } from "@/lib/school-data";
-import { newsArticles } from "@/lib/news";
 import {
   achievements,
   facilities,
@@ -36,7 +36,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Migrasi data statis ke Neon. Idempoten (upsert), aman dijalankan berulang.
+ * Migrasi data statis ke database. Idempoten (upsert), aman dijalankan berulang.
  * POST /api/admin/seed  header: x-seed-secret: <SEED_SECRET>
  */
 export async function POST(request: NextRequest) {
@@ -58,16 +58,6 @@ export async function POST(request: NextRequest) {
 
   const sql = getDb();
   const counts: Record<string, number> = {};
-
-  /**
-   * Berita yang membahas achievement/ekskul tertentu. Dipakai supaya
-   * halaman /kehidupan/ekskul bisa menautkan prestasinya ke artikelnya.
-   */
-  const NEWS_ENTITY_LINKS: Record<string, { ekskulId?: string; achievementId?: string }> = {
-    "tim-robotika-juara-1-nasional": { ekskulId: "ivratix", achievementId: "11" },
-    "festival-seni-sman-68": { ekskulId: "mbrass", achievementId: "3" },
-    "workshop-ai-alumni-google": { ekskulId: "nest-esport" },
-  };
 
   /* ------------------------------- Sekolah ------------------------------- */
   const identitas = schoolData.identitas;
@@ -105,28 +95,6 @@ export async function POST(request: NextRequest) {
     `;
   }
   counts.accreditations = schoolData.akreditasiRiwayat.length;
-
-  /* -------------------------------- Berita -------------------------------- */
-  for (const article of newsArticles) {
-    const link = NEWS_ENTITY_LINKS[article.slug] ?? {};
-    await sql`
-      insert into news (
-        slug, title, excerpt, content, category, author, cover_key, views,
-        status, published_at, ekskul_id, achievement_id
-      ) values (
-        ${article.slug}, ${article.title}, ${article.excerpt}, ${article.content},
-        ${article.category}, ${article.author}, ${article.cover}, ${0},
-        ${"published"}, ${article.publishedAt},
-        ${link.ekskulId ?? null}, ${link.achievementId ?? null}
-      )
-      on conflict (slug) do update set
-        title = excluded.title, excerpt = excluded.excerpt, content = excluded.content,
-        category = excluded.category, author = excluded.author, cover_key = excluded.cover_key,
-        status = excluded.status, published_at = excluded.published_at,
-        ekskul_id = excluded.ekskul_id, achievement_id = excluded.achievement_id
-    `;
-  }
-  counts.news = newsArticles.length;
 
   /* ------------------------------ Prestasi ------------------------------- */
   for (const item of achievements) {
@@ -268,6 +236,12 @@ export async function POST(request: NextRequest) {
   /* ------------------- Rombel, siswa, wali kelas & akun ------------------- */
   const academic = buildAcademicSeed();
 
+  // Data siswa asli sudah diimpor lewat scripts/import-students.mjs. Seed ulang
+  // hanya boleh mengisi siswa bila tabel masih kosong, agar tidak menimpa atau
+  // menambah siswa dummy di atas data asli.
+  const studentCountRows = (await sql`select count(*)::int as count from students`) as { count: number }[];
+  const seedStudents = (studentCountRows[0]?.count ?? 0) === 0;
+
   const teacherRows = academic.teachers.map((teacher, index) => ({
     id: teacher.id,
     name: teacher.name,
@@ -308,21 +282,23 @@ export async function POST(request: NextRequest) {
       teacher_name = excluded.teacher_name, room = excluded.room, sort = excluded.sort
   `;
 
-  const studentRows = academic.students.map((student) => ({
-    id: student.id,
-    name: student.name,
-    class_name: student.className,
-    nisn: student.nisn,
-  }));
-  await sql`
-    insert into students (id, name, class_name, nisn)
-    select x.id, x.name, x.class_name, x.nisn
-    from jsonb_to_recordset(${JSON.stringify(studentRows)}::jsonb) as x(
-      id text, name text, class_name text, nisn text
-    )
-    on conflict (id) do update set
-      name = excluded.name, class_name = excluded.class_name, nisn = excluded.nisn
-  `;
+  if (seedStudents) {
+    const studentRows = academic.students.map((student) => ({
+      id: student.id,
+      name: student.name,
+      class_name: student.className,
+      nisn: student.nisn,
+    }));
+    await sql`
+      insert into students (id, name, class_name, nisn)
+      select x.id, x.name, x.class_name, x.nisn
+      from jsonb_to_recordset(${JSON.stringify(studentRows)}::jsonb) as x(
+        id text, name text, class_name text, nisn text
+      )
+      on conflict (id) do update set
+        name = excluded.name, class_name = excluded.class_name, nisn = excluded.nisn
+    `;
+  }
 
   // Hash hanya untuk akun baru â€” akun existing mempertahankan password-nya
   // (menghindari 745 hash scrypt setiap kali seed dijalankan).
@@ -330,14 +306,16 @@ export async function POST(request: NextRequest) {
   const existingUsernames = new Set(existingAccountRows.map((row) => String(row.username)));
 
   const baseAccounts = [
-    ...academic.students.map((student) => ({
-      username: student.nisn,
-      role: "student",
-      name: student.name,
-      detail: student.className,
-      student_id: student.id,
-      teacher_id: null as string | null,
-    })),
+    ...(seedStudents
+      ? academic.students.map((student) => ({
+          username: student.nisn,
+          role: "student",
+          name: student.name,
+          detail: student.className,
+          student_id: student.id,
+          teacher_id: null as string | null,
+        }))
+      : []),
     ...academic.teachers.map((teacher) => ({
       username: teacher.nig,
       role: "teacher",
@@ -376,7 +354,7 @@ export async function POST(request: NextRequest) {
   `;
 
   counts.homeroom_classes = academic.homerooms.length;
-  counts.students_baru = academic.students.length;
+  counts.students_baru = seedStudents ? academic.students.length : 0;
   counts.wali_kelas = academic.teachers.length;
   counts.accounts = accountRows.length;
 
@@ -412,18 +390,20 @@ export async function POST(request: NextRequest) {
       description = excluded.description
   `;
 
-  const digitalMembers = digital.members.map((item) => ({
-    class_id: item.classId,
-    student_id: item.studentId,
-  }));
-  await sql`
-    insert into class_members (class_id, student_id, enrolled)
-    select x.class_id, x.student_id, true
-    from jsonb_to_recordset(${JSON.stringify(digitalMembers)}::jsonb) as x(
-      class_id text, student_id text
-    )
-    on conflict (class_id, student_id) do update set enrolled = true
-  `;
+  if (seedStudents) {
+    const digitalMembers = digital.members.map((item) => ({
+      class_id: item.classId,
+      student_id: item.studentId,
+    }));
+    await sql`
+      insert into class_members (class_id, student_id, enrolled)
+      select x.class_id, x.student_id, true
+      from jsonb_to_recordset(${JSON.stringify(digitalMembers)}::jsonb) as x(
+        class_id text, student_id text
+      )
+      on conflict (class_id, student_id) do update set enrolled = true
+    `;
+  }
 
   const digitalPosts = digital.posts.map((item) => ({
     id: item.id,
@@ -469,26 +449,28 @@ export async function POST(request: NextRequest) {
       due_at = excluded.due_at, due_label = excluded.due_label, points = excluded.points
   `;
 
-  const digitalSubmissions = digital.submissions.map((item) => ({
-    id: item.id,
-    assignment_id: item.assignmentId,
-    student_id: item.studentId,
-    status: item.status,
-  }));
-  await sql`
-    insert into class_submissions (id, assignment_id, student_id, status)
-    select x.id, x.assignment_id, x.student_id, x.status
-    from jsonb_to_recordset(${JSON.stringify(digitalSubmissions)}::jsonb) as x(
-      id text, assignment_id text, student_id text, status text
-    )
-    on conflict (assignment_id, student_id) do nothing
-  `;
+  if (seedStudents) {
+    const digitalSubmissions = digital.submissions.map((item) => ({
+      id: item.id,
+      assignment_id: item.assignmentId,
+      student_id: item.studentId,
+      status: item.status,
+    }));
+    await sql`
+      insert into class_submissions (id, assignment_id, student_id, status)
+      select x.id, x.assignment_id, x.student_id, x.status
+      from jsonb_to_recordset(${JSON.stringify(digitalSubmissions)}::jsonb) as x(
+        id text, assignment_id text, student_id text, status text
+      )
+      on conflict (assignment_id, student_id) do nothing
+    `;
+  }
 
   counts.kelas_digital = digital.classes.length;
-  counts.anggota_kelas = digital.members.length;
+  counts.anggota_kelas = seedStudents ? digital.members.length : 0;
   counts.post_kelas = digital.posts.length;
   counts.tugas_kelas = digital.assignments.length;
-  counts.pengumpulan_tugas = digital.submissions.length;
+  counts.pengumpulan_tugas = seedStudents ? digital.submissions.length : 0;
 
   /* ------------------------------ Testimoni ------------------------------ */
   for (let i = 0; i < testimonials.length; i += 1) {
@@ -721,10 +703,12 @@ export async function POST(request: NextRequest) {
   counts.alumni_educations = alumniCareer.length;
 
   revalidatePath("/", "layout");
+  updateTag("cms");
+  purgeContentCache();
 
   return NextResponse.json({
     ok: true,
-    message: "Seed selesai. Data statis inti sudah masuk Neon.",
+    message: "Seed selesai. Data statis inti sudah masuk database.",
     seeded: counts,
     pending: [
       "news & announcements (masih inline di BeritaList/NewsSection/NewsTicker/[slug]/admin)",

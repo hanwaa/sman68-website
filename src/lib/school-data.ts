@@ -92,7 +92,7 @@ export const schoolData = {
     { src: "/assets/sekolah/sekolah-16-gong.jpg", alt: "Prosesi pembukaan acara sekolah", kategori: "Kegiatan" },
   ],
   sumber: {
-    nama: "Data Pokok Pendidikan — Sekolah Kita (Kemendikdasmen)",
+    nama: "Data Pokok Pendidikan, Sekolah Kita (Kemendikdasmen)",
     url: "https://sekolah.data.kemendikdasmen.go.id/profil-sekolah/0B39825A-6DE4-44BC-8742-7B06129634A8",
     api: "https://sekolah.data.kemendikdasmen.go.id/v1/sekolah-service/sekolah/full-detail/0B39825A-6DE4-44BC-8742-7B06129634A8",
     diakses: "2026-09-21",

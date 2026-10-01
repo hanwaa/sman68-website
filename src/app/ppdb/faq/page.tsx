@@ -8,12 +8,12 @@ import { getFaqs } from "@/lib/content-server";
 import { breadcrumbSchema, faqSchema } from "@/lib/schema";
 import { buildMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = buildMetadata({
   title: "FAQ PPDB",
   description:
-    "FAQ PPDB SMAN 68 Jakarta — jawaban pertanyaan umum tentang jadwal, syarat, alur pendaftaran, dan biaya sekolah.",
+    "FAQ PPDB SMAN 68 Jakarta, jawaban pertanyaan umum tentang jadwal, syarat, alur pendaftaran, dan biaya sekolah.",
   path: "/ppdb/faq",
 });
 

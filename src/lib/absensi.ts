@@ -48,7 +48,7 @@ export function saveAbsensiRecord(record: AbsensiRecord): AbsensiRecord[] {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
   } catch {
-    /* kuota localStorage penuh — abaikan untuk demo */
+    /* kuota localStorage penuh, abaikan untuk demo */
   }
   return records;
 }

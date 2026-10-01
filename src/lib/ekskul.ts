@@ -65,7 +65,7 @@ export const ekskulList: Ekskul[] = [
     members: 24,
     achievements: 5,
     desc: "Tim eksekutif siswa yang mengoordinasikan berbagai acara dan program sekolah.",
-    schedule: "Senin, 14.00–16.00",
+    schedule: "Senin, 14.00-16.00",
     advisor: "Bu Ayu",
   },
   {
@@ -76,8 +76,8 @@ export const ekskulList: Ekskul[] = [
     thumb: `${THUMB_DIR}/pik-r.webp`,
     members: 30,
     achievements: 4,
-    desc: "Pusat Informasi dan Konseling Remaja — wadah edukasi kesehatan dan konseling siswa.",
-    schedule: "Rabu, 13.00–15.00",
+    desc: "Pusat Informasi dan Konseling Remaja, wadah edukasi kesehatan dan konseling siswa.",
+    schedule: "Rabu, 13.00-15.00",
     advisor: "Bu Siti",
   },
   {
@@ -89,7 +89,7 @@ export const ekskulList: Ekskul[] = [
     members: 28,
     achievements: 3,
     desc: "Pendalaman bahasa Arab serta program tahsin dan tahfidz Al-Qur'an.",
-    schedule: "Jumat, 13.00–15.00",
+    schedule: "Jumat, 13.00-15.00",
     advisor: "Ustadzah Nabila",
   },
   {
@@ -101,7 +101,7 @@ export const ekskulList: Ekskul[] = [
     members: 20,
     achievements: 7,
     desc: "Klub bulutangkis yang rutin mengikuti turnamen antarpelajar Jakarta.",
-    schedule: "Selasa & Kamis, 15.00–17.00",
+    schedule: "Selasa & Kamis, 15.00-17.00",
     advisor: "Pak Rizky",
   },
   {
@@ -113,7 +113,7 @@ export const ekskulList: Ekskul[] = [
     members: 26,
     achievements: 5,
     desc: "Ekskul pecinta alam dengan kegiatan hiking, camping, dan konservasi lingkungan.",
-    schedule: "Sabtu, 08.00–12.00",
+    schedule: "Sabtu, 08.00-12.00",
     advisor: "Pak Galih",
   },
   {
@@ -125,7 +125,7 @@ export const ekskulList: Ekskul[] = [
     members: 18,
     achievements: 4,
     desc: "Komunitas sejarah yang mengkaji peristiwa dan budaya melalui diskusi dan kunjungan.",
-    schedule: "Rabu, 14.00–16.00",
+    schedule: "Rabu, 14.00-16.00",
     advisor: "Bu Kartika",
   },
   {
@@ -137,7 +137,7 @@ export const ekskulList: Ekskul[] = [
     members: 22,
     achievements: 10,
     desc: "Tim robotika dan teknologi yang aktif di kompetisi robotik nasional.",
-    schedule: "Sabtu, 08.00–12.00",
+    schedule: "Sabtu, 08.00-12.00",
     advisor: "Pak Eko",
   },
   {
@@ -148,8 +148,8 @@ export const ekskulList: Ekskul[] = [
     thumb: `${THUMB_DIR}/jacusie.webp`,
     members: 20,
     achievements: 6,
-    desc: "Japanese Club SMAN 68 — belajar bahasa dan budaya Jepang bersama.",
-    schedule: "Jumat, 14.00–16.00",
+    desc: "Japanese Club SMAN 68, belajar bahasa dan budaya Jepang bersama.",
+    schedule: "Jumat, 14.00-16.00",
     advisor: "Bu Nurul",
   },
   {
@@ -161,7 +161,7 @@ export const ekskulList: Ekskul[] = [
     members: 32,
     achievements: 15,
     desc: "Wadah penelitian siswa yang aktif mengikuti kompetisi sains tingkat nasional.",
-    schedule: "Rabu, 13.00–15.00",
+    schedule: "Rabu, 13.00-15.00",
     advisor: "Dr. Wahyu",
   },
   {
@@ -173,7 +173,7 @@ export const ekskulList: Ekskul[] = [
     members: 40,
     achievements: 7,
     desc: "Pasukan pengibar bendera dengan latihan kedisiplinan dan baris-berbaris.",
-    schedule: "Senin & Jumat, 15.00–17.00",
+    schedule: "Senin & Jumat, 15.00-17.00",
     advisor: "Pak Budi",
   },
   {
@@ -185,7 +185,7 @@ export const ekskulList: Ekskul[] = [
     members: 35,
     achievements: 9,
     desc: "Marching band kebanggaan sekolah yang tampil di upacara dan festival.",
-    schedule: "Rabu & Sabtu, 14.00–17.00",
+    schedule: "Rabu & Sabtu, 14.00-17.00",
     advisor: "Pak Yudi",
   },
   {
@@ -197,7 +197,7 @@ export const ekskulList: Ekskul[] = [
     members: 38,
     achievements: 5,
     desc: "Aktif dalam kegiatan sosial, donor darah, dan pelatihan pertolongan pertama.",
-    schedule: "Rabu & Sabtu, 13.00–15.00",
+    schedule: "Rabu & Sabtu, 13.00-15.00",
     advisor: "Bu Siti",
   },
   {
@@ -209,7 +209,7 @@ export const ekskulList: Ekskul[] = [
     members: 40,
     achievements: 8,
     desc: "Pasukan pengibar bendera yang terlatih dan disiplin untuk upacara resmi.",
-    schedule: "Senin & Jumat, 15.00–17.00",
+    schedule: "Senin & Jumat, 15.00-17.00",
     advisor: "Pak Dedi",
   },
   {
@@ -221,7 +221,7 @@ export const ekskulList: Ekskul[] = [
     members: 16,
     achievements: 5,
     desc: "Latihan bela diri tradisional Indonesia dengan fokus pada seni dan prestasi.",
-    schedule: "Sabtu, 09.00–11.00",
+    schedule: "Sabtu, 09.00-11.00",
     advisor: "Pak Andri",
   },
   {
@@ -232,8 +232,8 @@ export const ekskulList: Ekskul[] = [
     thumb: `${THUMB_DIR}/sie-rohani-katolik.webp`,
     members: 25,
     achievements: 3,
-    desc: "Kegiatan kerohanian Katolik — misa bersama, doa, dan aksi sosial.",
-    schedule: "Jumat, 13.00–14.30",
+    desc: "Kegiatan kerohanian Katolik, misa bersama, doa, dan aksi sosial.",
+    schedule: "Jumat, 13.00-14.30",
     advisor: "Bu Clara",
   },
   {
@@ -244,8 +244,8 @@ export const ekskulList: Ekskul[] = [
     thumb: `${THUMB_DIR}/srp.webp`,
     members: 22,
     achievements: 3,
-    desc: "Kegiatan kerohanian Protestan — persekutuan, doa, dan pelayanan sosial.",
-    schedule: "Jumat, 13.00–14.30",
+    desc: "Kegiatan kerohanian Protestan, persekutuan, doa, dan pelayanan sosial.",
+    schedule: "Jumat, 13.00-14.30",
     advisor: "Pak Yohanes",
   },
   {
@@ -257,7 +257,7 @@ export const ekskulList: Ekskul[] = [
     members: 28,
     achievements: 12,
     desc: "Tim basket sekolah yang aktif berkompetisi di turnamen pelajar Jakarta.",
-    schedule: "Selasa & Kamis, 14.00–16.00",
+    schedule: "Selasa & Kamis, 14.00-16.00",
     advisor: "Pak Fajar",
   },
   {
@@ -269,7 +269,7 @@ export const ekskulList: Ekskul[] = [
     members: 18,
     achievements: 6,
     desc: "Klub panahan dengan latihan rutin dan kejuaraan tingkat kota hingga nasional.",
-    schedule: "Sabtu, 08.00–10.00",
+    schedule: "Sabtu, 08.00-10.00",
     advisor: "Pak Doni",
   },
   {
@@ -281,7 +281,7 @@ export const ekskulList: Ekskul[] = [
     members: 25,
     achievements: 6,
     desc: "Grup musik siswa yang tampil di berbagai acara sekolah dan kompetisi.",
-    schedule: "Senin & Kamis, 13.00–15.00",
+    schedule: "Senin & Kamis, 13.00-15.00",
     advisor: "Bu Rina",
   },
   {
@@ -293,7 +293,7 @@ export const ekskulList: Ekskul[] = [
     members: 30,
     achievements: 8,
     desc: "Tim cheerleading dengan koreografi energik untuk mendukung tim sekolah.",
-    schedule: "Rabu & Sabtu, 14.00–16.00",
+    schedule: "Rabu & Sabtu, 14.00-16.00",
     advisor: "Bu Maya",
   },
   {
@@ -305,7 +305,7 @@ export const ekskulList: Ekskul[] = [
     members: 24,
     achievements: 9,
     desc: "Tim olahraga kebanggaan sekolah yang aktif di kompetisi antarpelajar.",
-    schedule: "Selasa & Jumat, 15.00–17.00",
+    schedule: "Selasa & Jumat, 15.00-17.00",
     advisor: "Pak Rizky",
   },
   {
@@ -317,7 +317,7 @@ export const ekskulList: Ekskul[] = [
     members: 22,
     achievements: 8,
     desc: "Tim olahraga yang berkompetisi di berbagai kejuaraan pelajar tingkat kota.",
-    schedule: "Senin & Kamis, 15.00–17.00",
+    schedule: "Senin & Kamis, 15.00-17.00",
     advisor: "Pak Fajar",
   },
   {
@@ -329,7 +329,7 @@ export const ekskulList: Ekskul[] = [
     members: 20,
     achievements: 6,
     desc: "Klub olahraga yang rutin berlatih dan mengikuti turnamen antarpelajar.",
-    schedule: "Rabu & Jumat, 15.00–17.00",
+    schedule: "Rabu & Jumat, 15.00-17.00",
     advisor: "Pak Andri",
   },
   {
@@ -341,7 +341,7 @@ export const ekskulList: Ekskul[] = [
     members: 30,
     achievements: 5,
     desc: "Grup musik islami yang tampil di acara sekolah dan peringatan hari besar.",
-    schedule: "Jumat, 15.00–17.00",
+    schedule: "Jumat, 15.00-17.00",
     advisor: "Ustadz Fikri",
   },
   {
@@ -353,7 +353,7 @@ export const ekskulList: Ekskul[] = [
     members: 24,
     achievements: 7,
     desc: "Komunitas e-sport sekolah dengan latihan rutin dan turnamen antarsekolah.",
-    schedule: "Jumat, 15.00–17.00",
+    schedule: "Jumat, 15.00-17.00",
     advisor: "Pak Bima",
   },
   {
@@ -365,7 +365,7 @@ export const ekskulList: Ekskul[] = [
     members: 60,
     achievements: 4,
     desc: "Organisasi kerohanian Islam yang aktif dalam kegiatan keagamaan dan sosial.",
-    schedule: "Jumat, 12.00–13.30",
+    schedule: "Jumat, 12.00-13.30",
     advisor: "Pak Hendra",
   },
 ];

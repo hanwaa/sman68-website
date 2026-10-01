@@ -45,25 +45,37 @@ export default function HeroSection() {
   const bgY = useTransform(scrollY, [0, 800], [0, 300]);
   const contentY = useTransform(scrollY, [0, 800], [0, -50]);
 
+  // Parallax hanya di perangkat pointer presisi (laptop/desktop). Di HP
+  // dimatikan: menghemat baterai dan menghindari lompatan address bar.
+  const [finePointer, setFinePointer] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    setFinePointer(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setFinePointer(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  const enableParallax = finePointer && !reduceMotion;
+
   return (
     <section
-      className="hero-slideshow relative min-h-[100dvh] flex items-center overflow-hidden bg-brand-pine"
+      className="hero-slideshow relative min-h-[100svh] flex items-center overflow-hidden bg-brand-pine"
       aria-label="Hero: Identitas SMAN 68 Jakarta"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
       <div className="absolute -top-20 -bottom-20 inset-x-0" aria-hidden="true">
         <motion.div
-          style={reduceMotion ? undefined : { y: bgY }}
+          style={enableParallax ? { y: bgY } : undefined}
           className="absolute inset-0"
         >
           <AnimatePresence mode="sync" initial={false}>
             {slideCount > 0 && (
               <motion.div
                 key={currentSlide}
-                initial={{ opacity: 0, filter: "blur(2px)", transform: "scale(1.02)" }}
-                animate={{ opacity: 1, filter: "blur(0px)", transform: "scale(1)" }}
-                exit={{ opacity: 0, filter: "blur(2px)" }}
+                initial={{ opacity: 0, transform: "scale(1.02)" }}
+                animate={{ opacity: 1, transform: "scale(1)" }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                 className="absolute inset-0"
               >
@@ -85,7 +97,7 @@ export default function HeroSection() {
 
       <div className="container-custom relative z-10 pt-24 md:pt-28 pb-24 md:pb-32 translate-y-8 md:translate-y-12">
         <motion.div
-          style={reduceMotion ? undefined : { y: contentY }}
+          style={enableParallax ? { y: contentY } : undefined}
           className="max-w-4xl mx-auto text-center"
         >
           <h1

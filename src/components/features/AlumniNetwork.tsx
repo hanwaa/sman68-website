@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { A11yOverlay } from "@/components/ui/A11yOverlay";
@@ -57,7 +57,7 @@ type Alumni = {
 const toDirectory = (a: AlumniRow): Alumni => ({
   id: a.id,
   name: a.name,
-  angkatan: a.graduationYear == null ? "—" : String(a.graduationYear),
+  angkatan: a.graduationYear == null ? "-" : String(a.graduationYear),
   jurusan: a.jobTitle,
   fakultas: a.company,
   kuliah: a.universityName ?? "",
@@ -88,10 +88,17 @@ export default function AlumniNetwork() {
   const [selected, setSelected] = useState<Alumni | null>(null);
   const modalRef = useModalA11y<HTMLDivElement>(!!selected, () => setSelected(null));
 
+  // Pintasan dari halaman PTN Favorit: /komunitas/alumni?kampus=... langsung
+  // mengisi pencarian agar direktori tersaring ke kampus tersebut.
+  useEffect(() => {
+    const kampus = new URLSearchParams(window.location.search).get("kampus");
+    if (kampus) setQuery(kampus);
+  }, []);
+
   const angkatanOptions = useMemo(
     () => [
       "Semua",
-      ...Array.from(new Set(alumni.map((a) => a.angkatan).filter((a) => a !== "—"))).sort((a, b) =>
+      ...Array.from(new Set(alumni.map((a) => a.angkatan).filter((a) => a !== "-"))).sort((a, b) =>
         b.localeCompare(a)
       ),
     ],
@@ -117,7 +124,7 @@ export default function AlumniNetwork() {
             Jaringan Alumni <span className="text-brand-lime">SMAN 68</span>
           </>
         }
-        lead="Alumni SMAN 68 Jakarta yang melanjutkan pendidikan di berbagai kampus ternama — terhubung lewat LinkedIn."
+        lead="Alumni SMAN 68 Jakarta yang melanjutkan pendidikan di berbagai kampus ternama, terhubung lewat LinkedIn."
       >
         <div className="flex flex-wrap items-center gap-2.5">
           {loading
@@ -204,11 +211,10 @@ export default function AlumniNetwork() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ delay: Math.min(i * 0.05, 0.3) }}
-                whileHover={{ y: -3 }}
               >
                 <button
                   onClick={() => setSelected(a)}
-                  className="group relative block aspect-[16/10] w-full overflow-hidden rounded-2xl bg-brand-pine text-left sm:aspect-[4/3]"
+                  className="group relative block aspect-[16/10] w-full overflow-hidden rounded-2xl bg-brand-pine text-left transition-transform duration-200 ease-out hover:-translate-y-1 sm:aspect-[4/3]"
                   aria-label={`Lihat detail ${a.name}`}
                 >
                   {a.photo ? (

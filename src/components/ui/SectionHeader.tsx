@@ -34,16 +34,11 @@ export default function SectionHeader({
         {eyebrow && (
           <p
             className={cn(
-              "flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] mb-4",
-              centered && "justify-center",
+              "text-xs font-semibold uppercase tracking-[0.2em] mb-4",
               dark ? "text-brand-lime" : "text-brand-green"
             )}
           >
-            <span className={cn("w-8 h-px", dark ? "bg-brand-lime" : "bg-brand-green")} />
             {eyebrow}
-            {centered && (
-              <span className={cn("w-8 h-px", dark ? "bg-brand-lime" : "bg-brand-green")} />
-            )}
           </p>
         )}
         <h2 className={cn("font-display display-heading", dark ? "text-white" : "text-ink")}>

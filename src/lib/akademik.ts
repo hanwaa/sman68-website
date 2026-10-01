@@ -160,7 +160,7 @@ function teacherIdentity(index: number): { name: string; nig: string } {
   return { name, nig };
 }
 
-/** Bangun 24 kelas (X–XII, 8 per angkatan), 24 wali kelas, dan 720 siswa. */
+/** Bangun 24 kelas (X-XII, 8 per angkatan), 24 wali kelas, dan 720 siswa. */
 export function buildAcademicSeed(): {
   homerooms: SeedHomeroom[];
   teachers: SeedTeacher[];
@@ -310,7 +310,7 @@ export function buildDigitalSeed(academic: {
       code: `WALI-${homeroom.id.replace(".", "")}`,
       teacherName: homeroom.teacherName,
       color: DIGITAL_COLORS[index % DIGITAL_COLORS.length],
-      description: `Kelas digital wali kelas ${homeroom.name} — ${homeroom.teacherName}.`,
+      description: `Kelas digital wali kelas ${homeroom.name}, ${homeroom.teacherName}.`,
     });
 
     const roster = academic.students.filter((student) => student.className === homeroom.name);

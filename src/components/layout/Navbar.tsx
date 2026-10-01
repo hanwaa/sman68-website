@@ -17,6 +17,7 @@ import {
   Users,
   Star,
   Calendar,
+  GraduationCap,
   Map,
   MapPin,
   Trophy,
@@ -80,7 +81,9 @@ const navItems = [
     children: [
       { label: "Profil Sekolah", href: "/tentang/profil", icon: BookOpen },
       { label: "Visi & Misi", href: "/tentang/visi-misi", icon: Star },
-      { label: "Guru & Staf", href: "/tentang/guru-staf", icon: Users },
+      { label: "Struktur Organisasi", href: "/tentang/struktur-organisasi", icon: Users },
+      { label: "Struktur Tata Usaha", href: "/tentang/struktur-tu", icon: Users },
+      { label: "PPID", href: "/tentang/ppid", icon: BookOpen },
       { label: "Fasilitas", href: "/tentang/fasilitas", icon: Map },
     ],
   },
@@ -99,6 +102,7 @@ const navItems = [
       { label: "Berita", href: "/berita", icon: BookOpen },
       { label: "Prestasi", href: "/prestasi", icon: Trophy },
       { label: "Galeri", href: "/kehidupan/galeri", icon: Map },
+      { label: "Info Mutasi", href: "/layanan/mutasi", icon: BookOpen },
     ],
   },
   {
@@ -106,6 +110,7 @@ const navItems = [
     href: "/komunitas",
     children: [
       { label: "Alumni", href: "/komunitas/alumni", icon: Users },
+      { label: "PTN Favorit", href: "/komunitas/ptnfavorit", icon: GraduationCap },
       { label: "Testimoni", href: "/#testimoni", icon: Star },
     ],
   },
@@ -127,6 +132,14 @@ export default function Navbar() {
     setMobileOpen(false);
     setActiveDropdown(null);
   }, [pathname]);
+
+  // Cleanup timer dropdown saat unmount (hindari setState pasca-unmount).
+  useEffect(
+    () => () => {
+      if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
+    },
+    []
+  );
 
   useEffect(() => {
     if (scrolled) setActiveDropdown(null);
@@ -217,7 +230,7 @@ export default function Navbar() {
 
             <div className="flex items-center gap-4">
               <span className="hidden lg:inline text-ink/70">
-                Senin–Jumat, 07.00–15.30 WIB
+                Senin-Jumat, 07.00-15.30 WIB
               </span>
               <span className="w-px h-3.5 bg-line hidden lg:block" aria-hidden="true" />
               <div className="flex items-center gap-3 text-ink/70">
@@ -517,16 +530,16 @@ export default function Navbar() {
                     const q = searchQuery.toLowerCase();
                     const results = [
                       { title: "Tim Robotika SMAN 68 Raih Juara 1 Nasional", type: "Berita", href: "/berita/tim-robotika-juara-1-nasional" },
-                      { title: "PPDB Resmi Dibuka — Jadwal & Syarat", type: "Pengumuman", href: "/ppdb" },
+                      { title: "PPDB Resmi Dibuka, Jadwal & Syarat", type: "Pengumuman", href: "/ppdb" },
                       { title: "Festival Seni SMAN 68", type: "Kegiatan", href: "/berita/festival-seni-sman-68" },
-                      { title: "Drs. Ahmad Fauzi, M.Pd. — Matematika", type: "Guru", href: "/tentang/guru-staf" },
+                      { title: "Drs. Ahmad Fauzi, M.Pd. (Matematika)", type: "Guru", href: "/tentang/struktur-organisasi" },
                       { title: "Basket Putra", type: "Ekskul", href: "/kehidupan/ekskul" },
                       { title: "Paduan Suara", type: "Ekskul", href: "/kehidupan/ekskul" },
                       { title: "Robotika", type: "Ekskul", href: "/kehidupan/ekskul" },
                       { title: "Laboratorium Komputer", type: "Fasilitas", href: "/tentang/fasilitas" },
                       { title: "Perpustakaan", type: "Fasilitas", href: "/tentang/fasilitas" },
                       { title: "Juara 1 Olimpiade Matematika Nasional", type: "Prestasi", href: "/prestasi" },
-                      { title: "Best Innovation — International Science Fair", type: "Prestasi", href: "/prestasi" },
+                      { title: "Best Innovation, International Science Fair", type: "Prestasi", href: "/prestasi" },
                     ].filter((item) => item.title.toLowerCase().includes(q) || item.type.toLowerCase().includes(q));
 
                     return results.length > 0 ? (
@@ -567,7 +580,8 @@ export default function Navbar() {
                         { label: "Agenda & Jadwal", href: "/dashboard", icon: Calendar },
                         { label: "Info PPDB", href: "/ppdb", icon: BookOpen },
                         { label: "Ekskul & Organisasi", href: "/kehidupan/ekskul", icon: Users },
-                        { label: "Guru & Staf", href: "/tentang/guru-staf", icon: Users },
+                        { label: "Struktur Organisasi", href: "/tentang/struktur-organisasi", icon: Users },
+                        { label: "Struktur Tata Usaha", href: "/tentang/struktur-tu", icon: Users },
                         { label: "Fasilitas & Denah Ruang", href: "/tentang/fasilitas", icon: Map },
                       ].map((item) => {
                         const Icon = item.icon;

@@ -7,7 +7,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Visi & Misi",
   description:
-    "Visi dan misi SMA Negeri 68 Jakarta — arah pendidikan, nilai sekolah, dan target capaian siswa.",
+    "Visi dan misi SMA Negeri 68 Jakarta, arah pendidikan, nilai sekolah, dan target capaian siswa.",
   path: "/tentang/visi-misi",
 });
 

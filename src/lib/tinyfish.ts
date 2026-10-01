@@ -2,7 +2,7 @@ import "server-only";
 
 const SEARCH_ENDPOINT = "https://api.search.tinyfish.ai";
 const FETCH_ENDPOINT = "https://api.fetch.tinyfish.ai";
-const TIMEOUT_MS = 8_000;
+const TIMEOUT_MS = 5_000;
 
 export type WebSource = { title: string; url: string; snippet: string };
 
@@ -128,8 +128,16 @@ async function cached<T>(key: string, ttl: number, run: () => Promise<T>): Promi
     const value = await run();
     cache.set(key, { at: Date.now(), value });
     if (cache.size > 200) {
+      const now = Date.now();
       for (const [existing, entry] of cache) {
-        if (Date.now() - entry.at > ttl) cache.delete(existing);
+        if (now - entry.at > ttl) cache.delete(existing);
+        if (cache.size <= 200) break;
+      }
+      // Batas keras FIFO bila semua entry masih segar.
+      while (cache.size > 200) {
+        const oldest = cache.keys().next();
+        if (oldest.done) break;
+        cache.delete(oldest.value);
       }
     }
     return value;
